@@ -13,5 +13,11 @@ object Routes {
     var helpVw = "help_view"
     var meetingVw = "meeting_view"
 
-}
+    var suitVw = "suit_view"
+    var casosVw = "casos_view"
+    var espaciosVw = "espacios_view"
+    var alumnosVw = "alumnos_view"
 
+    var detalleVw = "detalle_view"
+
+}

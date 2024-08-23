@@ -4,14 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,6 +16,11 @@ import com.secal.juraid.Views.LoginView
 import com.secal.juraid.Views.MeetingView
 import com.secal.juraid.Views.ServiciosView
 import com.secal.juraid.Views.SignUpView
+import com.secal.juraid.Views.SuitViews.AlumnosView
+import com.secal.juraid.Views.SuitViews.CasosView
+import com.secal.juraid.Views.SuitViews.DetalleView
+import com.secal.juraid.Views.SuitViews.EspaciosView
+import com.secal.juraid.Views.SuitViews.SuitHomeView
 import com.secal.juraid.Views.UserView
 import com.secal.juraid.ui.theme.JurAidTheme
 
@@ -66,6 +65,29 @@ fun UserScreen(){
         composable(Routes.meetingVw){
             MeetingView(navController = navController)
         }
+
+        composable(Routes.suitVw){
+            SuitHomeView(navController = navController)
+        }
+
+        composable(Routes.casosVw){
+            CasosView(navController = navController)
+        }
+
+        composable(Routes.espaciosVw){
+            EspaciosView(navController = navController)
+        }
+
+        composable(Routes.alumnosVw){
+            AlumnosView(navController = navController)
+        }
+
+
+        composable(Routes.detalleVw){
+            DetalleView(navController = navController)
+        }
+
+
     }
 
 }

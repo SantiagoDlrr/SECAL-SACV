@@ -73,7 +73,9 @@ fun BienvenidaView(navController: NavController){
             Text(text = "Navegar al menú")
         }
 
-        Button(onClick = { /*TODO*/ }) {
+        Button(onClick = {
+            navController.navigate(Routes.suitVw)
+        }) {
             Text(text = "Acceso abogado")
         }
 
