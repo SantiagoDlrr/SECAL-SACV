@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.secal.juraid.Routes
 
 @Composable
 fun CircleShapeDemo(){
@@ -46,7 +48,7 @@ fun ExampleBox(shape: Shape){
 }
 
 @Composable
-fun BienvenidaScreen(){
+fun BienvenidaView(navController: NavController){
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -65,7 +67,9 @@ fun BienvenidaScreen(){
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { /*TODO*/ }) {
+        Button(onClick = {
+            navController.navigate(Routes.homeVw)
+        }) {
             Text(text = "Navegar al menú")
         }
 
@@ -76,8 +80,3 @@ fun BienvenidaScreen(){
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun BienvenidaPreview(){
-    BienvenidaScreen()
-}

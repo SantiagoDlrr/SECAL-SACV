@@ -11,6 +11,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.secal.juraid.Views.BienvenidaView
+import com.secal.juraid.Views.HomeView
+import com.secal.juraid.Views.ServiciosView
+import com.secal.juraid.Views.UserView
 import com.secal.juraid.ui.theme.JurAidTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,4 +32,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+@Preview(showBackground = true)
+@Composable
+fun UserScreen(){
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Routes.bienvenidaVw){
+        composable(Routes.bienvenidaVw){
+            BienvenidaView(navController = navController)
+        }
+        composable(Routes.homeVw){
+            HomeView(navController = navController)
+        }
+        composable(Routes.serviciosVw){
+            ServiciosView(navController = navController)
+        }
+        composable(Routes.userVw){
+            UserView(navController = navController)
+        }
+
+    }
+
+}
 
