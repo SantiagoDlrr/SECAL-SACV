@@ -10,5 +10,8 @@ object Routes {
     var loginVw = "login_view"
     var signUpVw = "signup_view"
 
+    var helpVw = "help_view"
+    var meetingVw = "meeting_view"
+
 }
 

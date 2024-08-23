@@ -158,7 +158,9 @@ fun UserView(navController: NavController) {
                 },
                 floatingActionButton = {
                     ExtendedFloatingActionButton(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate(Routes.helpVw)
+                        },
                         icon = { },
                         text = { Text(text = "Necesito\r\n   Ayuda") },
                     )

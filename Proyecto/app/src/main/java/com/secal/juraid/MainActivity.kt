@@ -16,8 +16,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.secal.juraid.Views.BienvenidaView
+import com.secal.juraid.Views.HelpView
 import com.secal.juraid.Views.HomeView
 import com.secal.juraid.Views.LoginView
+import com.secal.juraid.Views.MeetingView
 import com.secal.juraid.Views.ServiciosView
 import com.secal.juraid.Views.SignUpView
 import com.secal.juraid.Views.UserView
@@ -57,6 +59,12 @@ fun UserScreen(){
         }
         composable(Routes.signUpVw){
             SignUpView(navController = navController)
+        }
+        composable(Routes.helpVw){
+            HelpView(navController = navController)
+        }
+        composable(Routes.meetingVw){
+            MeetingView(navController = navController)
         }
     }
 
