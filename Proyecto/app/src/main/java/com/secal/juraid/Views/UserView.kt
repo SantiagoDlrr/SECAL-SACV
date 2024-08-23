@@ -99,11 +99,15 @@ fun UserView(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = {
+                    navController.navigate(Routes.loginVw)
+                }) {
                     Text(text = "Inicia Sesión")
                 }
 
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = {
+                    navController.navigate(Routes.signUpVw)
+                }) {
                     Text(text = "Registrate")
                 }
             }

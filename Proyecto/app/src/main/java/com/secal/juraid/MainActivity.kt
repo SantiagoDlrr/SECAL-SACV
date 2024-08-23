@@ -17,7 +17,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.secal.juraid.Views.BienvenidaView
 import com.secal.juraid.Views.HomeView
+import com.secal.juraid.Views.LoginView
 import com.secal.juraid.Views.ServiciosView
+import com.secal.juraid.Views.SignUpView
 import com.secal.juraid.Views.UserView
 import com.secal.juraid.ui.theme.JurAidTheme
 
@@ -50,7 +52,12 @@ fun UserScreen(){
         composable(Routes.userVw){
             UserView(navController = navController)
         }
-
+        composable(Routes.loginVw){
+            LoginView(navController = navController)
+        }
+        composable(Routes.signUpVw){
+            SignUpView(navController = navController)
+        }
     }
 
 }
