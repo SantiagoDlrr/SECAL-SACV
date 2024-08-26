@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             JurAidTheme {
+                UserScreen()
             }
         }
     }
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UserScreen(){
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Routes.bienvenidaVw){
+    NavHost(navController = navController, startDestination = Routes.homeVw){
         composable(Routes.bienvenidaVw){
             BienvenidaView(navController = navController)
         }
