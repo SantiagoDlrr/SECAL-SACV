@@ -44,116 +44,42 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.secal.juraid.BottomBar
+import com.secal.juraid.HelpButton
 import com.secal.juraid.Routes
+import com.secal.juraid.TopBar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ServiciosView(navController : NavController) {
-    Scaffold (
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(
-                        "LOGO TEXTO",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Routes.bienvenidaVw)
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.Menu,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-            )
-        },
-
-        content = {
-            Column (
+    Scaffold(
+        bottomBar = { BottomBar(navController = navController) },
+        topBar = { TopBar() }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            // Contenido de la vista
+            Column(
                 modifier = Modifier
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Servicios View")
+                Text(
+                    text = "Servicios",
+                    modifier = Modifier.padding(16.dp)
+                )
+
             }
-        },
 
-        bottomBar = {
-            BottomAppBar(
-                actions = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.homeVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.Home, contentDescription = "Localized description")
-                                Text(text = "Inicio")
-                            }
-                        }
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.serviciosVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.LocationOn, contentDescription = "Localized description")
-                                Text(text = "Servicios")
-                            }
-                        }
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.userVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.AccountCircle, contentDescription = "Localized description")
-                                Text(text = "Usuario")
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(0.1f))
-                    }
-                },
-                floatingActionButton = {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            navController.navigate(Routes.helpVw)
-                        },
-                        icon = { },
-                        text = { Text(text = "Necesito\r\n   Ayuda") },
-                    )
-                }
-            )
-
-
+            HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
         }
-    )
+    }
 }
 
 
