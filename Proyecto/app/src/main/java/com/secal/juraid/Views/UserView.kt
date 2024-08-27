@@ -102,7 +102,9 @@ fun UserView(navController: NavController) {
                 Button(onClick = {
                     navController.navigate(Routes.signUpVw)
                 },
-                    modifier = Modifier.size(200.dp, 50.dp))
+                    modifier = Modifier.size(200.dp, 50.dp),
+
+                )
                 {
                     Text(text = "Registrate", fontSize = 15.sp)
                 }
