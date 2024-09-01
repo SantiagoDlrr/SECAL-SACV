@@ -65,6 +65,7 @@ fun LoginView(navController: NavController) {
             ) {
             Column {
                 LoginCardView(navController)
+                DontHaveAccountView(navController)
             }
         }
 
@@ -145,5 +146,35 @@ fun LoginCardView(navController: NavController) {
             }
         }
     }
+}
+
+@Composable
+fun DontHaveAccountView(navController: NavController){
+    Card(
+        modifier = Modifier
+            .padding(16.dp)
+            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(16.dp)
+        ) {
+
+            Text(text = "¿No tienes una cuenta?", style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { navController.navigate(Routes.signUpVw) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Registrate")
+            }
+        }
+    }
 
 }
+

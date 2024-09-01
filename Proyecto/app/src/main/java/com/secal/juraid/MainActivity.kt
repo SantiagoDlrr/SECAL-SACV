@@ -23,6 +23,9 @@ import com.secal.juraid.Views.SuitViews.EspaciosView
 import com.secal.juraid.Views.SuitViews.SuitHomeView
 import com.secal.juraid.Views.UserView
 import com.secal.juraid.ui.theme.JurAidTheme
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,61 +39,57 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
+@OptIn(ExperimentalAnimationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun UserScreen(){
+fun UserScreen() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Routes.homeVw){
-        composable(Routes.bienvenidaVw){
+    NavHost(
+        navController = navController,
+        startDestination = Routes.homeVw,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
+    ) {
+        composable(Routes.bienvenidaVw) {
             BienvenidaView(navController = navController)
         }
-        composable(Routes.homeVw){
+        composable(Routes.homeVw) {
             HomeView(navController = navController)
         }
-        composable(Routes.serviciosVw){
+        composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
         }
-        composable(Routes.userVw){
+        composable(Routes.userVw) {
             UserView(navController = navController)
         }
-        composable(Routes.loginVw){
+        composable(Routes.loginVw) {
             LoginView(navController = navController)
         }
-        composable(Routes.signUpVw){
+        composable(Routes.signUpVw) {
             SignUpView(navController = navController)
         }
-        composable(Routes.helpVw){
+        composable(Routes.helpVw) {
             HelpView(navController = navController)
         }
-        composable(Routes.meetingVw){
+        composable(Routes.meetingVw) {
             MeetingView(navController = navController)
         }
-
-        composable(Routes.suitVw){
+        composable(Routes.suitVw) {
             SuitHomeView(navController = navController)
         }
-
-        composable(Routes.casosVw){
+        composable(Routes.casosVw) {
             CasosView(navController = navController)
         }
-
-        composable(Routes.espaciosVw){
+        composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
         }
-
-        composable(Routes.alumnosVw){
+        composable(Routes.alumnosVw) {
             AlumnosView(navController = navController)
         }
-
-
-        composable(Routes.detalleVw){
+        composable(Routes.detalleVw) {
             DetalleView(navController = navController)
         }
-
-
     }
-
 }
-

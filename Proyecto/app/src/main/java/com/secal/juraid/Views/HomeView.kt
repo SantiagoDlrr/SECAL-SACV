@@ -27,11 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
 import com.secal.juraid.TopBar
+import com.secal.juraid.CategorySection
 import kotlinx.coroutines.delay
 
 @Composable
@@ -85,47 +85,7 @@ fun SearchBar() {
     )
 }
 
-@Composable
-fun CategorySection(title: String, items: List<String>) {
-    Spacer(modifier = Modifier.height(16.dp))
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        Text(text = title, modifier = Modifier.padding(bottom = 8.dp),
-            fontSize = 20.sp)
 
-        LazyRow(modifier = Modifier.fillMaxWidth()) {
-            items(items.size) { index ->
-                CategoryItem(item = items[index])
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-        }
-    }
-}
-
-
-
-@Composable
-fun CategoryItem(item: String) {
-    Card(
-        onClick = { /*TODO*/ },
-    ) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
-
-        }
-        Text(
-            text = item,
-            modifier = Modifier.padding(10.dp)
-            )
-    }
-
-}
 
 @Composable
 fun LargeCardCarousel(items: List<String>) {

@@ -211,8 +211,8 @@ fun SignCardView(navController: NavController) {
                     Text("OK")
                 }
             },
-            title = { Text("Registro Enviado") },
-            text = { Text("Se ha enviado una confirmación de registro al correo proporcionado.") }
+            title = { Text("Verifica tu correo") },
+            text = { Text("Se te envió un correo de confirmación para la creación de tu cuenta") }
         )
     }
 }

@@ -1,6 +1,9 @@
 package com.secal.juraid.Views
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,46 +11,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
-import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
+import androidx.compose.ui.platform.LocalContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,17 +54,15 @@ fun ServiciosView(navController : NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Contenido de la vista
             Column(
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
             ) {
-                Text(
-                    text = "Servicios",
-                    modifier = Modifier.padding(16.dp)
-                )
+                MapCardView()
+                ServiceDistribution("Preguntas Frecuentes 1", "Preguntas Frecuentes 2")
+                ServiceDistribution("Preguntas Frecuentes 3", "Preguntas Frecuentes 4")
+
 
             }
 
@@ -81,6 +70,109 @@ fun ServiciosView(navController : NavController) {
         }
     }
 }
+
+@Composable
+fun MapCardView() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        val context = LocalContext.current
+        Card(
+            onClick = {
+                val gmmIntentUri = Uri.parse("https://maps.app.goo.gl/rdYMmwrTHGwQ7Png7")
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+
+
+                if (mapIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(mapIntent)
+                }
+            },
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .width(350.dp)
+                .height(200.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.LocationOn,
+                        contentDescription = "Ubicación de la Clínica",
+                        modifier = Modifier.size(100.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.padding(10.dp))
+
+                    Text(
+                        text = "Ubicación de la Clínica",
+                        fontSize = 20.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+
+@Composable
+fun ServiceDistribution(item1: String, item2: String) {
+    Spacer(modifier = Modifier.height(16.dp))
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 8.dp)
+
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+                ServiceCardView(item1)
+                Spacer(modifier = Modifier.width(16.dp))
+                ServiceCardView(item2)
+
+        }
+    }
+}
+
+@Composable
+fun ServiceCardView(item: String) {
+    Card(
+        onClick = {},
+        modifier = Modifier
+            .width(160.dp)  // Ancho de la tarjeta
+            .height(100.dp) // Altura de la tarjeta
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(), // Ocupa todo el tamaño disponible de la tarjeta
+            contentAlignment = Alignment.Center // Centra el contenido dentro del Box
+        ) {
+            Text(
+                text = item,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(), // Ocupa todo el ancho disponible
+                maxLines = 2, // Limita las líneas a 2
+                overflow = TextOverflow.Ellipsis, // Si es muy largo, añade "..."
+                textAlign = TextAlign.Center,
+                fontSize = 17.sp
+            )
+        }
+    }
+}
+
+
 
 
 
