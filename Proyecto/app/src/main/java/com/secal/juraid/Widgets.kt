@@ -1,6 +1,8 @@
 package com.secal.juraid
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +50,6 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
         }
     }
 }
-
 
 @Composable
 fun BottomBar(navController: NavController) {
@@ -106,7 +109,6 @@ fun BottomBar(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar() {
     Row(
@@ -145,7 +147,6 @@ fun CategorySection(title: String, items: List<String>) {
     }
 }
 
-
 @Composable
 fun CategoryItem(item: String) {
     Card(
@@ -162,11 +163,36 @@ fun CategoryItem(item: String) {
         }
         Text(
             text = item,
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
                 .fillMaxWidth(),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
 
+}
+
+@Composable
+fun TitlesView(title: String){
+    Spacer(modifier = Modifier.height(16.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+
+    ) {
+
+        Text(
+            text = title,
+            fontSize = 20.sp,
+            modifier = Modifier.padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+    }
 }
