@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
@@ -45,19 +48,20 @@ fun HomeView(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .align(Alignment.TopStart)
+                    .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
             ) {
                 SearchBar()
-
                 LargeCardCarousel(items = listOf("Card 1", "Card 2", "Card 3", "Card 4"))
                 CategorySection(title = "Categoría 1", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"))
                 CategorySection(title = "Categoría 2", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"))
+                Spacer(modifier = Modifier.padding(16.dp))
             }
 
             HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
         }
     }
 }
+
 
 
 @Composable
@@ -87,7 +91,8 @@ fun CategorySection(title: String, items: List<String>) {
     Column(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp)) {
-        Text(text = title, modifier = Modifier.padding(bottom = 8.dp))
+        Text(text = title, modifier = Modifier.padding(bottom = 8.dp),
+            fontSize = 20.sp)
 
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(items.size) { index ->
@@ -102,16 +107,22 @@ fun CategorySection(title: String, items: List<String>) {
 
 @Composable
 fun CategoryItem(item: String) {
-    Card(onClick = { /*TODO*/ }) {
+    Card(
+        onClick = { /*TODO*/ },
+    ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(200.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = item)
+
         }
+        Text(
+            text = item,
+            modifier = Modifier.padding(10.dp)
+            )
     }
 
 }
@@ -144,7 +155,8 @@ fun LargeCardCarousel(items: List<String>) {
         state = listState,
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        userScrollEnabled = true
     ) {
         items(extendedItems.size) { index ->
             LargeCardItem(item = extendedItems[index])
@@ -158,7 +170,7 @@ fun LargeCardItem(item: String) {
         onClick = { /* TODO: Acción al hacer clic en la tarjeta */ },
         modifier = Modifier
             .width(350.dp)  // Anchura de la tarjeta
-            .height(150.dp)  // Altura de la tarjeta
+            .height(200.dp)  // Altura de la tarjeta
             .clip(RoundedCornerShape(16.dp))
     ) {
         Box(
