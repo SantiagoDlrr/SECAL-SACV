@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.Generals
+package com.secal.juraid.Views.Generals.BaseViews
 
 import android.annotation.SuppressLint
 import android.content.Intent

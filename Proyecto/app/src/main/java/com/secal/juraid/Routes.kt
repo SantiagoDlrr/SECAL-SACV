@@ -19,9 +19,16 @@ object Routes {
     var alumnosVw = "alumnos_view"
 
     var detalleVw = "detalle_view"
-
     var studentHomeVw = "student_home_view"
-
     var userHomeVw = "user_home_view"
+    var casosStVw = "casos_student_view"
+
+    var editDetalleVw = "edit_detalle_view"
+
+    var alumnoDetailVw = "alumno_detail_view"
+
+    var articulosVw = "articulos_view"
+    var articuloDetailVw = "articulo_detail_view"
+
 
 }

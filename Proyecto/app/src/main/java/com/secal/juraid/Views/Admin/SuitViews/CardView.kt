@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.SuitViews
+package com.secal.juraid.Views.Admin.SuitViews
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding

@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
@@ -59,7 +58,7 @@ fun AlumnosCardView(navController: NavController) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                onClick = { navController.navigate(Routes.detalleVw) }
+                onClick = { navController.navigate(Routes.alumnoDetailVw) }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

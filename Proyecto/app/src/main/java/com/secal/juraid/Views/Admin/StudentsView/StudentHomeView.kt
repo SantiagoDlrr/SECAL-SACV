@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.SuitViews
+package com.secal.juraid.Views.Admin.StudentsView
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,9 +22,8 @@ import com.secal.juraid.NameUserCard
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 
-
 @Composable
-fun SuitHomeView(navController: NavController) {
+fun StudentHomeView(navController: NavController) {
     Scaffold (
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -37,33 +37,29 @@ fun SuitHomeView(navController: NavController) {
 
             ) {
             Column {
-                SuitHomeCardView(navController = navController)
+                StudentHomeCardView(navController = navController)
             }
         }
+
     }
 }
 
 
 @Composable
-fun SuitHomeCardView(navController: NavController) {
+fun StudentHomeCardView(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
 
-        NameUserCard("John Doe", "Abogado")
+        NameUserCard("Jane Doe", "Estudiante")
 
         Spacer(modifier = Modifier.padding(16.dp))
 
         Column {
-            ButtonUserCard(navController = navController, "Casos", Icons.Outlined.Menu, route = Routes.casosVw)
-            ButtonUserCard(navController = navController, "Espacios", Icons.Outlined.DateRange, route = Routes.espaciosVw)
-            ButtonUserCard(navController = navController, "Alumnos", Icons.Outlined.AccountCircle, route = Routes.alumnosVw)
-        }
+            ButtonUserCard(navController = navController, "Mis Casos", Icons.Outlined.Menu, route = Routes.casosStVw)
+            ButtonUserCard(navController = navController, "Articulos", Icons.Outlined.Search, route = Routes.espaciosVw)
+           }
 
     }
 }
-
-
-
-

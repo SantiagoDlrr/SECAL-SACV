@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.Users
+package com.secal.juraid.Views.Generals.Users
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +52,7 @@ fun UserHomeCardView(navController: NavController) {
         Spacer(modifier = Modifier.padding(16.dp))
 
         Column {
-            ButtonUserCard(navController = navController, "Mi Caso", Icons.Outlined.Menu, route = Routes.casosVw)
+            ButtonUserCard(navController = navController, "Mi Caso", Icons.Outlined.Menu, route = Routes.detalleVw)
         }
 
     }

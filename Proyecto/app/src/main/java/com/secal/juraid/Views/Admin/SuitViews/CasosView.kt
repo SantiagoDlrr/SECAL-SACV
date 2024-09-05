@@ -40,7 +40,7 @@ fun CasosView(navController: NavController) {
             }
 
             when (selectedTabIndex) {
-                0 -> CasosCardView(navController = navController)
+                0 -> CasosCardView(navController = navController, 7)
                 1 -> AsesoriasView() // Implementa esta vista según sea necesario
             }
         }
@@ -48,9 +48,9 @@ fun CasosView(navController: NavController) {
 }
 
 @Composable
-fun CasosCardView(navController: NavController) {
+fun CasosCardView(navController: NavController, count : Int) {
     LazyColumn {
-        items(7) { index ->
+        items(count) { index ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

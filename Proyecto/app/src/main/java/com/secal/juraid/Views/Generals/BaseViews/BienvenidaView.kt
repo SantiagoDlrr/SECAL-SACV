@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.Generals
+package com.secal.juraid.Views.Generals.BaseViews
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
