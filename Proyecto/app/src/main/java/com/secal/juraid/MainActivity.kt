@@ -33,6 +33,7 @@ import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 
 class MainActivity : ComponentActivity() {
@@ -56,7 +57,7 @@ fun UserScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Routes.articulosVw,
+        startDestination = Routes.articuloDetailVw,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -118,6 +119,9 @@ fun UserScreen() {
         }
         composable(Routes.articulosVw) {
             ArticulosView(navController = navController)
+        }
+        composable(Routes.articuloDetailVw) {
+            ArticuloDetailView(navController = navController)
         }
     }
 }
