@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -194,5 +195,92 @@ fun TitlesView(title: String){
             modifier = Modifier.padding(16.dp),
             textAlign = TextAlign.Center
         )
+    }
+}
+
+@Composable
+fun ButtonUserCard(navController: NavController, title: String = "", icon: ImageVector, route: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Card(
+            onClick = { navController.navigate(route) },
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .height(70.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .weight(0.5f), // Fija un espacio constante para el ícono
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+
+                Spacer(modifier = Modifier.width(16.dp)) // Espacio constante entre el ícono y el texto
+
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Start,
+                    fontSize = 25.sp,
+                    modifier = Modifier
+                        .weight(0.8f) // El texto ocupa el resto del espacio
+                )
+            }
+        }
+    }
+}
+
+
+
+
+@Composable
+fun NameUserCard(name : String, desc : String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .align(Alignment.CenterHorizontally)
+                .height(100.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+
+        ) {
+            Text(
+                text = name,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                fontSize = 30.sp
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Text(
+                text = desc,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp
+            )
+        }
     }
 }

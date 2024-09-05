@@ -46,7 +46,7 @@ fun UserScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Routes.homeVw,
+        startDestination = Routes.suitVw,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
