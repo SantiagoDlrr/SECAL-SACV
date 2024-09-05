@@ -29,6 +29,7 @@ import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
@@ -57,7 +58,7 @@ fun UserScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Routes.articuloDetailVw,
+        startDestination = Routes.homeVw,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -122,6 +123,9 @@ fun UserScreen() {
         }
         composable(Routes.articuloDetailVw) {
             ArticuloDetailView(navController = navController)
+        }
+        composable(Routes.editArticuloVw) {
+            EditArticuloView(navController = navController)
         }
     }
 }

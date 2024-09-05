@@ -58,7 +58,7 @@ fun StudentHomeCardView(navController: NavController) {
 
         Column {
             ButtonUserCard(navController = navController, "Mis Casos", Icons.Outlined.Menu, route = Routes.casosStVw)
-            ButtonUserCard(navController = navController, "Articulos", Icons.Outlined.Search, route = Routes.espaciosVw)
+            ButtonUserCard(navController = navController, "Articulos", Icons.Outlined.Search, route = Routes.articulosVw)
            }
 
     }

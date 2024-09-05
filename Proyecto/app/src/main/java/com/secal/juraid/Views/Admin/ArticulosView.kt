@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.R
+import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 
@@ -27,7 +28,7 @@ fun ArticulosView(navController: NavController) {
         bottomBar = { BottomBar(navController = navController) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* TODO: Implementar acción para agregar artículo */ }
+                onClick = { navController.navigate(Routes.editArticuloVw) }
             ) {
                 Icon(Icons.Default.Edit, contentDescription = "Agregar artículo")
             }
@@ -40,27 +41,28 @@ fun ArticulosView(navController: NavController) {
         ) {
             TitlesView(title = "Artículos Publicados")
             Spacer(modifier = Modifier.height(16.dp))
-            ArticulosLista()
+            ArticulosLista(navController = navController)
         }
     }
 }
 
 @Composable
-fun ArticulosLista() {
+fun ArticulosLista(navController: NavController) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(3) { // Asumimos que hay 3 artículos como en la imagen
-            ArticuloItem()
+            ArticuloItem(navController = navController)
         }
     }
 }
 
 @Composable
-fun ArticuloItem() {
+fun ArticuloItem(navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = { navController.navigate(Routes.articuloDetailVw) }
     ) {
         Row(
             modifier = Modifier

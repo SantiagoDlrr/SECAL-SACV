@@ -131,7 +131,7 @@ fun TopBar() {
 }
 
 @Composable
-fun CategorySection(title: String, items: List<String>) {
+fun CategorySection(title: String, items: List<String>, navController: NavController) {
     Spacer(modifier = Modifier.height(16.dp))
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -141,7 +141,7 @@ fun CategorySection(title: String, items: List<String>) {
 
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(items.size) { index ->
-                CategoryItem(item = items[index])
+                CategoryItem(item = items[index], navController = navController)
                 Spacer(modifier = Modifier.width(8.dp))
             }
         }
@@ -149,9 +149,9 @@ fun CategorySection(title: String, items: List<String>) {
 }
 
 @Composable
-fun CategoryItem(item: String) {
+fun CategoryItem(item: String, navController: NavController) {
     Card(
-        onClick = { /*TODO*/ },
+        onClick = { navController.navigate(Routes.articuloDetailVw) },
     ) {
         Box(
             modifier = Modifier

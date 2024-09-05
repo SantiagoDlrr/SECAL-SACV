@@ -51,8 +51,8 @@ fun HomeView(navController: NavController) {
             ) {
                 SearchBar()
                 LargeCardCarousel(items = listOf("Card 1", "Card 2", "Card 3", "Card 4"))
-                CategorySection(title = "Categoría 1", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"))
-                CategorySection(title = "Categoría 2", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"))
+                CategorySection(title = "Categoría 1", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"), navController = navController)
+                CategorySection(title = "Categoría 2", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"), navController = navController)
                 Spacer(modifier = Modifier.padding(16.dp))
             }
 
