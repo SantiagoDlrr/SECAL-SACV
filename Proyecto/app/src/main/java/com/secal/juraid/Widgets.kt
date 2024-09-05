@@ -244,9 +244,6 @@ fun ButtonUserCard(navController: NavController, title: String = "", icon: Image
     }
 }
 
-
-
-
 @Composable
 fun NameUserCard(name : String, desc : String) {
     Column(
@@ -268,7 +265,7 @@ fun NameUserCard(name : String, desc : String) {
         ) {
             Text(
                 text = name,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 fontSize = 30.sp

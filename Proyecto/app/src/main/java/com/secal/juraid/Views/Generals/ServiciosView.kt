@@ -1,4 +1,4 @@
-package com.secal.juraid.Views
+package com.secal.juraid.Views.Generals
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -39,6 +39,7 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
 import com.secal.juraid.TopBar
 import androidx.compose.ui.platform.LocalContext
+import com.secal.juraid.Routes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,8 +61,8 @@ fun ServiciosView(navController : NavController) {
                     .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
             ) {
                 MapCardView()
-                ServiceDistribution("Preguntas Frecuentes 1", "Preguntas Frecuentes 2")
-                ServiceDistribution("Preguntas Frecuentes 3", "Preguntas Frecuentes 4")
+                ServiceDistribution(item1 = "Preguntas Frecuentes", route1 = "", item2 = "Vista Abogado", route2 = Routes.suitVw, navController = navController)
+                ServiceDistribution(item1 = "Vista Estudiante", route1 = Routes.studentHomeVw, item2 = "Vista Usuario", route2 = Routes.userHomeVw, navController = navController)
 
 
             }
@@ -125,7 +126,7 @@ fun MapCardView() {
 
 
 @Composable
-fun ServiceDistribution(item1: String, item2: String) {
+fun ServiceDistribution(item1: String, route1: String, item2: String, route2: String, navController : NavController) {
     Spacer(modifier = Modifier.height(16.dp))
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -135,18 +136,18 @@ fun ServiceDistribution(item1: String, item2: String) {
         Row(modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-                ServiceCardView(item1)
+                ServiceCardView(item1, navController, route = route1)
                 Spacer(modifier = Modifier.width(16.dp))
-                ServiceCardView(item2)
+                ServiceCardView(item2, navController, route = route2)
 
         }
     }
 }
 
 @Composable
-fun ServiceCardView(item: String) {
+fun ServiceCardView(item: String, navController: NavController, route: String) {
     Card(
-        onClick = {},
+        onClick = {navController.navigate(route)},
         modifier = Modifier
             .width(160.dp)  // Ancho de la tarjeta
             .height(100.dp) // Altura de la tarjeta

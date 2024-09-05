@@ -20,4 +20,8 @@ object Routes {
 
     var detalleVw = "detalle_view"
 
+    var studentHomeVw = "student_home_view"
+
+    var userHomeVw = "user_home_view"
+
 }

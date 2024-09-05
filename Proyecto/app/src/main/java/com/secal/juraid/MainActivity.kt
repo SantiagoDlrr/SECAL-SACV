@@ -1,33 +1,38 @@
 package com.secal.juraid
 
+import AlumnosView
+import CasosView
+import DetalleView
+import MeetingView
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.secal.juraid.Views.BienvenidaView
-import com.secal.juraid.Views.HelpView
-import com.secal.juraid.Views.HomeView
-import com.secal.juraid.Views.LoginView
-import com.secal.juraid.Views.MeetingView
-import com.secal.juraid.Views.ServiciosView
-import com.secal.juraid.Views.SignUpView
-import com.secal.juraid.Views.SuitViews.AlumnosView
-import com.secal.juraid.Views.SuitViews.CasosView
-import com.secal.juraid.Views.SuitViews.DetalleView
+import com.secal.juraid.Views.Generals.BienvenidaView
+import com.secal.juraid.Views.Generals.Bookings.HelpView
+import com.secal.juraid.Views.Generals.HomeView
+import com.secal.juraid.Views.Sesion.LoginView
+import com.secal.juraid.Views.Generals.ServiciosView
+import com.secal.juraid.Views.Sesion.SignUpView
 import com.secal.juraid.Views.SuitViews.EspaciosView
 import com.secal.juraid.Views.SuitViews.SuitHomeView
-import com.secal.juraid.Views.UserView
+import com.secal.juraid.Views.Generals.UserView
 import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import com.secal.juraid.Views.StudentsView.StudentHomeView
+import com.secal.juraid.Views.Users.UserHomeView
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -39,6 +44,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class)
 @Preview(showBackground = true)
 @Composable
@@ -46,7 +52,7 @@ fun UserScreen() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Routes.suitVw,
+        startDestination = Routes.alumnosVw,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -90,6 +96,12 @@ fun UserScreen() {
         }
         composable(Routes.detalleVw) {
             DetalleView(navController = navController)
+        }
+        composable(Routes.studentHomeVw) {
+            StudentHomeView(navController = navController)
+        }
+        composable(Routes.userHomeVw) {
+            UserHomeView(navController = navController)
         }
     }
 }

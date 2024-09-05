@@ -1,154 +1,93 @@
-package com.secal.juraid.Views.SuitViews
-
-import android.annotation.SuppressLint
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.secal.juraid.BottomBar
+import com.secal.juraid.R
 import com.secal.juraid.Routes
-
+import com.secal.juraid.TopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun AlumnosView(navController : NavController) {
-    Scaffold (
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-                title = {
-                    Text(
-                        "LOGO TEXTO",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+fun AlumnosView(navController: NavController) {
+    var selectedTabIndex by remember { mutableStateOf(0) }
+    val tabs = listOf("Alumnos")
+
+    Scaffold(
+        bottomBar = { BottomBar(navController = navController) },
+        topBar = { TopBar() }
+    ) { innerPadding ->
+        Column(modifier = Modifier.padding(innerPadding)) {
+            TabRow(selectedTabIndex = selectedTabIndex,
+                modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = { Text(title) }
                     )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate(Routes.suitVw)
-                    }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* do something */ }) {
-                        Icon(
-                            imageVector = Icons.Filled.Menu,
-                            contentDescription = "Localized description"
-                        )
-                    }
-                },
-            )
-        },
-
-        content = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                FilledCardExample("Roberto", navController)
-                Spacer(modifier = Modifier.height(16.dp))
-                FilledCardExample("Renata", navController)
-                Spacer(modifier = Modifier.height(16.dp))
-                FilledCardExample("Luis", navController)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        },
-
-        bottomBar = {
-            BottomAppBar(
-                actions = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.suitVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.Home, contentDescription = "Localized description")
-                                Text(text = "Inicio")
-                            }
-                        }
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.suitVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.LocationOn, contentDescription = "Localized description")
-                                Text(text = "Servicios")
-                            }
-                        }
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Routes.suitVw)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(Icons.Filled.AccountCircle, contentDescription = "Localized description")
-                                Text(text = "Usuario")
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(0.1f))
-                    }
                 }
-            )
+            }
 
-
+            when (selectedTabIndex) {
+                0 -> AlumnosCardView(navController = navController)
+            }
         }
-    )
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun AlumnosPreview() {
-    val navController = rememberNavController()
-    AlumnosView(navController = navController)
+fun AlumnosCardView(navController: NavController) {
+    LazyColumn {
+        items(7) { index ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                onClick = { navController.navigate(Routes.detalleVw) }
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_background),
+                        contentDescription = "Placeholder",
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                        ,
+                        contentScale = ContentScale.Crop
+                    )
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text("Alumno $index", fontWeight = FontWeight.Bold)
+                    }
+                    Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                }
+            }
+        }
+    }
 }
+
 
 
 
