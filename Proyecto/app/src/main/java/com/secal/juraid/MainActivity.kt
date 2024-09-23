@@ -29,6 +29,8 @@ import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
@@ -36,6 +38,9 @@ import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+
 
 class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,10 +82,16 @@ fun UserScreen() {
             UserView(navController = navController)
         }
         composable(Routes.loginVw) {
-            LoginView(navController = navController)
+            LoginView(navController = navController, UserViewModel(
+                UserRepository(supabase, CoroutineScope(
+                    Dispatchers.IO)
+                )
+            )
+            )
         }
+
         composable(Routes.signUpVw) {
-            SignUpView(navController = navController)
+            SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
             HelpView(navController = navController)

@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Sesion
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.sharp.AccountCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -45,34 +50,56 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.UserViewModel
+import io.github.jan.supabase.auth.SessionStatus
 
 
 @Composable
-fun LoginView(navController: NavController) {
+fun LoginView(navController: NavController, viewModel: UserViewModel) {
+    val sessionState by viewModel.sessionState.collectAsState()
+    val isLoading by viewModel.isLoading
+    val errorMessage by viewModel.errorMessage
+
     Scaffold (
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
-    )
-    { innerPadding ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp),
             contentAlignment = Alignment.Center,
-
-            ) {
+        ) {
             Column {
-                LoginCardView(navController)
+                LoginCardView(navController, viewModel)
                 DontHaveAccountView(navController)
             }
         }
+    }
 
+
+    // Handle session state
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
+            else -> {} // Handle other states if needed
+        }
+    }
+
+    // Show error message if any
+    if (errorMessage.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, errorMessage, Toast.LENGTH_LONG).show()
+    }
+
+    // Show loading indicator
+    if (isLoading) {
+        CircularProgressIndicator()
     }
 }
 
 @Composable
-fun LoginCardView(navController: NavController) {
+fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
@@ -138,7 +165,7 @@ fun LoginCardView(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { navController.navigate(Routes.homeVw) },
+                onClick = { viewModel.signIn(email, password) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Iniciar Sesión")

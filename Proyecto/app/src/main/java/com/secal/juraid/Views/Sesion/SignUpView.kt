@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Sesion
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,40 +36,62 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import com.secal.juraid.Routes
+import com.secal.juraid.ViewModel.UserViewModel
+import io.github.jan.supabase.auth.SessionStatus
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignUpView(navController: NavController) {
+fun SignUpView(navController: NavController, viewModel: UserViewModel) {
+    val sessionState by viewModel.sessionState.collectAsState()
+    val isLoading by viewModel.isLoading
+    val errorMessage by viewModel.errorMessage
+
     Scaffold (
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
-    )
-    { innerPadding ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp),
             contentAlignment = Alignment.Center,
-
-            ) {
+        ) {
             Column {
-                SignCardView(navController)
+                SignCardView(navController, viewModel)
             }
         }
+    }
 
+    // Handle session state
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
+            else -> {} // Handle other states if needed
+        }
+    }
+
+    // Show error message if any
+    if (errorMessage.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, errorMessage, Toast.LENGTH_LONG).show()
+    }
+
+    // Show loading indicator
+    if (isLoading) {
+        CircularProgressIndicator()
     }
 }
 
 @Composable
-fun SignCardView(navController: NavController) {
+fun SignCardView(navController: NavController, viewModel: UserViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
@@ -194,7 +217,11 @@ fun SignCardView(navController: NavController) {
 
             // Botón de registro
             Button(
-                onClick = { showDialog = true }, // Mostrar diálogo al hacer clic
+                onClick = {
+                    //showDialog = true
+                    viewModel.signUp(email, password)
+
+                          }, // Mostrar diálogo al hacer clic
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Registro")

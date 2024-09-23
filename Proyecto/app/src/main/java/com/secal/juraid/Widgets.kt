@@ -13,6 +13,8 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +25,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.UserViewModel
+import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.auth.SessionStatus
+import io.github.jan.supabase.postgrest.Postgrest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+
+val supabase = createSupabaseClient(
+    supabaseUrl = Credentials.supabaseUrl,
+    supabaseKey = Credentials.supabaseKey
+
+) {
+    install(Postgrest)
+    install(Auth)
+}
 
 @Composable
 fun HelpButton(modifier: Modifier, navController: NavController) {
@@ -54,6 +73,10 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
 
 @Composable
 fun BottomBar(navController: NavController) {
+    val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
+    val isLogged = sessionState is SessionStatus.Authenticated
+    //val isLogged = true
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,9 +116,15 @@ fun BottomBar(navController: NavController) {
             )
         }
 
-        // Botón de perfil
+        // Botón de perfil (lógica de redirección según el estado de sesión)
         IconButton(
-            onClick = { navController.navigate(Routes.userVw) },
+            onClick = {
+                if (isLogged) {
+                    navController.navigate(Routes.userHomeVw)  // Si está logueado, va al perfil
+                } else {
+                    navController.navigate(Routes.userVw)  // Si no está logueado, va a login
+                }
+            },
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
@@ -109,6 +138,7 @@ fun BottomBar(navController: NavController) {
         }
     }
 }
+
 
 @Composable
 fun TopBar() {
