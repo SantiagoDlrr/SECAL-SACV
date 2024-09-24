@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -20,17 +21,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.ContentItem
 import com.secal.juraid.ViewModel.UserViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.SessionStatus
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
@@ -119,6 +125,7 @@ fun BottomBar(navController: NavController) {
         // Botón de perfil (lógica de redirección según el estado de sesión)
         IconButton(
             onClick = {
+
                 if (isLogged) {
                     navController.navigate(Routes.userHomeVw)  // Si está logueado, va al perfil
                 } else {
@@ -161,47 +168,59 @@ fun TopBar() {
 }
 
 @Composable
-fun CategorySection(title: String, items: List<String>, navController: NavController) {
-    Spacer(modifier = Modifier.height(16.dp))
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp)) {
-        Text(text = title, modifier = Modifier.padding(bottom = 8.dp),
-            fontSize = 20.sp)
-
-        LazyRow(modifier = Modifier.fillMaxWidth()) {
-            items(items.size) { index ->
-                CategoryItem(item = items[index], navController = navController)
-                Spacer(modifier = Modifier.width(8.dp))
+fun CategorySection(title: String, items: List<ContentItem>, navController: NavController) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(16.dp)
+        )
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(items) { item ->
+                CategoryItem(item = item, navController = navController)
             }
         }
     }
 }
 
 @Composable
-fun CategoryItem(item: String, navController: NavController) {
+fun CategoryItem(item: ContentItem, navController: NavController) {
     Card(
         onClick = { navController.navigate(Routes.articuloDetailVw) },
+        modifier = Modifier
+            .width(200.dp)
+            .height(270.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
-        ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = item.url_header,
+                    contentDescription = item.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Text(
+                text = item.title,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
 
+            )
         }
-        Text(
-            text = item,
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth(),
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
-
 }
 
 @Composable

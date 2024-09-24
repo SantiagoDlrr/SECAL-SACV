@@ -3,6 +3,7 @@ package com.secal.juraid.Views.Generals.BaseViews
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,16 +26,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
 import com.secal.juraid.TopBar
 import com.secal.juraid.CategorySection
+import com.secal.juraid.ViewModel.ContentItem
 import kotlinx.coroutines.delay
 
 @Composable
-fun HomeView(navController: NavController) {
+fun HomeView(navController: NavController, contentItems: List<ContentItem>) {
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -47,12 +50,15 @@ fun HomeView(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
+                    .verticalScroll(rememberScrollState())
             ) {
                 SearchBar()
-                LargeCardCarousel(items = listOf("Card 1", "Card 2", "Card 3", "Card 4"))
-                CategorySection(title = "Categoría 1", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"), navController = navController)
-                CategorySection(title = "Categoría 2", items = listOf("Post 1", "Post 2", "Post 3", "Post 4"), navController = navController)
+                LargeCardCarousel(items = contentItems)
+
+                CategorySection(title = "Categoría 1", items = contentItems, navController = navController)
+                CategorySection(title = "Categoría 2", items = contentItems, navController = navController)
+                CategorySection(title = "Categoría 3", items = contentItems, navController = navController)
+
                 Spacer(modifier = Modifier.padding(16.dp))
             }
 
@@ -60,6 +66,7 @@ fun HomeView(navController: NavController) {
         }
     }
 }
+
 
 
 
@@ -87,24 +94,18 @@ fun SearchBar() {
 
 
 @Composable
-fun LargeCardCarousel(items: List<String>) {
+fun LargeCardCarousel(items: List<ContentItem>) {
     val listState = rememberLazyListState()
     val originalItemCount = items.size
 
-    // Crear una lista extendida que repita los elementos para simular desplazamiento infinito
-    val extendedItems = items + items.take(1) // Agregar un elemento extra al final
+    // Create an extended list that repeats elements to simulate infinite scrolling
+    val extendedItems = items + items.take(1)
 
     LaunchedEffect(listState) {
         while (true) {
             delay(3000L)
-
-            val nextIndex = (listState.firstVisibleItemIndex + 1)
-
-            // Si estamos en el último elemento de la lista original, saltar al principio
-            // para simular el desplazamiento infinito
-            if (nextIndex == originalItemCount) {
-                listState.scrollToItem(0) // Saltar al principio sin animación para que sea suave
-            } else {
+            if (originalItemCount > 0) {  // Add this check to prevent division by zero
+                val nextIndex = (listState.firstVisibleItemIndex + 1) % originalItemCount
                 listState.animateScrollToItem(nextIndex)
             }
         }
@@ -117,31 +118,54 @@ fun LargeCardCarousel(items: List<String>) {
         contentPadding = PaddingValues(horizontal = 16.dp),
         userScrollEnabled = true
     ) {
-        items(extendedItems.size) { index ->
-            LargeCardItem(item = extendedItems[index])
+        items(extendedItems) { item ->
+            LargeCardItem(item = item)
         }
     }
 }
 
+
 @Composable
-fun LargeCardItem(item: String) {
+fun LargeCardItem(item: ContentItem) {
     Card(
-        onClick = { /* TODO: Acción al hacer clic en la tarjeta */ },
+        onClick = { /* TODO: Action when clicking on the card */ },
         modifier = Modifier
-            .width(350.dp)  // Anchura de la tarjeta
-            .height(200.dp)  // Altura de la tarjeta
+            .width(350.dp)
+            .height(200.dp)
             .clip(RoundedCornerShape(16.dp))
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-            contentAlignment = Alignment.Center
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = item)
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Text(
+                    text = item.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
+
 
 
 

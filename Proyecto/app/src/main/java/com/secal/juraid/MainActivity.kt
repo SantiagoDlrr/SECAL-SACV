@@ -29,7 +29,11 @@ import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
@@ -73,11 +77,14 @@ fun UserScreen() {
             BienvenidaView(navController = navController)
         }
         composable(Routes.homeVw) {
-            HomeView(navController = navController)
+            val homeViewModel = viewModel<HomeViewModel>()
+            val contentItems by homeViewModel.contentItems.collectAsState()
+            HomeView(navController = navController, contentItems = contentItems)
         }
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
         }
+
         composable(Routes.userVw) {
             UserView(navController = navController)
         }
@@ -108,17 +115,17 @@ fun UserScreen() {
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
         }
-        composable(Routes.alumnosVw) {
-            AlumnosView(navController = navController)
+        composable(Routes.studentHomeVw) {
+            StudentHomeView(navController = navController)
+        }
+        composable(Routes.userHomeVw) {
+            UserHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.detalleVw) {
             DetalleView(navController = navController)
         }
         composable(Routes.studentHomeVw) {
             StudentHomeView(navController = navController)
-        }
-        composable(Routes.userHomeVw) {
-            UserHomeView(navController = navController)
         }
         composable(Routes.casosStVw) {
             CasosStudentView(navController = navController)

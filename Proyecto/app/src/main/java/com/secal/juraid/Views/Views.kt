@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Generals.BaseViews.HomeView
 import io.github.jan.supabase.auth.SessionStatus
@@ -25,7 +27,9 @@ fun UserScreenManager(viewModel: UserViewModel) {
     when (sessionState) {
         is SessionStatus.Authenticated -> {
 
-            HomeView(navController = navController)
+            val homeViewModel = viewModel<HomeViewModel>()
+            val contentItems by homeViewModel.contentItems.collectAsState()
+            HomeView(navController = navController, contentItems = contentItems)
         }
         SessionStatus.LoadingFromStorage -> {
             // Pantalla de carga mientras se comprueba la sesión
