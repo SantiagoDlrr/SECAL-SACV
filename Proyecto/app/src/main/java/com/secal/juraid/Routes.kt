@@ -29,6 +29,7 @@ object Routes {
 
     var articulosVw = "articulos_view"
     var articuloDetailVw = "articulo_detail_view"
+    var addPostVw = "add_post_view"
 
     var editArticuloVw = "edit_articulo_view"
 

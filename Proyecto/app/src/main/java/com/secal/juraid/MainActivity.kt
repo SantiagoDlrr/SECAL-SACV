@@ -40,6 +40,7 @@ import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
+import com.secal.juraid.Views.Admin.StudentsView.AddPostView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
@@ -140,7 +141,9 @@ fun UserScreen() {
             AlumnoDetailView(navController = navController)
         }
         composable(Routes.articulosVw) {
-            ArticulosView(navController = navController)
+            val homeViewModel = viewModel<HomeViewModel>()
+            val contentItems by homeViewModel.contentItems.collectAsState()
+            ArticulosView(navController = navController, contentItems)
         }
         composable(
             route = "${Routes.articuloDetailVw}/{itemJson}",
@@ -152,6 +155,10 @@ fun UserScreen() {
         }
         composable(Routes.editArticuloVw) {
             EditArticuloView(navController = navController)
+        }
+        composable(Routes.addPostVw) {
+            val homeViewModel = viewModel<HomeViewModel>()
+            AddPostView(navController = navController, homeViewModel)
         }
     }
 }
