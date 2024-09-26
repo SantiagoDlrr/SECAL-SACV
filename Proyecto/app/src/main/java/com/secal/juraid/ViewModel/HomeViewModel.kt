@@ -11,8 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import java.time.format.DateTimeFormatter
 
 class HomeViewModel : ViewModel() {
     private val _contentItems = MutableStateFlow<List<ContentItem>>(emptyList())
@@ -54,6 +56,31 @@ class HomeViewModel : ViewModel() {
         return contentList
     }
 
+    fun addContentItem(title: String, category: Int, urlHeader: String, text: String) {
+        viewModelScope.launch {
+            try {
+                val newItem = ContentInsert(
+                    ID_Category = category,
+                    title = title,
+                    url_header = urlHeader,
+                    text = text
+                )
+
+
+                val insertedItem = withContext(Dispatchers.IO) {
+                    supabase.from("Content")
+                        .insert(newItem)
+                        .decodeSingle<ContentItem>()
+                }
+
+                _contentItems.value = _contentItems.value + insertedItem
+                Log.d("DatabaseDebug", "Nuevo item añadido: $insertedItem")
+            } catch (e: Exception) {
+                Log.e("DatabaseDebug", "Error añadiendo nuevo item: ${e.message}", e)
+            }
+        }
+    }
+
 }
 
 @Serializable
@@ -61,6 +88,14 @@ data class ContentItem(
     val ID_Post: Int,
     val ID_Category: Int,
     val created_at: String,
+    val title: String,
+    val url_header: String,
+    val text: String
+)
+
+@Serializable
+data class ContentInsert(
+    val ID_Category: Int,
     val title: String,
     val url_header: String,
     val text: String
