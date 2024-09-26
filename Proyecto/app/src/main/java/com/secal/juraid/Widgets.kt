@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.Model.UserRepository
-import com.secal.juraid.ViewModel.ContentItem
+import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
@@ -171,7 +171,7 @@ fun TopBar() {
 }
 
 @Composable
-fun CategorySection(title: String, items: List<ContentItem>, navController: NavController) {
+fun CategorySection(title: String, items: List<HomeViewModel.ContentItem>, navController: NavController) {
     Column {
         Text(
             text = title,
@@ -191,7 +191,7 @@ fun CategorySection(title: String, items: List<ContentItem>, navController: NavC
 }
 
 @Composable
-fun CategoryItem(item: ContentItem, navController: NavController) {
+fun CategoryItem(item: HomeViewModel.ContentItem, navController: NavController) {
     Card(
         onClick = {
             val itemJson = Uri.encode(Json.encodeToString(item))

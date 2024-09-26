@@ -36,7 +36,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
-import com.secal.juraid.ViewModel.ContentItem
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
@@ -83,8 +82,7 @@ fun UserScreen() {
         }
         composable(Routes.homeVw) {
             val homeViewModel = viewModel<HomeViewModel>()
-            val contentItems by homeViewModel.contentItems.collectAsState()
-            HomeView(navController = navController, contentItems = contentItems)
+            HomeView(navController = navController, viewModel = homeViewModel)
         }
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
@@ -149,7 +147,7 @@ fun UserScreen() {
             arguments = listOf(navArgument("itemJson") { type = NavType.StringType })
         ) { backStackEntry ->
             val itemJson = backStackEntry.arguments?.getString("itemJson")
-            val item = itemJson?.let { Json.decodeFromString<ContentItem>(Uri.decode(it)) }
+            val item = itemJson?.let { Json.decodeFromString<HomeViewModel.ContentItem>(Uri.decode(it)) }
             ArticuloDetailView(navController = navController, item = item)
         }
         composable(Routes.editArticuloVw) {
