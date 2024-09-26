@@ -1,5 +1,6 @@
 package com.secal.juraid
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +40,8 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 val supabase = createSupabaseClient(
     supabaseUrl = Credentials.supabaseUrl,
@@ -190,7 +193,10 @@ fun CategorySection(title: String, items: List<ContentItem>, navController: NavC
 @Composable
 fun CategoryItem(item: ContentItem, navController: NavController) {
     Card(
-        onClick = { navController.navigate(Routes.articuloDetailVw) },
+        onClick = {
+            val itemJson = Uri.encode(Json.encodeToString(item))
+            navController.navigate("${Routes.articuloDetailVw}/$itemJson")
+        },
         modifier = Modifier
             .width(200.dp)
             .height(270.dp)
@@ -217,11 +223,11 @@ fun CategoryItem(item: ContentItem, navController: NavController) {
                     .fillMaxWidth(),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
-
             )
         }
     }
 }
+
 
 @Composable
 fun TitlesView(title: String){

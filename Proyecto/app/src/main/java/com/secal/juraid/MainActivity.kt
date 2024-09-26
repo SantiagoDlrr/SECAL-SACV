@@ -5,6 +5,7 @@ import ArticulosView
 import CasosView
 import DetalleView
 import MeetingView
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -32,7 +33,10 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.ContentItem
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
@@ -44,6 +48,7 @@ import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 
 
 class MainActivity : ComponentActivity() {
@@ -139,8 +144,13 @@ fun UserScreen() {
         composable(Routes.articulosVw) {
             ArticulosView(navController = navController)
         }
-        composable(Routes.articuloDetailVw) {
-            ArticuloDetailView(navController = navController)
+        composable(
+            route = "${Routes.articuloDetailVw}/{itemJson}",
+            arguments = listOf(navArgument("itemJson") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val itemJson = backStackEntry.arguments?.getString("itemJson")
+            val item = itemJson?.let { Json.decodeFromString<ContentItem>(Uri.decode(it)) }
+            ArticuloDetailView(navController = navController, item = item)
         }
         composable(Routes.editArticuloVw) {
             EditArticuloView(navController = navController)
