@@ -5,18 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
-import io.github.jan.supabase.postgrest.query.Columns
-import io.github.jan.supabase.postgrest.result.PostgrestResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import java.time.format.DateTimeFormatter
 
 class HomeViewModel : ViewModel() {
     private val _contentItems = MutableStateFlow<List<ContentItem>>(emptyList())
@@ -47,11 +42,7 @@ class HomeViewModel : ViewModel() {
                     .select()
                     .decodeList<ContentItem>()
 
-                // Ahora obtenemos las categorías
-                val categories = supabase
-                    .from("Categories")
-                    .select()
-                    .decodeList<Category>()
+                val categories = getCategoriesfromDatabase()
 
                 // Asociamos las categorías con los contenidos
                 contentList.forEach { content ->
@@ -65,6 +56,22 @@ class HomeViewModel : ViewModel() {
         }
 
         return contentList
+    }
+
+    suspend fun getCategoriesfromDatabase(): List<Category> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val categories = supabase
+                    .from("Categories")
+                    .select()
+                    .decodeList<Category>()
+                Log.d("DatabaseDebug", "Categories: $categories")
+                categories
+            } catch (e: Exception) {
+                Log.e("DatabaseDebug", "Error fetching categories: ${e.message}", e)
+                emptyList()
+            }
+        }
     }
 
     fun addContentItem(title: String, category: Int, urlHeader: String, text: String) {
@@ -92,16 +99,14 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-}
+    @Serializable
+    data class ContentInsert(
+        val ID_Category: Int,
+        val title: String,
+        val url_header: String,
+        val text: String
+    )
 
-
-@Serializable
-data class ContentInsert(
-    val ID_Category: Int,
-    val title: String,
-    val url_header: String,
-    val text: String
-)
     @Serializable
     data class ContentItem(
         val ID_Post: Int,
@@ -110,7 +115,7 @@ data class ContentInsert(
         val title: String,
         val url_header: String,
         val text: String,
-        var category: Category? = null // Usamos @Transient porque este campo no viene directamente de la base de datos
+        var category: Category? = null
     )
 
     @Serializable
@@ -118,4 +123,5 @@ data class ContentInsert(
         val ID_Category: Int,
         val name_category: String
     )
+
 }

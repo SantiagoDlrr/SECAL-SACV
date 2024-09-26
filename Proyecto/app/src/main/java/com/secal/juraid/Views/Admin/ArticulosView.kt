@@ -4,6 +4,8 @@ Es la vista donde esta la lista de posts en la vista de alumnos abogados
 
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,12 +34,13 @@ import com.secal.juraid.R
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.ContentItem
+import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.Views.Generals.BaseViews.formatDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
-fun ArticulosView(navController: NavController, items: List<ContentItem>) {
+fun ArticulosView(navController: NavController, items: List<HomeViewModel.ContentItem>) {
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
@@ -61,8 +64,9 @@ fun ArticulosView(navController: NavController, items: List<ContentItem>) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticulosLista(navController: NavController, items: List<ContentItem>) {
+fun ArticulosLista(navController: NavController, items: List<HomeViewModel.ContentItem>) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -72,8 +76,9 @@ fun ArticulosLista(navController: NavController, items: List<ContentItem>) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticuloItem(item: ContentItem, navController: NavController) {
+fun ArticuloItem(item: HomeViewModel.ContentItem, navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -98,6 +103,12 @@ fun ArticuloItem(item: ContentItem, navController: NavController) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
+                    text = item.category?.name_category ?: "Sin categoría",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
@@ -108,7 +119,7 @@ fun ArticuloItem(item: ContentItem, navController: NavController) {
                     Icon(Icons.Default.DateRange, contentDescription = "Fecha de publicación")
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = item.created_at,
+                        text = item.created_at.formatDate(),
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
