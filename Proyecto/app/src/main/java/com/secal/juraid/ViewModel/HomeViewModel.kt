@@ -17,6 +17,9 @@ class HomeViewModel : ViewModel() {
     private val _contentItems = MutableStateFlow<List<ContentItem>>(emptyList())
     val contentItems: StateFlow<List<ContentItem>> = _contentItems.asStateFlow()
 
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+
     init {
         loadContentItems()
     }
@@ -27,35 +30,45 @@ class HomeViewModel : ViewModel() {
                 val items = getContentFromDatabase()
                 _contentItems.value = items
             } catch (e: Exception) {
-                // Manejar el error aquí
                 println("Error loading content items: ${e.message}")
             }
         }
     }
 
+    fun loadCategories() {
+        viewModelScope.launch {
+            if (_categories.value.isEmpty()) {
+                try {
+                    val fetchedCategories = getCategoriesfromDatabase()
+                    _categories.value = fetchedCategories
+                } catch (e: Exception) {
+                    println("Error loading categories: ${e.message}")
+                }
+            }
+        }
+    }
+
     private suspend fun getContentFromDatabase(): List<ContentItem> {
-        var contentList: List<ContentItem> = emptyList()
-        withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO) {
             try {
-                contentList = supabase
+                val contentList = supabase
                     .from("Content")
                     .select()
                     .decodeList<ContentItem>()
 
-                val categories = getCategoriesfromDatabase()
+                val categories = _categories.value.ifEmpty { getCategoriesfromDatabase() }
 
-                // Asociamos las categorías con los contenidos
                 contentList.forEach { content ->
                     content.category = categories.find { it.ID_Category == content.ID_Category }
                 }
 
                 Log.d("DatabaseDebug", "Contenido obtenido: $contentList")
+                contentList
             } catch (e: Exception) {
                 Log.e("DatabaseDebug", "Error obteniendo datos: ${e.message}", e)
+                emptyList()
             }
         }
-
-        return contentList
     }
 
     suspend fun getCategoriesfromDatabase(): List<Category> {

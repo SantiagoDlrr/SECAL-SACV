@@ -1,5 +1,6 @@
 package com.secal.juraid
 
+import AddPostView
 import AlumnosView
 import ArticulosView
 import CasosView
@@ -40,7 +41,6 @@ import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
-import com.secal.juraid.Views.Admin.StudentsView.AddPostView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView

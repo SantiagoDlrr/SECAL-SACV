@@ -1,26 +1,21 @@
-package com.secal.juraid.Views.Admin.StudentsView
-
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
-import com.secal.juraid.BottomBar
-import com.secal.juraid.TopBar
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.secal.juraid.BottomBar
+import com.secal.juraid.TitlesView
+import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,80 +26,113 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
     var urlHeader by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
-    // State to hold the list of categories
-    var categories by remember { mutableStateOf<List<HomeViewModel.Category>>(emptyList()) }
+    val categories by viewModel.categories.collectAsState()
 
-    // Fetch categories when the composable is first created
     LaunchedEffect(Unit) {
-        categories = viewModel.getCategoriesfromDatabase()
+        viewModel.loadCategories()
     }
 
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
     ) { innerPadding ->
-        Column(
+
+        Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
                 .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Título") },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-            )
 
-            // Dropdown for category selection
-            ExposedDropdownMenuBox(
-                expanded = false,
-                onExpandedChange = {},
+            Card(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp)),
+                elevation = CardDefaults.cardElevation(4.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                OutlinedTextField(
-                    value = selectedCategory?.name_category ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Categoría") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = false) },
-                    modifier = Modifier.fillMaxWidth()
-                )
 
-                ExposedDropdownMenu(
-                    expanded = false,
-                    onDismissRequest = {}
+                TitlesView(title = "Añadir Post")
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp)
                 ) {
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name_category) },
-                            onClick = {
-                                selectedCategory = category
-                            }
+
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Título") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                    ) {
+                        OutlinedTextField(
+                            value = selectedCategory?.name_category ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Categoría") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                            shape = RoundedCornerShape(16.dp)
                         )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = { Text(category.name_category) },
+                                    onClick = {
+                                        selectedCategory = category
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = urlHeader,
+                        onValueChange = { urlHeader = it },
+                        label = { Text("URL de la imagen") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        label = { Text("Contenido") },
+                        modifier = Modifier.fillMaxWidth().height(120.dp),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { showDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Añadir Post")
                     }
                 }
-            }
-
-            OutlinedTextField(
-                value = urlHeader,
-                onValueChange = { urlHeader = it },
-                label = { Text("URL de la imagen") },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-            )
-
-            OutlinedTextField(
-                value = text,
-                onValueChange = { text = it },
-                label = { Text("Contenido") },
-                modifier = Modifier.fillMaxWidth().weight(1f).padding(bottom = 8.dp)
-            )
-
-            Button(
-                onClick = { showDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Añadir Post")
             }
         }
     }
@@ -137,4 +165,3 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
         )
     }
 }
-

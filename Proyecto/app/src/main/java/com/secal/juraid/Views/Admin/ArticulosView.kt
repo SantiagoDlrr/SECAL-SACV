@@ -39,6 +39,7 @@ import com.secal.juraid.Views.Generals.BaseViews.formatDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticulosView(navController: NavController, items: List<HomeViewModel.ContentItem>) {
     Scaffold(
