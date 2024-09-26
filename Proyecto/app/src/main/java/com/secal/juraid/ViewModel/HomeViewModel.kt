@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.postgrest.result.PostgrestResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,13 +47,22 @@ class HomeViewModel : ViewModel() {
                     .select()
                     .decodeList<ContentItem>()
 
+                // Ahora obtenemos las categorías
+                val categories = supabase
+                    .from("Categories")
+                    .select()
+                    .decodeList<Category>()
 
+                // Asociamos las categorías con los contenidos
+                contentList.forEach { content ->
+                    content.category = categories.find { it.ID_Category == content.ID_Category }
+                }
+
+                Log.d("DatabaseDebug", "Contenido obtenido: $contentList")
             } catch (e: Exception) {
                 Log.e("DatabaseDebug", "Error obteniendo datos: ${e.message}", e)
             }
         }
-
-        Log.d("DatabaseDebug", "Finalizando la función con resultados: $contentList")
 
         return contentList
     }
@@ -83,15 +94,6 @@ class HomeViewModel : ViewModel() {
 
 }
 
-@Serializable
-data class ContentItem(
-    val ID_Post: Int,
-    val ID_Category: Int,
-    val created_at: String,
-    val title: String,
-    val url_header: String,
-    val text: String
-)
 
 @Serializable
 data class ContentInsert(
@@ -100,3 +102,20 @@ data class ContentInsert(
     val url_header: String,
     val text: String
 )
+    @Serializable
+    data class ContentItem(
+        val ID_Post: Int,
+        val ID_Category: Int,
+        val created_at: String,
+        val title: String,
+        val url_header: String,
+        val text: String,
+        var category: Category? = null // Usamos @Transient porque este campo no viene directamente de la base de datos
+    )
+
+    @Serializable
+    data class Category(
+        val ID_Category: Int,
+        val name_category: String
+    )
+}

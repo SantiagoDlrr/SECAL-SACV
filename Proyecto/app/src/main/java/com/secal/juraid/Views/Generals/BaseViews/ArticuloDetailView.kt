@@ -22,7 +22,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.ContentItem
+import com.secal.juraid.ViewModel.HomeViewModel
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,7 +30,7 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticuloDetailView(navController: NavController, item: ContentItem?) {
+fun ArticuloDetailView(navController: NavController, item: HomeViewModel.ContentItem?) {
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
@@ -61,7 +61,7 @@ fun String.formatDate(): String {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticuloDetailItem(item: ContentItem) {
+fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),

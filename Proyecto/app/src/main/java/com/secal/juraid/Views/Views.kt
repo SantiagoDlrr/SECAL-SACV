@@ -26,10 +26,8 @@ fun UserScreenManager(viewModel: UserViewModel) {
 
     when (sessionState) {
         is SessionStatus.Authenticated -> {
-
             val homeViewModel = viewModel<HomeViewModel>()
-            val contentItems by homeViewModel.contentItems.collectAsState()
-            HomeView(navController = navController, contentItems = contentItems)
+            HomeView(navController = navController, viewModel = homeViewModel)
         }
         SessionStatus.LoadingFromStorage -> {
             // Pantalla de carga mientras se comprueba la sesión
