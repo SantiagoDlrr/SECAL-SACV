@@ -103,7 +103,7 @@ fun HomeContent(
 
             groupedItems.forEach { (category, items) ->
                 item {
-                    CategorySectionGrid(
+                    CategorySection(
                         title = category?.name_category ?: "Sin categoría",
                         items = items,
                         navController = navController
