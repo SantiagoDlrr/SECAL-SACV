@@ -169,7 +169,8 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                 }
             },
             title = { Text("Confirmación") },
-            text = { Text("Estás a punto de publicar un post.") }
+            text = { Text("Estás a punto de publicar un post.") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 }

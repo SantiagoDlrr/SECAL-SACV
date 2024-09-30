@@ -101,6 +101,7 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column(
             modifier = Modifier
@@ -111,7 +112,7 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
@@ -153,7 +154,7 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {

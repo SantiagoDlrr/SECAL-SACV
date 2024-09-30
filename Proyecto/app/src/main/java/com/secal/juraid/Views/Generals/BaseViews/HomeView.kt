@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,13 +39,14 @@ import com.secal.juraid.TopBar
 import com.secal.juraid.CategorySection
 import com.secal.juraid.ViewModel.HomeViewModel
 import kotlinx.coroutines.delay
-
 import androidx.compose.material3.*
+import com.secal.juraid.CategoryItem
 
 @Composable
 fun HomeView(navController: NavController, viewModel: HomeViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -56,9 +60,105 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel) {
             if (isLoading) {
                 LoadingScreen()
             } else {
-                HomeContent(contentItems = contentItems, navController = navController)
+                HomeContent(
+                    contentItems = contentItems,
+                    navController = navController,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { searchQuery = it }
+                )
             }
             HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
+        }
+    }
+}
+
+@Composable
+fun HomeContent(
+    contentItems: List<HomeViewModel.ContentItemPreview>,
+    navController: NavController,
+    searchQuery: TextFieldValue,
+    onSearchQueryChange: (TextFieldValue) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item { SearchBar(searchQuery, onSearchQueryChange) }
+
+        if (searchQuery.text.isNotEmpty()) {
+            val filteredItems = contentItems.filter {
+                it.title.contains(searchQuery.text, ignoreCase = true)
+            }
+            item {
+                CategorySectionGrid(
+                    title = "Resultados de búsqueda",
+                    items = filteredItems,
+                    navController = navController
+                )
+            }
+        } else {
+            item { LargeCardCarousel(items = contentItems) }
+
+            // Group items by category
+            val groupedItems = contentItems.groupBy { it.category }
+
+            groupedItems.forEach { (category, items) ->
+                item {
+                    CategorySectionGrid(
+                        title = category?.name_category ?: "Sin categoría",
+                        items = items,
+                        navController = navController
+                    )
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.padding(50.dp)) }
+    }
+}
+
+@Composable
+fun SearchBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue) -> Unit) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(70.dp),
+        placeholder = { Text("Buscar artículos...") },
+        leadingIcon = {
+            Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    )
+}
+
+@Composable
+fun CategorySectionGrid(title: String, items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(16.dp)
+        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.height((items.size / 2 * 270).dp + 16.dp) // Adjust height based on number of items
+        ) {
+            items(items) { item ->
+                CategoryItem(item = item, navController = navController)
+            }
         }
     }
 }
@@ -84,58 +184,6 @@ fun LoadingScreen() {
         }
     }
 }
-
-@Composable
-fun HomeContent(contentItems: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        item { SearchBar() }
-        item { LargeCardCarousel(items = contentItems) }
-
-        // Group items by category
-        val groupedItems = contentItems.groupBy { it.category }
-
-        groupedItems.forEach { (category, items) ->
-            item {
-                CategorySection(
-                    title = category?.name_category ?: "Sin categoría",
-                    items = items,
-                    navController = navController
-                )
-            }
-        }
-
-        item { Spacer(modifier = Modifier.padding(50.dp)) }
-    }
-}
-
-
-
-
-
-@Composable
-fun SearchBar() {
-    var searchText by remember { mutableStateOf(TextFieldValue("")) }
-
-    OutlinedTextField(
-        value = searchText,
-        onValueChange = { searchText = it },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .height(70.dp)
-            .background(color = MaterialTheme.colorScheme.secondaryContainer),
-        leadingIcon = {
-            Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
-        },
-        singleLine = true,
-        shape = RoundedCornerShape(16.dp)
-    )
-}
-
-
 
 @Composable
 fun LargeCardCarousel(items: List<HomeViewModel.ContentItemPreview>) {

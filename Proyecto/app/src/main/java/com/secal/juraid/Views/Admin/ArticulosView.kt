@@ -105,7 +105,8 @@ fun ArticuloItem(item: HomeViewModel.ContentItemPreview, navController: NavContr
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = {
             navController.navigate("${Routes.articuloDetailVw}/${item.ID_Post}")
-        }
+        },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Row(
             modifier = Modifier

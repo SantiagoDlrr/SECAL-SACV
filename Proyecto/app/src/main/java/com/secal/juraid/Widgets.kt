@@ -1,10 +1,8 @@
 package com.secal.juraid
 
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -242,10 +239,7 @@ fun TitlesView(title: String){
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer),
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
 
@@ -253,9 +247,10 @@ fun TitlesView(title: String){
 
         Text(
             text = title,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(16.dp),
-            textAlign = TextAlign.Center
+            fontSize = 35.sp,
+            modifier = Modifier.padding(8.dp),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge
         )
     }
 }
@@ -313,7 +308,7 @@ fun NameUserCard(name : String, desc : String) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer),
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
     ) {
         Column(
             modifier = Modifier

@@ -120,7 +120,7 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 imageVector = Icons.Sharp.AccountCircle,
                 contentDescription = "User",
                 modifier = Modifier.size(100.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -137,7 +137,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -159,7 +166,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña")
                     }
-                }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -171,7 +185,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -185,7 +206,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 OutlinedTextField(
@@ -196,7 +224,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                     modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 )
             }
 
@@ -210,7 +245,14 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -239,7 +281,8 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 }
             },
             title = { Text("Verifica tu correo") },
-            text = { Text("Se te envió un correo de confirmación para la creación de tu cuenta") }
+            text = { Text("Se te envió un correo de confirmación para la creación de tu cuenta") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 }

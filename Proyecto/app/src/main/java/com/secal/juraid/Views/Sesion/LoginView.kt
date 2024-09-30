@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -138,7 +139,14 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -149,9 +157,16 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
                 placeholder = { Text("") },
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                ),
                 trailingIcon = {
                     val image = if (passwordVisible)
                         Icons.Filled.Favorite
