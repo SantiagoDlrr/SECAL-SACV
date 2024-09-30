@@ -9,6 +9,7 @@ import MeetingView
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,8 +32,10 @@ import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -48,6 +51,7 @@ import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 
 
@@ -57,7 +61,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            JurAidTheme {
+            JurAidTheme(
+                darkTheme = isSystemInDarkTheme(),
+                dynamicColor = false // Asegura que los colores dinámicos estén desactivados
+            ) {
                 UserScreen()
             }
         }
@@ -82,8 +89,8 @@ fun UserScreen() {
             BienvenidaView(navController = navController)
         }
         composable(Routes.homeVw) {
-            val homeViewModel = viewModel<HomeViewModel>()
-            HomeView(navController = navController, viewModel = homeViewModel)
+            val viewModel = remember { HomeViewModel() }
+            HomeView(navController = navController, viewModel = viewModel)
         }
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
@@ -142,17 +149,32 @@ fun UserScreen() {
         }
         composable(Routes.articulosVw) {
             val homeViewModel = viewModel<HomeViewModel>()
-            val contentItems by homeViewModel.contentItems.collectAsState()
-            ArticulosView(navController = navController, contentItems)
+            ArticulosView(navController = navController, homeViewModel)
         }
+
         composable(
-            route = "${Routes.articuloDetailVw}/{itemJson}",
+            "articulo_detail_view/{itemJson}",
             arguments = listOf(navArgument("itemJson") { type = NavType.StringType })
         ) { backStackEntry ->
             val itemJson = backStackEntry.arguments?.getString("itemJson")
-            val item = itemJson?.let { Json.decodeFromString<HomeViewModel.ContentItem>(Uri.decode(it)) }
-            ArticuloDetailView(navController = navController, item = item)
+            itemJson?.let {
+                val item = try {
+                    Json.decodeFromString(HomeViewModel.ContentItem.serializer(), it)
+                } catch (e: MissingFieldException) {
+                    // Maneja el caso donde faltan campos
+                    Log.e("Error", "Faltan campos en el JSON: ${e.message}")
+                    null
+                }
+
+                item?.let {
+                    // Solo llama a ArticuloDetailView si el item es válido
+                    val viewModel = remember { HomeViewModel() }
+                    ArticuloDetailView(navController = navController, viewModel = viewModel, postId = item.ID_Post)
+                }
+            }
+
         }
+
         composable(Routes.editArticuloVw) {
             EditArticuloView(navController = navController)
         }
@@ -162,3 +184,4 @@ fun UserScreen() {
         }
     }
 }
+

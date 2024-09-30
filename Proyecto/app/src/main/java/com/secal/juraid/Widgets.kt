@@ -2,8 +2,10 @@ package com.secal.juraid
 
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -23,8 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import android.content.Context
-import android.widget.Toast
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,7 +39,6 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.SessionStatus
 import io.github.jan.supabase.postgrest.Postgrest
-import io.github.jan.supabase.serializer.KotlinXSerializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.encodeToString
@@ -67,16 +67,7 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
 
 
         ) {
-            Icon(imageVector = Icons.Outlined.Info, contentDescription = "Necesito Ayuda")
-            Column (
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(3.dp)
-            ){
-                Text("Necesito")
-                Text("ayuda")
-
-            }
+            Icon(imageVector = Icons.Outlined.Info, contentDescription = "Necesito Ayuda", tint = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
@@ -107,7 +98,7 @@ fun BottomBar(navController: NavController) {
                 Icons.Outlined.Home,
                 contentDescription = "Inicio",
                 Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
 
@@ -122,7 +113,7 @@ fun BottomBar(navController: NavController) {
                 Icons.Outlined.LocationOn,
                 contentDescription = "Servicios",
                 Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
 
@@ -144,7 +135,7 @@ fun BottomBar(navController: NavController) {
                 Icons.Outlined.AccountCircle,
                 contentDescription = "Perfil",
                 Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
@@ -162,17 +153,32 @@ fun TopBar() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround,
     ) {
-        Text(
+        /*Text(
             text = "Juraid",
             maxLines = 1,
             fontSize = 25.sp,
             overflow = TextOverflow.Ellipsis
-        )
+        )*/
+        if (isSystemInDarkTheme()) {
+            Image(
+                painter = painterResource(id = R.drawable.martillo_blanco),
+                contentDescription = "Juraid",
+                modifier = Modifier.size(100.dp)
+            )
+
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.martillo),
+                contentDescription = "Juraid",
+                modifier = Modifier.size(100.dp)
+            )
+        }
+
     }
 }
 
 @Composable
-fun CategorySection(title: String, items: List<HomeViewModel.ContentItem>, navController: NavController) {
+fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
     Column {
         Text(
             text = title,
@@ -192,7 +198,7 @@ fun CategorySection(title: String, items: List<HomeViewModel.ContentItem>, navCo
 }
 
 @Composable
-fun CategoryItem(item: HomeViewModel.ContentItem, navController: NavController) {
+fun CategoryItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(
         onClick = {
             val itemJson = Uri.encode(Json.encodeToString(item))
@@ -200,14 +206,14 @@ fun CategoryItem(item: HomeViewModel.ContentItem, navController: NavController) 
         },
         modifier = Modifier
             .width(200.dp)
-            .height(270.dp)
+            .height(270.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .size(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <layer-list>
+            <!-- Fondo blanco -->
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="#FFFFFF"/>
+                </shape>
+            </item>
+            <!-- Texto "CLÍNICA PENAL" -->
+            <item>
+                <bitmap android:gravity="top|left"
+                    android:src="@drawable/clinica_penal_text"/>
+            </item>
+            <!-- Texto "TECNOLÓGICO DE MONTERREY" -->
+            <item>
+                <bitmap android:gravity="center_vertical|left"
+                    android:src="@drawable/tec_monterrey_text"/>
+            </item>
+            <!-- Línea vertical -->
+            <item android:left="200dp">
+                <shape android:shape="rectangle">
+                    <size android:width="2dp" android:height="80dp"/>
+                    <solid android:color="#000000"/>
+                </shape>
+            </item>
+            <!-- Icono de martillo -->
+            <item android:right="20dp" android:top="30dp">
+                <bitmap android:gravity="right"
+                    android:src="@drawable/gavel_icon"/>
+            </item>
+        </layer-list>
+    </item>
+</selector>

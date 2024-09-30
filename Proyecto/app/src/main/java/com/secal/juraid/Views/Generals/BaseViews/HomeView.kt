@@ -6,9 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -29,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -40,8 +37,11 @@ import com.secal.juraid.CategorySection
 import com.secal.juraid.ViewModel.HomeViewModel
 import kotlinx.coroutines.delay
 
+import androidx.compose.material3.*
+
 @Composable
 fun HomeView(navController: NavController, viewModel: HomeViewModel) {
+    val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
 
     Scaffold(
@@ -53,32 +53,63 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                item { SearchBar() }
-                item { LargeCardCarousel(items = contentItems) }
-
-                // Group items by category
-                val groupedItems = contentItems.groupBy { it.category }
-
-                groupedItems.forEach { (category, items) ->
-                    item {
-                        CategorySection(
-                            title = category?.name_category ?: "Sin categoría",
-                            items = items,
-                            navController = navController
-                        )
-                    }
-                }
-
-                item { Spacer(modifier = Modifier.padding(16.dp)) }
+            if (isLoading) {
+                LoadingScreen()
+            } else {
+                HomeContent(contentItems = contentItems, navController = navController)
             }
-
             HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
         }
     }
 }
+
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(50.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Cargando contenido...",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+@Composable
+fun HomeContent(contentItems: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        item { SearchBar() }
+        item { LargeCardCarousel(items = contentItems) }
+
+        // Group items by category
+        val groupedItems = contentItems.groupBy { it.category }
+
+        groupedItems.forEach { (category, items) ->
+            item {
+                CategorySection(
+                    title = category?.name_category ?: "Sin categoría",
+                    items = items,
+                    navController = navController
+                )
+            }
+        }
+
+        item { Spacer(modifier = Modifier.padding(50.dp)) }
+    }
+}
+
 
 
 
@@ -107,7 +138,7 @@ fun SearchBar() {
 
 
 @Composable
-fun LargeCardCarousel(items: List<HomeViewModel.ContentItem>) {
+fun LargeCardCarousel(items: List<HomeViewModel.ContentItemPreview>) {
     val listState = rememberLazyListState()
     val originalItemCount = items.size
 
@@ -139,7 +170,7 @@ fun LargeCardCarousel(items: List<HomeViewModel.ContentItem>) {
 
 
 @Composable
-fun LargeCardItem(item: HomeViewModel.ContentItem) {
+fun LargeCardItem(item: HomeViewModel.ContentItemPreview) {
     Card(
         onClick = { /* TODO: Action when clicking on the card */ },
         modifier = Modifier

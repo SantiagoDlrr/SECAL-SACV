@@ -7,4 +7,16 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+
+    <color name="primary">#FF3185FC</color>
+    <color name="secondary">#FF686963</color>
+    <color name="background">#FFFFFFFF</color>
+    <color name="surface">#FFFFFFFF</color>
+    <color name="error">#FFB00020</color>
+    <color name="onPrimary">#FFFFFFFF</color>
+    <color name="onSecondary">#FF000000</color>
+    <color name="onBackground">#FF000000</color>
+    <color name="onSurface">#FF000000</color>
+    <color name="onError">#FFFFFFFF</color>
 </resources>

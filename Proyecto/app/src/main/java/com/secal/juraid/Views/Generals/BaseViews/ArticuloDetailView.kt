@@ -10,6 +10,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,6 +29,7 @@ import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
+import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,18 +37,47 @@ import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticuloDetailView(navController: NavController, item: HomeViewModel.ContentItem?) {
+fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
+    val coroutineScope = rememberCoroutineScope()
+    var contentItem by remember { mutableStateOf<HomeViewModel.ContentItem?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(postId) {
+        coroutineScope.launch {
+            isLoading = true
+            contentItem = viewModel.getFullContentItem(postId)
+            isLoading = false
+        }
+    }
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
         ) {
-            item?.let { ArticuloDetailItem(it) }
+            if (postId == -1) {
+                Text("Error: Post ID no es válido", modifier = Modifier.padding(16.dp))
+                return@Box
+            }
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
+            } else {
+                contentItem?.let { item ->
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        ArticuloDetailItem(item)
+                    }
+                } ?: run {
+                    Text("Error: No se pudo cargar el contenido", modifier = Modifier.padding(16.dp))
+                }
+            }
         }
     }
 }
@@ -121,12 +157,14 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
                 ),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Text(
-                    text = item.text,
-                    style = MaterialTheme.typography.bodyMedium.copy(lineBreak = LineBreak.Paragraph),
-                    textAlign = TextAlign.Justify,
-                    modifier = Modifier.padding(16.dp)
-                )
+                item.text?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium.copy(lineBreak = LineBreak.Paragraph),
+                        textAlign = TextAlign.Justify,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
         }
     }

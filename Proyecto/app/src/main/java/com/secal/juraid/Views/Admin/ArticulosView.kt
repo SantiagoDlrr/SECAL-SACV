@@ -1,12 +1,5 @@
-/*
-Es la vista donde esta la lista de posts en la vista de alumnos abogados
- */
-
-
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,34 +7,29 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
-import com.secal.juraid.CategoryItem
-import com.secal.juraid.R
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.Views.Generals.BaseViews.formatDate
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticulosView(navController: NavController, items: List<HomeViewModel.ContentItem>) {
+fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
+    val isLoading by viewModel.isLoading.collectAsState()
+    val contentItems by viewModel.contentItems.collectAsState()
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
@@ -53,21 +41,53 @@ fun ArticulosView(navController: NavController, items: List<HomeViewModel.Conten
             }
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
         ) {
-            TitlesView(title = "Artículos Publicados")
-            Spacer(modifier = Modifier.height(16.dp))
-            ArticulosLista(navController = navController, items = items)
+            if (isLoading) {
+                LoadingScreen()
+            } else {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    TitlesView(title = "Artículos Publicados")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ArticulosLista(navController = navController, items = contentItems)
+                }
+            }
         }
     }
 }
 
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(50.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Cargando artículos...",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticulosLista(navController: NavController, items: List<HomeViewModel.ContentItem>) {
+fun ArticulosLista(navController: NavController, items: List<HomeViewModel.ContentItemPreview>) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -79,13 +99,12 @@ fun ArticulosLista(navController: NavController, items: List<HomeViewModel.Conte
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ArticuloItem(item: HomeViewModel.ContentItem, navController: NavController) {
+fun ArticuloItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = {
-            val itemJson = Uri.encode(Json.encodeToString(item))
-            navController.navigate("${Routes.articuloDetailVw}/$itemJson")
+            navController.navigate("${Routes.articuloDetailVw}/${item.ID_Post}")
         }
     ) {
         Row(
@@ -97,7 +116,9 @@ fun ArticuloItem(item: HomeViewModel.ContentItem, navController: NavController) 
             AsyncImage(
                 model = item.url_header,
                 contentDescription = item.title,
-                modifier = Modifier.size(100.dp).clip(RoundedCornerShape(10.dp)),
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
 
@@ -128,3 +149,4 @@ fun ArticuloItem(item: HomeViewModel.ContentItem, navController: NavController) 
         }
     }
 }
+

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="16"
+    android:viewportHeight="28">
+
+    <!-- Cabeza del martillo -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M2,8h12v4H2z"/>
+
+    <!-- Mango del martillo -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M7,12h2v8H7z"/>
+
+    <!-- Base circular -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M6,20a2,2 0 1,0 4,0a2,2 0 1,0 -4,0"/>
+</vector>

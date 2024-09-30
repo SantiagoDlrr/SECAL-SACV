@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -94,7 +95,8 @@ fun MapCardView() {
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
                 .width(350.dp)
-                .height(200.dp)
+                .height(200.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         ) {
             Box(
                 modifier = Modifier
@@ -152,7 +154,9 @@ fun ServiceCardView(item: String, navController: NavController, route: String) {
             .width(160.dp)  // Ancho de la tarjeta
             .height(100.dp) // Altura de la tarjeta
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+
     ) {
         Box(
             modifier = Modifier

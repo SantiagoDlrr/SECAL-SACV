@@ -122,7 +122,7 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
                 imageVector = Icons.Sharp.AccountCircle,
                 contentDescription = "User",
                 modifier = Modifier.size(100.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -168,7 +168,7 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
                 onClick = { viewModel.signIn(email, password) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Iniciar Sesión")
+                Text(text = "Iniciar Sesión", color = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }

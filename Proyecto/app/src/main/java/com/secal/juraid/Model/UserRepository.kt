@@ -66,6 +66,15 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
     suspend fun signOut() {
         supabase.auth.signOut()
     }
+
+    suspend fun getUserName(): String? {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            user.userMetadata?.get("full_name") as? String
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
 @Serializable

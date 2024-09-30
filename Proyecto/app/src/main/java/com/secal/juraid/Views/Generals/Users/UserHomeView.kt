@@ -66,15 +66,16 @@ fun UserHomeView(navController: NavController, viewModel: UserViewModel) {
 
 @Composable
 fun UserHomeCardView(navController: NavController, viewModel: UserViewModel) {
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
-
+        val userName by viewModel.userName.collectAsState()
         val sessionState by viewModel.sessionState.collectAsState()
         val errorMessage by viewModel.errorMessage
 
-        NameUserCard("John Jane Doe", "Usuario")
+        NameUserCard(userName, "Usuario")
 
         Spacer(modifier = Modifier.padding(16.dp))
 

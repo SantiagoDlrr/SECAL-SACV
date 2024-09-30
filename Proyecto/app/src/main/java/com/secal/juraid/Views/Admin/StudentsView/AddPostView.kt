@@ -1,26 +1,28 @@
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
+import com.secal.juraid.MainActivity
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
     var urlHeader by remember { mutableStateOf("") }
@@ -29,6 +31,7 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
     var expanded by remember { mutableStateOf(false) }
 
     val categories by viewModel.categories.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.loadCategories()
@@ -38,7 +41,6 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
     ) { innerPadding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -46,7 +48,6 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center,
         ) {
-
             Card(
                 modifier = Modifier
                     .padding(16.dp)
@@ -55,7 +56,6 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                 elevation = CardDefaults.cardElevation(4.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-
                 TitlesView(title = "Añadir Post")
 
                 Column(
@@ -63,7 +63,6 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                     verticalArrangement = Arrangement.Center,
                     modifier = Modifier.padding(16.dp)
                 ) {
-
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
@@ -142,15 +141,24 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 Button(onClick = {
-                    selectedCategory?.let { category ->
-                        viewModel.addContentItem(
-                            title = title,
-                            category = category.ID_Category,
-                            urlHeader = urlHeader,
-                            text = text
-                        )
+                    coroutineScope.launch {
+                        selectedCategory?.let { category ->
+                            try {
+                                viewModel.addContentItem(
+                                    title = title,
+                                    category = category.ID_Category,
+                                    urlHeader = urlHeader,
+                                    text = text
+                                )
+                                // Mostrar Toast cuando se añade el post exitosamente
+                                Toast.makeText(context, "Post añadido con éxito", Toast.LENGTH_LONG).show()
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                // Mostrar Toast cuando hay un error al añadir el post
+                                Toast.makeText(context, "Error al añadir el post", Toast.LENGTH_LONG).show()
+                            }
+                        }
                     }
-                    navController.popBackStack()
                 }) {
                     Text("Confirmar")
                 }
