@@ -104,7 +104,7 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
 
     val allFieldsFilled = remember(email, password, name, firstLastName, secondLastName, phone) {
         email.isNotBlank() && password.isNotBlank() && name.isNotBlank() &&
-                firstLastName.isNotBlank() && secondLastName.isNotBlank() && phone.isNotBlank()
+                firstLastName.isNotBlank() && phone.isNotBlank()
     }
 
     Card(

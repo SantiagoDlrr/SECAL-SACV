@@ -90,4 +90,16 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 
+    suspend fun getIsTecEmail(): Boolean? {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            val metadata = user.userMetadata
+            val isTecEmail = metadata?.get("is_tec_email")?.toString()?.toBoolean() ?: false
+            isTecEmail
+
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 }

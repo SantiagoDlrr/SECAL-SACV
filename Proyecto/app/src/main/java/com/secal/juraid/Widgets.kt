@@ -16,7 +16,9 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -309,7 +311,14 @@ fun ButtonUserCard(navController: NavController, title: String = "", icon: Image
 }
 
 @Composable
-fun NameUserCard(name : String, desc : String) {
+fun NameUserCard(name: String, desc: String) {
+    val viewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
+    val isTec by viewModel.isTec.collectAsState()
+
+    val shouldShowTecLogo by remember {
+        derivedStateOf { isTec }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -325,7 +334,6 @@ fun NameUserCard(name : String, desc : String) {
                 .height(100.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-
         ) {
             Text(
                 text = name,
@@ -336,14 +344,25 @@ fun NameUserCard(name : String, desc : String) {
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.padding(4.dp))
-            Text(
-                text = desc,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+            Row {
+                Text(
+                    text = desc,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+
+                if (shouldShowTecLogo) {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.logotec),
+                        contentDescription = "Tec",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 }
