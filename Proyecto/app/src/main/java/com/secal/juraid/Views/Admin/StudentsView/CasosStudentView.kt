@@ -38,9 +38,6 @@ fun CasosStudentView(navController: NavController) {
                 }
             }
 
-            when (selectedTabIndex) {
-                0 -> CasosCardView(navController = navController, 3)
-            }
         }
     }
 }

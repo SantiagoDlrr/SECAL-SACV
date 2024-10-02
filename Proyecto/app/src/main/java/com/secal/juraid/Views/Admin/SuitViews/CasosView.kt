@@ -1,5 +1,6 @@
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -17,12 +18,21 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.Case
+import com.secal.juraid.ViewModel.CasesViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CasosView(navController: NavController) {
+fun CasosView(navController: NavController, viewModel: CasesViewModel) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Casos", "Asesorías")
+
+    val cases by viewModel.cases.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAllData()
+    }
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -43,24 +53,31 @@ fun CasosView(navController: NavController) {
             }
 
             when (selectedTabIndex) {
-                0 -> CasosCardView(navController = navController, 7)
+                0 -> {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    } else {
+                        CasosCardView(navController = navController, cases = cases)
+                    }
+                }
                 1 -> AsesoriasView() // Implementa esta vista según sea necesario
             }
         }
     }
 }
 
+
 @Composable
-fun CasosCardView(navController: NavController, count : Int) {
+fun CasosCardView(navController: NavController, cases: List<Case>) {
     LazyColumn {
-        items(count) { index ->
+        items(cases) { case ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                onClick = { navController.navigate(Routes.detalleVw) },
+                onClick = { navController.navigate("${Routes.detalleVw}/${case.id}") },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Row(
@@ -71,8 +88,9 @@ fun CasosCardView(navController: NavController, count : Int) {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Caso $index", fontWeight = FontWeight.Bold)
-                        Text("Descripción del caso $index", maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text(case.nombre_cliente, fontWeight = FontWeight.Bold)
+                        Text("NUC: ${case.NUC}", maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("Abogado: ${case.nombre_abogado}", maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Icon(Icons.Default.MoreVert, contentDescription = "More options")
                 }

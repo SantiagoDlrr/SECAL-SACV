@@ -37,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
@@ -97,12 +98,7 @@ fun UserScreen() {
             UserView(navController = navController)
         }
         composable(Routes.loginVw) {
-            LoginView(navController = navController, UserViewModel(
-                UserRepository(supabase, CoroutineScope(
-                    Dispatchers.IO)
-                )
-            )
-            )
+            LoginView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
 
         composable(Routes.signUpVw) {
@@ -118,7 +114,8 @@ fun UserScreen() {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.casosVw) {
-            CasosView(navController = navController)
+            val casesViewModel: CasesViewModel = viewModel()
+            CasosView(navController = navController, viewModel = casesViewModel)
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
@@ -129,8 +126,12 @@ fun UserScreen() {
         composable(Routes.userHomeVw) {
             UserHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
-        composable(Routes.detalleVw) {
-            DetalleView(navController = navController)
+        composable(
+            "${Routes.detalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+            DetalleView(navController = navController, caseId = caseId)
         }
         composable(Routes.alumnosVw) {
             AlumnosView(navController = navController)
