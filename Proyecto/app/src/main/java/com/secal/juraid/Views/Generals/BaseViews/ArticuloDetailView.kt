@@ -12,7 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
+import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 import kotlinx.coroutines.launch
@@ -61,6 +64,17 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    //para ver qué función llamamos
+                    Log.d(TAG, "POST ID $postId")
+
+                    navController.navigate("${Routes.editArticuloVw}/$postId") }  //Se va a EditArticuloView.kt
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier

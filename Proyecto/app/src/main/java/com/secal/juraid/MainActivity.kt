@@ -175,8 +175,17 @@ fun UserScreen() {
 
         }
 
-        composable(Routes.editArticuloVw) {
-            EditArticuloView(navController = navController)
+        composable(
+            "${Routes.editArticuloVw}/{postId}",
+            arguments = listOf(navArgument("postId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: -1
+            val homeViewModel = viewModel<HomeViewModel>()
+            EditArticuloView(
+                navController = navController,
+                viewModel = homeViewModel,
+                postId = postId
+            )
         }
         composable(Routes.addPostVw) {
             val homeViewModel = viewModel<HomeViewModel>()
