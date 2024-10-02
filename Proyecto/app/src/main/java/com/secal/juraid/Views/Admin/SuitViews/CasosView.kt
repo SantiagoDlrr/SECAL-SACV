@@ -29,7 +29,10 @@ fun CasosView(navController: NavController) {
         topBar = { TopBar() }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            TabRow(selectedTabIndex = selectedTabIndex) {
+            TabRow(
+                selectedTabIndex = selectedTabIndex,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+            ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
                         selected = selectedTabIndex == index,
@@ -57,7 +60,8 @@ fun CasosCardView(navController: NavController, count : Int) {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                onClick = { navController.navigate(Routes.detalleVw) }
+                onClick = { navController.navigate(Routes.detalleVw) },
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -87,6 +91,7 @@ fun AsesoriasView() {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

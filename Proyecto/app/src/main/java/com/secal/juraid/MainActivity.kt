@@ -135,8 +135,8 @@ fun UserScreen() {
         composable(Routes.detalleVw) {
             DetalleView(navController = navController)
         }
-        composable(Routes.studentHomeVw) {
-            StudentHomeView(navController = navController)
+        composable(Routes.alumnosVw) {
+            AlumnosView(navController = navController)
         }
         composable(Routes.casosStVw) {
             CasosStudentView(navController = navController)

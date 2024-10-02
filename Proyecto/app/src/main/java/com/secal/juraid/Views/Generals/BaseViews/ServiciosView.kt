@@ -3,6 +3,7 @@ package com.secal.juraid.Views.Generals.BaseViews
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,15 +23,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -40,6 +47,9 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.HelpButton
 import com.secal.juraid.TopBar
 import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import com.secal.juraid.Routes
 
 
@@ -75,53 +85,73 @@ fun ServiciosView(navController : NavController) {
 
 @Composable
 fun MapCardView() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        val context = LocalContext.current
-        Card(
-            onClick = {
-                val gmmIntentUri = Uri.parse("https://maps.app.goo.gl/rdYMmwrTHGwQ7Png7")
-                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+    val context = LocalContext.current
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    // Reemplaza estas coordenadas con las de la ubicación de tu clínica
+    val latitude = "19.4326"  // Ejemplo: Ciudad de México
+    val longitude = "-99.1332"
 
-                if (mapIntent.resolveActivity(context.packageManager) != null) {
-                    context.startActivity(mapIntent)
-                }
-            },
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .width(350.dp)
-                .height(200.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Ubicación de la Clínica",
-                        modifier = Modifier.size(100.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.padding(10.dp))
+    // Asegúrate de reemplazar YOUR_API_KEY con tu clave real de API de Google Maps
+    val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
+            "center=$latitude,$longitude" +
+            "&zoom=15" +
+            "&size=600x300" +
+            "&maptype=roadmap" +
+            "&markers=color:red%7C$latitude,$longitude" +
+            "&key=YOUR_API_KEY"
 
-                    Text(
-                        text = "Ubicación de la Clínica",
-                        fontSize = 20.sp
-                    )
-                }
+    Card(
+        onClick = {
+            val gmmIntentUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude")
+            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+            if (mapIntent.resolveActivity(context.packageManager) != null) {
+                context.startActivity(mapIntent)
+            } else {
+                errorMessage = "No se pudo abrir Google Maps"
             }
+        },
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(mapUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = "Mapa de la ubicación de la clínica",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                loading = {
+                    CircularProgressIndicator()
+                },
+                error = {
+                    errorMessage = "Error al cargar el mapa: ${it.result.throwable.message}"
+                    Text("Error al cargar el mapa")
+                }
+            )
+            Text(
+                text = errorMessage ?: "Ubicación de la Clínica",
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
         }
+    }
+
+    // Log del error para debugging
+    errorMessage?.let {
+        Log.e("MapCardView", "Error: $it")
     }
 }
 
