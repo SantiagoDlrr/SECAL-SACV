@@ -1,5 +1,7 @@
 package com.secal.juraid.Views.Admin
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,6 +53,9 @@ import com.secal.juraid.TopBar
 
 @Composable
 fun EditDetalleView(navController: NavController) {
+    //para ver qué función llamamos
+    Log.d(TAG, "EditDetalleView() called")
+
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },

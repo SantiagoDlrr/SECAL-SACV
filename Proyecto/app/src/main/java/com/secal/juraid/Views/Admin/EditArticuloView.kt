@@ -1,5 +1,7 @@
 package com.secal.juraid.Views.Admin
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +43,9 @@ import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailItem
 
 @Composable
 fun EditArticuloView(navController: NavController) {
+    //para ver qué función llamamos
+    Log.d(TAG, "EditArticuloView() called")
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },

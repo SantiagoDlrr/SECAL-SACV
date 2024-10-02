@@ -174,6 +174,7 @@ fun TopBar() {
     }
 }
 
+
 @Composable
 fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
     Column {
@@ -194,6 +195,7 @@ fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>
     }
 }
 
+//Son las tarjetitas de la pagina principal, las de categorias
 @Composable
 fun CategoryItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(

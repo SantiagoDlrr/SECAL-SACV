@@ -1,4 +1,9 @@
+//Es la vista donde se muestra la lista de todos los posts, con el botón de añadir nuevo
+
+import android.content.ContentValues.TAG
+import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,10 +28,15 @@ import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.Views.Generals.BaseViews.formatDate
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
+    //para ver qué función llamamos
+    Log.d(TAG, "ArticulosView() called")
+
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
 
@@ -35,7 +45,7 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
         bottomBar = { BottomBar(navController = navController) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.addPostVw) }
+                onClick = { navController.navigate(Routes.addPostVw) }  //Se va a AddPostView.kt
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar artículo")
             }
@@ -104,7 +114,8 @@ fun ArticuloItem(item: HomeViewModel.ContentItemPreview, navController: NavContr
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = {
-            navController.navigate("${Routes.articuloDetailVw}/${item.ID_Post}")
+            val itemJson = Uri.encode(Json.encodeToString(item))
+            navController.navigate("${Routes.articuloDetailVw}/$itemJson")
         },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {

@@ -1,6 +1,11 @@
+//Es la vista de cada post de información
+//Los abogados verán un botón extra de editar
+
 package com.secal.juraid.Views.Generals.BaseViews
 
+import android.content.ContentValues.TAG
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +43,9 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
+    //para ver qué función llamamos
+    Log.d(TAG, "ArticuloDetailView() called")
+
     val coroutineScope = rememberCoroutineScope()
     var contentItem by remember { mutableStateOf<HomeViewModel.ContentItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
