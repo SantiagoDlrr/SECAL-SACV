@@ -52,6 +52,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
                 put("second_last_name", secondLastName)
                 put("phone", phone)
                 put("role", 0)
+                put("is_tec_email", userEmail.endsWith("@tec.mx"))
             }
         }
     }

@@ -74,7 +74,7 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
 fun BottomBar(navController: NavController) {
     val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
     val isLogged = sessionState is SessionStatus.Authenticated
-    //val isLogged = true
+    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
     Row(
         modifier = Modifier
@@ -115,14 +115,18 @@ fun BottomBar(navController: NavController) {
             )
         }
 
-        // Botón de perfil (lógica de redirección según el estado de sesión)
+        // Botón de perfil (lógica de redirección según el estado de sesión y rol)
         IconButton(
             onClick = {
-
                 if (isLogged) {
-                    navController.navigate(Routes.userHomeVw)  // Si está logueado, va al perfil
+                    when (userRole) {
+                        0 -> navController.navigate(Routes.userHomeVw)
+                        1 -> navController.navigate(Routes.suitVw)
+                        2 -> navController.navigate(Routes.studentHomeVw)
+                        else -> navController.navigate(Routes.userVw)
+                    }
                 } else {
-                    navController.navigate(Routes.userVw)  // Si no está logueado, va a login
+                    navController.navigate(Routes.userVw)
                 }
             },
             modifier = Modifier

@@ -6,7 +6,6 @@ import ArticulosView
 import CasosView
 import DetalleView
 import MeetingView
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -33,8 +32,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -118,7 +115,7 @@ fun UserScreen() {
             MeetingView(navController = navController)
         }
         composable(Routes.suitVw) {
-            SuitHomeView(navController = navController)
+            SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.casosVw) {
             CasosView(navController = navController)
@@ -127,7 +124,7 @@ fun UserScreen() {
             EspaciosView(navController = navController)
         }
         composable(Routes.studentHomeVw) {
-            StudentHomeView(navController = navController)
+            StudentHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.userHomeVw) {
             UserHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
