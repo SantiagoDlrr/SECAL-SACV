@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Admin.SuitViews
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,7 +13,11 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
@@ -20,10 +25,12 @@ import com.secal.juraid.ButtonUserCard
 import com.secal.juraid.NameUserCard
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.UserViewModel
+import io.github.jan.supabase.auth.SessionStatus
 
 
 @Composable
-fun SuitHomeView(navController: NavController) {
+fun SuitHomeView(navController: NavController, viewModel: UserViewModel) {
     Scaffold (
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -37,7 +44,7 @@ fun SuitHomeView(navController: NavController) {
 
             ) {
             Column {
-                SuitHomeCardView(navController = navController)
+                SuitHomeCardView(navController = navController, viewModel = viewModel)
             }
         }
     }
@@ -45,13 +52,17 @@ fun SuitHomeView(navController: NavController) {
 
 
 @Composable
-fun SuitHomeCardView(navController: NavController) {
+fun SuitHomeCardView(navController: NavController, viewModel: UserViewModel) {
+    val userName by viewModel.userName.collectAsState()
+    val sessionState by viewModel.sessionState.collectAsState()
+    val errorMessage by viewModel.errorMessage
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
     ) {
 
-        NameUserCard("John Doe", "Abogado")
+        NameUserCard(userName, "Abogado")
 
         Spacer(modifier = Modifier.padding(16.dp))
 
@@ -61,6 +72,19 @@ fun SuitHomeCardView(navController: NavController) {
             ButtonUserCard(navController = navController, "Alumnos", Icons.Outlined.AccountCircle, route = Routes.alumnosVw)
         }
 
+    }
+
+    // Handle session state
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            is SessionStatus.NotAuthenticated -> navController.navigate(Routes.homeVw)
+            else -> {} // Handle other states if needed
+        }
+    }
+
+    // Show error message if any
+    if (errorMessage.isNotEmpty()) {
+        Toast.makeText(LocalContext.current, errorMessage, Toast.LENGTH_LONG).show()
     }
 }
 

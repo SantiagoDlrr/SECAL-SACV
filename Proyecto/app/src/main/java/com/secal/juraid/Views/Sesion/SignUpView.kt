@@ -102,6 +102,11 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
 
     var showDialog by remember { mutableStateOf(false) } // Estado para controlar el diálogo
 
+    val allFieldsFilled = remember(email, password, name, firstLastName, secondLastName, phone) {
+        email.isNotBlank() && password.isNotBlank() && name.isNotBlank() &&
+                firstLastName.isNotBlank() && phone.isNotBlank()
+    }
+
     Card(
         modifier = Modifier
             .padding(16.dp)
@@ -261,10 +266,10 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
             Button(
                 onClick = {
                     //showDialog = true
-                    viewModel.signUp(email, password)
-
+                    viewModel.signUp(email, password, name, firstLastName, secondLastName, phone)
                           }, // Mostrar diálogo al hacer clic
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = allFieldsFilled // El botón se habilita solo cuando todos los campos están llenos
             ) {
                 Text("Registro")
             }
