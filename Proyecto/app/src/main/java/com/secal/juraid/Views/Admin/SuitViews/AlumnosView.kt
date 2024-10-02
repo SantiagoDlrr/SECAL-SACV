@@ -17,48 +17,42 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.R
 import com.secal.juraid.Routes
+import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun AlumnosView(navController: NavController) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
-    val tabs = listOf("Alumnos")
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            TabRow(selectedTabIndex = selectedTabIndex,
-                modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = { Text(title) }
-                    )
+            TitlesView(title = "Alumnos")
+            LazyColumn {
+                items(5) {
+                    AlumnosCardView(navController = navController)
                 }
             }
-
-            when (selectedTabIndex) {
-                0 -> AlumnosCardView(navController = navController)
-            }
         }
+
+
     }
 }
 
 @Composable
 fun AlumnosCardView(navController: NavController) {
-    LazyColumn {
-        items(7) { index ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                onClick = { navController.navigate(Routes.alumnoDetailVw) }
+                onClick = { navController.navigate(Routes.alumnoDetailVw) },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -78,13 +72,12 @@ fun AlumnosCardView(navController: NavController) {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Alumno $index", fontWeight = FontWeight.Bold)
+                        Text("Alumno", fontWeight = FontWeight.Bold)
                     }
                     Icon(Icons.Default.MoreVert, contentDescription = "More options")
                 }
             }
-        }
-    }
+
 }
 
 
