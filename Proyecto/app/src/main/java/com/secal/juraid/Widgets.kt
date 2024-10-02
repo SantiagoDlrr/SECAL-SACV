@@ -56,6 +56,7 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
     FloatingActionButton(
         onClick = { navController.navigate(Routes.helpVw) },
         modifier = modifier.padding(16.dp),
+        containerColor = MaterialTheme.colorScheme.primary,
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
@@ -174,6 +175,7 @@ fun TopBar() {
     }
 }
 
+
 @Composable
 fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
     Column {
@@ -194,6 +196,7 @@ fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>
     }
 }
 
+//Son las tarjetitas de la pagina principal, las de categorias
 @Composable
 fun CategoryItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(
@@ -308,7 +311,7 @@ fun NameUserCard(name : String, desc : String) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+            .background(MaterialTheme.colorScheme.primary),
     ) {
         Column(
             modifier = Modifier
@@ -325,7 +328,8 @@ fun NameUserCard(name : String, desc : String) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                fontSize = 30.sp
+                fontSize = 30.sp,
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.padding(4.dp))
             Text(
@@ -333,7 +337,8 @@ fun NameUserCard(name : String, desc : String) {
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                fontSize = 20.sp
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
