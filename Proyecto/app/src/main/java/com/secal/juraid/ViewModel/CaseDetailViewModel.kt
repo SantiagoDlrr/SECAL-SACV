@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 
 class CaseDetailViewModel : ViewModel() {
     private val _caseDetail = MutableStateFlow<Case?>(null)
@@ -20,6 +23,9 @@ class CaseDetailViewModel : ViewModel() {
 
     private val _unitInvestigation = MutableStateFlow<unitInvestigation?>(null)
     val unitInvestigation: StateFlow<unitInvestigation?> = _unitInvestigation
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     fun loadCaseDetail(caseId: Int) {
         viewModelScope.launch {
@@ -56,4 +62,108 @@ class CaseDetailViewModel : ViewModel() {
             }
         }
     }
+
+    suspend fun updateCase(
+        caseId: Int,
+        nombreCliente: String,
+        nuc: String,
+        carpetaJudicial: String,
+        carpetaInvestigacion: String,
+        fiscalTitular: String,
+        drive: String
+    ) {
+        viewModelScope.launch {
+            try {
+                supabase.from("Cases")
+                    .update(
+                        {
+                            set("nombre_cliente", nombreCliente)
+                            set("NUC", nuc)
+                            set("carpeta_judicial", carpetaJudicial)
+                            set("carpeta_investigacion", carpetaInvestigacion)
+                            set("fiscal_titular", fiscalTitular)
+                            set("drive", drive)
+                        }
+                    ) {
+                        filter { eq("id", caseId) }
+                    }
+
+                // Reload case detail to reflect changes
+                loadCaseDetail(caseId)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating case", e)
+            }
+        }
+    }
+
+    suspend fun addHyperlink(caseId: Int, texto: String, link: String) {
+        viewModelScope.launch {
+            try {
+
+                val newItem = HiperlinkInsert(
+                    id_caso = caseId,
+                    texto = texto,
+                    link = link
+                )
+
+                val insertedItem = withContext(Dispatchers.IO) {
+                    supabase.from("Hiperlinks")
+                        .insert(newItem)
+                        .decodeSingle<Hiperlink>()
+                }
+
+                // Actualizar la lista local de hipervínculos
+                val currentList = _hyperlinks.value.toMutableList()
+                currentList.add(insertedItem)
+                _hyperlinks.value = currentList
+
+                // Reload case detail to reflect changes
+                loadCaseDetail(caseId)
+                Log.d("DatabaseDebug", "Nuevo item añadido: $insertedItem")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error adding hyperlink", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    suspend fun updateHyperlink(hyperlinkId: Int, texto: String, link: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                supabase.from("Hiperlinks")
+                    .update(
+                        {
+                            set("texto", texto)
+                            set("link", link)
+                        }
+                    ) {
+                        filter { eq("id", hyperlinkId) }
+                    }
+
+                // Recargar los detalles del caso para reflejar los cambios
+                _caseDetail.value?.id?.let { loadCaseDetail(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating hyperlink", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    @Serializable
+    data class Hiperlink(
+        val id: Int,
+        val id_caso: Int,
+        val texto: String,
+        val link: String
+    )
+    @Serializable
+    data class HiperlinkInsert(
+        val id_caso: Int,
+        val texto: String,
+        val link: String
+    )
 }

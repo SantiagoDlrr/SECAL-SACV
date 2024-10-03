@@ -3,6 +3,7 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
+import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
@@ -146,10 +147,10 @@ fun UserScreen() {
             arguments = listOf(navArgument("caseId") { type = NavType.IntType })
             ) { backStackEntry ->
                 val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
-                val homeViewModel = viewModel<HomeViewModel>()
+                val caseViewModel = viewModel<CaseDetailViewModel>()
                 EditDetalleView(
                     navController = navController,
-                    viewModel = homeViewModel,
+                    viewModel = caseViewModel,
                     caseId = caseId
                 )
         }

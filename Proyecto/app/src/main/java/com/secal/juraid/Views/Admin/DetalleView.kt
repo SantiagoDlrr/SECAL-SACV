@@ -35,8 +35,13 @@ import com.secal.juraid.TopBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.ViewModel.unitInvestigation
 import com.secal.juraid.Views.Generals.BaseViews.formatDate
+import com.secal.juraid.supabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -48,6 +53,8 @@ fun DetalleView(navController: NavController, caseId: Int) {
     val hyperlinks by viewModel.hyperlinks.collectAsState()
     val unitInvestigation by viewModel.unitInvestigation.collectAsState()
 
+    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
+
     LaunchedEffect(caseId) {
         viewModel.loadCaseDetail(caseId)
     }
@@ -56,14 +63,15 @@ fun DetalleView(navController: NavController, caseId: Int) {
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("${Routes.editDetalleVw}/$caseId") },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Editar"
-                )
+            if (userRole == 1) { // 1 = Abogado
+                FloatingActionButton(
+                    onClick = {
+                        Log.d(TAG, "CASE ID $caseId")
+                        navController.navigate("${Routes.editDetalleVw}/$caseId")
+                    }
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar caso")
+                }
             }
         }
     ) { innerPadding ->
