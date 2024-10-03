@@ -11,9 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
-
 class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope) {
-
 
     private val _sessionState = MutableStateFlow<SessionStatus>(SessionStatus.LoadingFromStorage)
     val sessionState: StateFlow<SessionStatus> get() = _sessionState
@@ -27,11 +25,14 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 
-
     suspend fun signIn(userEmail: String, userPassword: String) {
-        supabase.auth.signInWith(Email){
-            email = userEmail
-            password = userPassword
+        try {
+            supabase.auth.signInWith(Email) {
+                email = userEmail
+                password = userPassword
+            }
+        } catch (e: Exception) {
+            throw Exception("Error al iniciar sesión: ${e.message}")
         }
     }
 
@@ -43,22 +44,30 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         secondLastName: String,
         phone: String
     ) {
-        supabase.auth.signUpWith(Email) {
-            email = userEmail
-            password = userPassword
-            data = buildJsonObject {
-                put("name", name)
-                put("first_last_name", firstLastName)
-                put("second_last_name", secondLastName)
-                put("phone", phone)
-                put("role", 0)
-                put("is_tec_email", userEmail.endsWith("@tec.mx"))
+        try {
+            supabase.auth.signUpWith(Email) {
+                email = userEmail
+                password = userPassword
+                data = buildJsonObject {
+                    put("name", name)
+                    put("first_last_name", firstLastName)
+                    put("second_last_name", secondLastName)
+                    put("phone", phone)
+                    put("role", 0)
+                    put("is_tec_email", userEmail.endsWith("@tec.mx"))
+                }
             }
+        } catch (e: Exception) {
+            throw Exception("Error al registrarse: ${e.message}")
         }
     }
 
     suspend fun signOut() {
-        supabase.auth.signOut()
+        try {
+            supabase.auth.signOut()
+        } catch (e: Exception) {
+            throw Exception("Error al cerrar sesión: ${e.message}")
+        }
     }
 
     suspend fun getUserName(): String? {
@@ -82,9 +91,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()
             val metadata = user.userMetadata
-            val role = metadata?.get("role")?.toString()?.toInt() ?: 0
-            role
-
+            metadata?.get("role")?.toString()?.toInt() ?: 0
         } catch (e: Exception) {
             null
         }
@@ -94,12 +101,9 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()
             val metadata = user.userMetadata
-            val isTecEmail = metadata?.get("is_tec_email")?.toString()?.toBoolean() ?: false
-            isTecEmail
-
+            metadata?.get("is_tec_email")?.toString()?.toBoolean() ?: false
         } catch (e: Exception) {
             null
         }
     }
-
 }
