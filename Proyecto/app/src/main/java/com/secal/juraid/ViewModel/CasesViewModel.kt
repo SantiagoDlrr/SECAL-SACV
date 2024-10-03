@@ -1,5 +1,6 @@
 package com.secal.juraid.ViewModel
 
+import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,10 @@ import kotlinx.coroutines.withContext
 class CasesViewModel : ViewModel() {
     private val _cases = MutableStateFlow<List<Case>>(emptyList())
     val cases: StateFlow<List<Case>> = _cases.asStateFlow()
+
+    // Nuevo StateFlow para casos activos
+    private val _activeCases = MutableStateFlow<List<Case>>(emptyList())
+    val activeCases: StateFlow<List<Case>> = _activeCases.asStateFlow()
 
     private val _unitInvestigations = MutableStateFlow<List<unitInvestigation>>(emptyList())
     val unitInvestigations: StateFlow<List<unitInvestigation>> = _unitInvestigations.asStateFlow()
@@ -57,6 +62,9 @@ class CasesViewModel : ViewModel() {
             try {
                 val fetchedCases = getCasesFromDatabase()
                 _cases.value = fetchedCases
+
+                // Filtrar casos activos
+                _activeCases.value = fetchedCases.filter { it.status != 0 }
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error loading cases: ${e.message}", e)
             }
@@ -137,6 +145,30 @@ class CasesViewModel : ViewModel() {
         }
     }
 
+
+    suspend fun deleteCase(caseId: Int) {
+        try {
+            supabase.from("Cases")
+                .update(
+                    { set<Int>("status", 0) }
+
+                ) { filter { eq("id", caseId) } }
+
+            _cases.value = _cases.value.map { case ->
+                if (case.id == caseId) {
+                    case.copy(status = 0)
+                } else {
+                    case
+                }
+            }
+
+            _activeCases.value = _activeCases.value.filterNot { it.id == caseId }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating status case (deleting)", e)
+        }
+
+    }
 
 
 

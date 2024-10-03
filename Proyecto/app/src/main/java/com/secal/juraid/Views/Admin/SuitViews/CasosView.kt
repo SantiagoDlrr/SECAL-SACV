@@ -29,6 +29,7 @@ import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.supabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,8 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Casos", "Asesorías")
 
-    val cases by viewModel.cases.collectAsState()
+    val cases by viewModel.activeCases.collectAsState()
+
     val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -87,6 +89,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
     var showDeleteCaseDialog by remember { mutableStateOf(false) }
     var selectedCitaIndex by remember { mutableStateOf<Int?>(null) }
     var deletingCaseId by remember { mutableStateOf<Int?>(null) }
+    val scope = rememberCoroutineScope()
 
     val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
@@ -155,13 +158,15 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
             text = { Text("¿Estás seguro de que deseas eliminar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    /*deletingCaseId?.let { caseId ->
-                        viewModel.deleteCase(
-                            caseId
-                        )
-                    }*/
-                    showDeleteCaseDialog = false
-                    deletingCaseId = null
+                    scope.launch {
+                        deletingCaseId?.let {
+                            viewModel.deleteCase(
+                                it
+                            )
+                        }
+                        showDeleteCaseDialog = false
+                        deletingCaseId = null
+                    }
                 }) {
                     Text("Eliminar")
                 }
