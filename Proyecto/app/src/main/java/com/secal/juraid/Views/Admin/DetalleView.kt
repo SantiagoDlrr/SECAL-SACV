@@ -1,3 +1,5 @@
+//Detalle de un caso en específico
+
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent

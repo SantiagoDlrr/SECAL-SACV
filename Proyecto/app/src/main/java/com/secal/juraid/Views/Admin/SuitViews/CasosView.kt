@@ -67,6 +67,7 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
 }
 
 
+//es el display de casos
 @Composable
 fun CasosCardView(navController: NavController, cases: List<Case>) {
     LazyColumn {

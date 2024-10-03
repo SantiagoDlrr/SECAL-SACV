@@ -140,8 +140,18 @@ fun UserScreen() {
         composable(Routes.casosStVw) {
             CasosStudentView(navController = navController)
         }
-        composable(Routes.editDetalleVw) {
-            EditDetalleView(navController = navController)
+        //editar casos
+        composable(
+            "${Routes.editDetalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+                val homeViewModel = viewModel<HomeViewModel>()
+                EditDetalleView(
+                    navController = navController,
+                    viewModel = homeViewModel,
+                    caseId = caseId
+                )
         }
         composable(Routes.alumnoDetailVw) {
             AlumnoDetailView(navController = navController)

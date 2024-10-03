@@ -50,9 +50,11 @@ import com.secal.juraid.R
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.HomeViewModel
 
+//editar un caso
 @Composable
-fun EditDetalleView(navController: NavController) {
+fun EditDetalleView(navController: NavController, viewModel: HomeViewModel, caseId: Int) {
     //para ver qué función llamamos
     Log.d(TAG, "EditDetalleView() called")
 
