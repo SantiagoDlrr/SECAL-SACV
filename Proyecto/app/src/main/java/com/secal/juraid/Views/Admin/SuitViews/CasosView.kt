@@ -60,7 +60,7 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
                         CasosCardView(navController = navController, cases = cases)
                     }
                 }
-                1 -> AsesoriasView() // Implementa esta vista según sea necesario
+                1 -> CitasPasadasView() // Implementa esta vista según sea necesario
             }
         }
     }
@@ -101,7 +101,11 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 }
 
 @Composable
-fun AsesoriasView() {
+fun CitasPasadasView() {
+    var showAcceptDialog by remember { mutableStateOf(false) }
+    var showRejectDialog by remember { mutableStateOf(false) }
+    var currentCitaIndex by remember { mutableStateOf(-1) }
+
     LazyColumn {
         items(7) { index ->
             Card(
@@ -110,7 +114,6 @@ fun AsesoriasView() {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -120,20 +123,27 @@ fun AsesoriasView() {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("Asesoría $index", fontWeight = FontWeight.Bold)
-                        //Text("Descripción de la asesoría $index", maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        Text("Cita $index", fontWeight = FontWeight.Bold)
+                        Text("Nombre")
+                        Text("Fecha: 02/10/2024")
                     }
                     Row (
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Button(onClick = { /*TODO*/ }) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = "Aceptar")
-                            
+                        Button(onClick = {
+                            currentCitaIndex = index
+                            showAcceptDialog = true
+                        }) {
+                            Text("Representar")
+                            //Icon(imageVector = Icons.Default.Check, contentDescription = "Aceptar")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = { /*TODO*/ }) {
+                        Button(onClick = {
+                            currentCitaIndex = index
+                            showRejectDialog = true
+                        }) {
                             Icon(imageVector = Icons.Default.Close, contentDescription = "Rechazar")
                         }
                     }
@@ -142,5 +152,48 @@ fun AsesoriasView() {
         }
     }
 
+    if (showAcceptDialog) {
+        AlertDialog(
+            onDismissRequest = { showAcceptDialog = false },
+            title = { Text("Representar") },
+            text = { Text("¿Deseas aceptar esta caso?") },
+            confirmButton = {
+                Button(onClick = {
+                    // Lógica para aceptar la cita
+                    println("Caso $currentCitaIndex aceptado")
+                    showAcceptDialog = false
+                }) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showAcceptDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
+    if (showRejectDialog) {
+        AlertDialog(
+            onDismissRequest = { showRejectDialog = false },
+            title = { Text("No representar") },
+            text = { Text("¿Deseas no representar este caso?") },
+            confirmButton = {
+                Button(onClick = {
+                    // Lógica para rechazar la cita
+                    println("Caso $currentCitaIndex rechazado")
+                    showRejectDialog = false
+                }) {
+                    Text("Rechazar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showRejectDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
+
