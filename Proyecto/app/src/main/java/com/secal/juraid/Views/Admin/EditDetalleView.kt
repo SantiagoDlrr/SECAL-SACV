@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
@@ -69,17 +70,6 @@ fun EditDetalleView(navController: NavController, viewModel: CaseDetailViewModel
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
-        /*floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate(Routes.detalleVw) },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Done,
-                    contentDescription = "Guardar"
-                )
-            }
-        }*/
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -119,6 +109,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
     var editingHyperlink by remember { mutableStateOf<CaseDetailViewModel.Hiperlink?>(null) }
     var editHyperlinkText by remember { mutableStateOf("") }
     var editHyperlinkLink by remember { mutableStateOf("") }
+
+    //Para diálogo eliminar hipervínculo
+    var showDeleteHyperlinkDialog by remember { mutableStateOf(false) }
+    var deletingHyperlink by remember { mutableStateOf<CaseDetailViewModel.Hiperlink?>(null) }
 
     LaunchedEffect(caseId) {
         viewModel.loadCaseDetail(caseId)
@@ -218,6 +212,12 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                     }) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar hipervínculo")
                     }
+                    IconButton(onClick = {
+                        deletingHyperlink = hyperlink
+                        showDeleteHyperlinkDialog = true
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar hipervínculo")
+                    }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
             }
@@ -312,6 +312,33 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
             }
         )
     }
+
+    // Diálogo para editar hipervínculo existente
+    if (showDeleteHyperlinkDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteHyperlinkDialog = false },
+            title = { Text("Eliminar hipervínculo") },
+            text = { Text("¿Estás seguro de que deseas eliminar este hipervínculo?") },
+            confirmButton = {
+                Button(onClick = {
+                    deletingHyperlink?.let { hyperlink ->
+                        viewModel.deleteHyperlink(
+                            hyperlink.id
+                        )
+                    }
+                    showDeleteHyperlinkDialog = false
+                    deletingHyperlink = null
+                }) {
+                    Text("Eliminar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDeleteHyperlinkDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -364,126 +391,3 @@ fun HyperlinkDialog(
         }
     )
 }
-
-@Composable
-fun EditCardPasada() {
-
-    var desc by remember { mutableStateOf("") }
-    var nameAct by remember { mutableStateOf("") }
-    var descAct by remember { mutableStateOf("") }
-    var showDialog by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_background),
-                    contentDescription = "Placeholder",
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text("Headline", fontWeight = FontWeight.Bold)
-                    Text("supporting text", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("Published date", style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(value = desc, onValueChange = {desc = it},
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                label = { Text("Descripción") },
-                placeholder = { Text(text = "", fontSize = 16.sp) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                shape = RoundedCornerShape(16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "Acciones",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(bottom = 8.dp),
-                fontSize = 20.sp
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { /* TODO */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Text("Drive")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = { showDialog = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Añadir acción")
-                
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-
-        }
-
-        if (showDialog) {
-            AlertDialog(
-                onDismissRequest = { showDialog = false },
-                confirmButton = {
-                    Button(onClick = {
-                        showDialog = false
-                    }) {
-                        Text("Aceptar")
-                    }
-                },
-                title = { Text("Añadir nueva acción") },
-                text = {
-
-                    Column {
-                        OutlinedTextField(value = nameAct, onValueChange = {nameAct = it},
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            label = { Text("Nombre de la acción") },
-                            placeholder = { Text(text = "", fontSize = 16.sp) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        OutlinedTextField(value = descAct, onValueChange = {descAct = it},
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            label = { Text("Hipervínculo") },
-                            placeholder = { Text(text = "", fontSize = 16.sp) },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    }
-
-                }
-
-            )
-        }
-
-    }
-}
-
-
