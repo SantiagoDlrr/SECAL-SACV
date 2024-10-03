@@ -344,7 +344,17 @@ fun NameUserCard(name: String, desc: String) {
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.padding(4.dp))
-            Row {
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (shouldShowTecLogo) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logotec),
+                        contentDescription = "Tec",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                }
                 Text(
                     text = desc,
                     maxLines = 1,
@@ -353,15 +363,6 @@ fun NameUserCard(name: String, desc: String) {
                     fontSize = 20.sp,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
-
-                if (shouldShowTecLogo) {
-                    Spacer(modifier = Modifier.padding(4.dp))
-                    Image(
-                        painter = painterResource(id = R.drawable.logotec),
-                        contentDescription = "Tec",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
     }

@@ -436,7 +436,7 @@ fun PreviewHelpView() {
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            val annotatedText = buildAnnotatedString {
+                            val annotatedText = buildAnnotatedString (){
                                 append("Acepto que un ")
                                 pushStringAnnotation(tag = "alumno", annotation = "")
                                 withStyle(style = SpanStyle(color = Purple40, textDecoration = TextDecoration.Underline)) {

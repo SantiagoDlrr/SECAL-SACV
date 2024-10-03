@@ -2,7 +2,9 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +37,7 @@ import com.secal.juraid.ViewModel.unitInvestigation
 import com.secal.juraid.Views.Generals.BaseViews.formatDate
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DetalleView(navController: NavController, caseId: Int) {
     val context = LocalContext.current

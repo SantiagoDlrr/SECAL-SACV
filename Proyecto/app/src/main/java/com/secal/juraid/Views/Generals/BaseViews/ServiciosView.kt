@@ -104,12 +104,10 @@ fun MapCardView() {
 
     Card(
         onClick = {
-            val gmmIntentUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude")
+            val gmmIntentUri = Uri.parse("https://maps.app.goo.gl/rdYMmwrTHGwQ7Png7")
             val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
             if (mapIntent.resolveActivity(context.packageManager) != null) {
                 context.startActivity(mapIntent)
-            } else {
-                errorMessage = "No se pudo abrir Google Maps"
             }
         },
         modifier = Modifier

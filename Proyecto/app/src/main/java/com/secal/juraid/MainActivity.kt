@@ -49,6 +49,7 @@ import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 
@@ -70,7 +71,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalSerializationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun UserScreen() {
