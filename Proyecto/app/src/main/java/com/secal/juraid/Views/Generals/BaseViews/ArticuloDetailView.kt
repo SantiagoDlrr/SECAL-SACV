@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,9 +35,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
+import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.ViewModel.UserViewModel
+import com.secal.juraid.supabase
+import io.github.jan.supabase.auth.SessionStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -46,12 +53,13 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
-    //para ver qué función llamamos
     Log.d(TAG, "ArticuloDetailView() called")
 
     val coroutineScope = rememberCoroutineScope()
     var contentItem by remember { mutableStateOf<HomeViewModel.ContentItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    
+    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
     LaunchedEffect(postId) {
         coroutineScope.launch {
@@ -65,14 +73,15 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    //para ver qué función llamamos
-                    Log.d(TAG, "POST ID $postId")
-
-                    navController.navigate("${Routes.editArticuloVw}/$postId") }  //Se va a EditArticuloView.kt
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+            if (userRole == 1) {
+                FloatingActionButton(
+                    onClick = {
+                        Log.d(TAG, "POST ID $postId")
+                        navController.navigate("${Routes.editArticuloVw}/$postId")
+                    }
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+                }
             }
         }
     ) { innerPadding ->
@@ -86,7 +95,7 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                 return@Box
             }
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 contentItem?.let { item ->
                     Column(

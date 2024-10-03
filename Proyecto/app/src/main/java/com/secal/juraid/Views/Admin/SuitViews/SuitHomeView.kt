@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,6 +71,7 @@ fun SuitHomeCardView(navController: NavController, viewModel: UserViewModel) {
             ButtonUserCard(navController = navController, "Casos", Icons.Outlined.Menu, route = Routes.casosVw)
             ButtonUserCard(navController = navController, "Espacios", Icons.Outlined.DateRange, route = Routes.meetingVw)
             ButtonUserCard(navController = navController, "Alumnos", Icons.Outlined.AccountCircle, route = Routes.alumnosVw)
+            ButtonUserCard(navController = navController, "Articulos", Icons.Outlined.Search, route = Routes.articulosVw)
         }
 
     }

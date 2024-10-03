@@ -32,6 +32,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secal.juraid.ViewModel.unitInvestigation
+import com.secal.juraid.Views.Generals.BaseViews.formatDate
 
 
 @Composable
@@ -94,7 +95,7 @@ fun DetalleView(navController: NavController, caseId: Int) {
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text("Fecha de creación: ${case.created_at}", style = MaterialTheme.typography.bodySmall)
+                        Text("Fecha de creación: ${case.created_at.formatDate()}", style = MaterialTheme.typography.bodySmall)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             "Abogado: ${case.nombre_abogado}\n" +

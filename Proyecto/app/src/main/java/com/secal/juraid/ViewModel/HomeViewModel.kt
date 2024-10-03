@@ -153,13 +153,6 @@ class HomeViewModel : ViewModel() {
         Log.d(TAG, "updateContentItem() called")
 
         try {
-            val updateData = mapOf(
-                "title" to title,
-                "ID_Category" to category,
-                "url_header" to urlHeader,
-                "text" to text
-            )
-
             supabase.from("Content").update(
                 {
                     set("title", title)
@@ -193,7 +186,7 @@ class HomeViewModel : ViewModel() {
         val created_at: String,
         val title: String,
         val url_header: String,
-        var category: Category? = null
+        var category: Category? = null,
     )
 
     @Serializable
