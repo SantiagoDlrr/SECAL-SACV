@@ -62,7 +62,7 @@ fun DetalleView(navController: NavController, caseId: Int) {
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
-        floatingActionButton = {
+        /*floatingActionButton = {
             if (userRole == 1) { // 1 = Abogado
                 FloatingActionButton(
                     onClick = {
@@ -73,7 +73,8 @@ fun DetalleView(navController: NavController, caseId: Int) {
                     Icon(Icons.Default.Edit, contentDescription = "Editar caso")
                 }
             }
-        }
+        }*/
+
     ) { innerPadding ->
         Column(
             modifier = Modifier

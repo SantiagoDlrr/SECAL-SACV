@@ -153,6 +153,26 @@ class CaseDetailViewModel : ViewModel() {
         }
     }
 
+    fun deleteHyperlink(hyperlinkId: Int) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+
+                supabase.from("Hiperlinks")
+                    .delete{
+                        filter { eq("id", hyperlinkId) }
+                    }
+
+                // Recargar los detalles del caso para reflejar los cambios
+                _caseDetail.value?.id?.let { loadCaseDetail(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting hyperlink", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     @Serializable
     data class Hiperlink(
         val id: Int,
