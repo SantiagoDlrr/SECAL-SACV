@@ -62,6 +62,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.biometric.ktx)
+    implementation(libs.androidx.appcompat)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,6 +78,8 @@ dependencies {
     implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0-beta-1"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.0-beta-1")
     implementation("io.ktor:ktor-client-android:3.0.0-rc-1")
+    implementation ("androidx.biometric:biometric:1.2.0-alpha05") // o la última versión estable
+
 
     implementation(libs.androidx.navigation.compose)
 }

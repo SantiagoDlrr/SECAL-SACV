@@ -88,9 +88,10 @@ fun MapCardView() {
     val context = LocalContext.current
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+
     // Reemplaza estas coordenadas con las de la ubicación de tu clínica
-    val latitude = "19.4326"  // Ejemplo: Ciudad de México
-    val longitude = "-99.1332"
+    val latitude = "25.648307"  // Ejemplo: Ciudad de México
+    val longitude = "-100.289482"
 
     // Asegúrate de reemplazar YOUR_API_KEY con tu clave real de API de Google Maps
     val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
@@ -99,7 +100,7 @@ fun MapCardView() {
             "&size=600x300" +
             "&maptype=roadmap" +
             "&markers=color:red%7C$latitude,$longitude" +
-            "&key=YOUR_API_KEY"
+            "&key=AIzaSyB1GvXqwgi1iaZvAtuaSckad58KzyyAE9w"
 
     Card(
         onClick = {
