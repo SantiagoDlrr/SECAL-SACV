@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -42,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,8 +81,6 @@ fun HelpView(navController: NavController) {
 @Composable
 fun CasoFormView(navController: NavController) {
 
-    TitlesView(title = "Escribe la información de tu caso")
-
     var selectedOption by remember { mutableStateOf("") }
     val options = listOf("Víctima", "Investigado")
     var termsAccepted by remember { mutableStateOf(false) }
@@ -90,6 +90,9 @@ fun CasoFormView(navController: NavController) {
 
     Scaffold(
     ) {
+
+        TitlesView(title = "Escribe la información de tu caso")
+
         Column (
             modifier = Modifier
                 .fillMaxSize(),
@@ -104,6 +107,28 @@ fun CasoFormView(navController: NavController) {
                 elevation = CardDefaults.cardElevation(4.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Agendar Asesoría Legal",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    ScheduledCard(
+                        deliveryTime = "Mañana, 07:00AM - 09:00AM",
+                        status = "Agendado"
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    RescheduleButton()
+                }
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -306,6 +331,7 @@ fun PreviewHelpView() {
                 elevation = CardDefaults.cardElevation(4.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -389,7 +415,6 @@ fun PreviewHelpView() {
                                 Text(text = option)
                             }
                         }
-
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // AVISO PRIVACIDAD
