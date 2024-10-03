@@ -1,6 +1,7 @@
 package com.secal.juraid.ViewModel
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.Model.UserRepository
@@ -129,4 +130,14 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             userRepository.signOut()
         }
     }
+}
+
+val biometricAuthenticationResult = MutableLiveData<Boolean>()
+
+fun onBiometricAuthenticated() {
+    biometricAuthenticationResult.value = true
+}
+
+fun onBiometricFailed() {
+    biometricAuthenticationResult.value = false
 }
