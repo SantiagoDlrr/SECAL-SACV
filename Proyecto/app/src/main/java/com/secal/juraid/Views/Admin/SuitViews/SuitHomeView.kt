@@ -57,7 +57,7 @@ fun SuitHomeCardView(navController: NavController) {
 
         Column {
             ButtonUserCard(navController = navController, "Casos", Icons.Outlined.Menu, route = Routes.casosVw)
-            ButtonUserCard(navController = navController, "Espacios", Icons.Outlined.DateRange, route = Routes.meetingVw)
+            ButtonUserCard(navController = navController, "Espacios", Icons.Outlined.DateRange, route = Routes.espaciosVw)
             ButtonUserCard(navController = navController, "Alumnos", Icons.Outlined.AccountCircle, route = Routes.alumnosVw)
         }
 
