@@ -32,6 +32,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,33 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.secal.juraid.ui.theme.Primary
-
-
-@Preview(showBackground = true)
-@Composable
-fun ScheduleUI() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Horario de Asesoría",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        ScheduledCard(
-            deliveryTime = "Mañana, 07:00AM - 09:00AM",
-            status = "Agendado"
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        RescheduleButton()
-    }
-}
 
 @Composable
 fun ScheduledCard(deliveryTime: String, status: String) {
@@ -104,11 +78,9 @@ fun ScheduledCard(deliveryTime: String, status: String) {
 }
 
 @Composable
-fun RescheduleButton() {
-    var isDialogOpen by remember { mutableStateOf(false) }
-
+fun RescheduleButton(onOpenDialog: () -> Unit) {
     OutlinedButton(
-        onClick = { isDialogOpen = true },
+        onClick = onOpenDialog,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -120,23 +92,15 @@ fun RescheduleButton() {
         Spacer(modifier = Modifier.width(8.dp))
         Text("Agendar en otro horario")
     }
-
-    if (isDialogOpen) {
-        TimeSelectionDialog(
-            onDismissRequest = { isDialogOpen = false },
-            onTimeSelected = { selectedTime ->
-                // Handle selected time
-                isDialogOpen = false
-            }
-        )
-    }
 }
 
 @Composable
 fun TimeSelectionDialog(
     onDismissRequest: () -> Unit,
-    onTimeSelected: (String) -> Unit
+    onTimeSelected: (String, String) -> Unit
 ) {
+    // Initialize with the first date (Hoy)
+    var selectedDate by remember { mutableStateOf("Hoy") }
     var selectedTime by remember { mutableStateOf<String?>(null) }
 
     Dialog(
@@ -162,7 +126,12 @@ fun TimeSelectionDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                DateSelector()
+                DateSelector(
+                    initialSelectedDate = 0,  // Select first date by default
+                    onDateSelected = { date ->
+                        selectedDate = date
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -176,8 +145,9 @@ fun TimeSelectionDialog(
 
                 Button(
                     onClick = {
-                        selectedTime?.let { onTimeSelected(it) }
-                        onDismissRequest()
+                        if (selectedTime != null) {
+                            onTimeSelected(selectedDate, selectedTime!!)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -185,7 +155,7 @@ fun TimeSelectionDialog(
                         .padding(vertical = 4.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    enabled = selectedTime != null
+                    enabled = selectedTime != null  // Only check for selectedTime since date is always selected
                 ) {
                     Text("Seleccionar", color = Color.White)
                 }
@@ -194,10 +164,11 @@ fun TimeSelectionDialog(
     }
 }
 
-
-
 @Composable
-fun DateSelector() {
+fun DateSelector(
+    initialSelectedDate: Int = 0,
+    onDateSelected: (String) -> Unit
+) {
     val dates = remember {
         listOf(
             "Hoy\n2 oct",
@@ -207,7 +178,11 @@ fun DateSelector() {
             "Viernes\n6 oct"
         )
     }
-    var selectedDateIndex by remember { mutableStateOf(0) }
+    var selectedDateIndex by remember { mutableStateOf(initialSelectedDate) }
+
+    LaunchedEffect(Unit) {
+        onDateSelected(dates[initialSelectedDate].split("\n")[0])
+    }
 
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
@@ -218,38 +193,10 @@ fun DateSelector() {
             DateCard(
                 date = date,
                 isSelected = index == selectedDateIndex,
-                onSelect = { selectedDateIndex = index }
-            )
-        }
-    }
-}
-
-@Composable
-fun DateCard(date: String, isSelected: Boolean, onSelect: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .width(80.dp)
-            .height(60.dp)
-            .selectable(selected = isSelected, onClick = onSelect),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = date.split("\n")[0],
-                style = MaterialTheme.typography.labelMedium,
-                color = if (isSelected) Primary else Color.Black
-            )
-            Text(
-                text = date.split("\n")[1],
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) Primary else Color.Gray
+                onSelect = {
+                    selectedDateIndex = index
+                    onDateSelected(date.split("\n")[0])
+                }
             )
         }
     }
@@ -286,7 +233,6 @@ fun TimeSlotList(onTimeSelected: (String) -> Unit) {
         }
     }
 }
-
 @Composable
 fun TimeSlotItem(time: String, isAvailable: Boolean, isSelected: Boolean, onSelect: () -> Unit) {
     Row(
@@ -322,13 +268,75 @@ fun TimeSlotItem(time: String, isAvailable: Boolean, isSelected: Boolean, onSele
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
 @Composable
-fun TimeSelectionDialogPreview() {
-    MaterialTheme {
-        TimeSelectionDialog(
-            onDismissRequest = { /* Preview: do nothing */ },
-            onTimeSelected = { /* Preview: do nothing */ }
+fun DateCard(date: String, isSelected: Boolean, onSelect: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .width(80.dp)
+            .height(60.dp)
+            .selectable(selected = isSelected, onClick = onSelect),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = date.split("\n")[0],
+                style = MaterialTheme.typography.labelMedium,
+                color = if (isSelected) Primary else Color.Black
+            )
+            Text(
+                text = date.split("\n")[1],
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isSelected) Primary else Color.Gray
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ScheduleUI() {
+    var selectedDateTime by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var isDialogOpen by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        if (selectedDateTime != null) {
+            val (date, time) = selectedDateTime!!
+            ScheduledCard(
+                deliveryTime = "$date, $time",
+                status = "Agendado"
+            )
+        } else {
+            ScheduledCard(
+                deliveryTime = "Aún no cuentas con una cita",
+                status = "No Agendado"
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        RescheduleButton(
+            onOpenDialog = { isDialogOpen = true }
         )
+
+        if (isDialogOpen) {
+            TimeSelectionDialog(
+                onDismissRequest = { isDialogOpen = false },
+                onTimeSelected = { date, time ->
+                    selectedDateTime = Pair(date, time)
+                    isDialogOpen = false
+                }
+            )
+        }
     }
 }
