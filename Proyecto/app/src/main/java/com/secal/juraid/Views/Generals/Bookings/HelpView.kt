@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -116,17 +117,11 @@ fun CasoFormView(navController: NavController) {
                         text = "Agendar Asesoría Legal",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
-                    ScheduledCard(
-                        deliveryTime = "Mañana, 07:00AM - 09:00AM",
-                        status = "Agendado"
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    RescheduleButton()
+                    ScheduleUI()
                 }
 
                 Column(
