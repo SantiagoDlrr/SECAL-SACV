@@ -1,6 +1,7 @@
 package com.secal.juraid.Views.Sesion
 
 import android.widget.Toast
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -53,8 +54,9 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
     val sessionState by viewModel.sessionState.collectAsState()
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
+    val emailNotConfirmed by viewModel.emailNotConfirmed.observeAsState(false)
 
-    Scaffold (
+    Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) { innerPadding ->
@@ -65,13 +67,16 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
                 .padding(16.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Column {
-                SignCardView(navController, viewModel)
+            if (isLoading) {
+                CircularProgressIndicator()
+            } else {
+                Column {
+                    SignCardView(navController, viewModel)
+                }
             }
         }
     }
 
-    // Handle session state
     LaunchedEffect(sessionState) {
         when (sessionState) {
             is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
@@ -79,14 +84,27 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
         }
     }
 
-    // Show error message if any
     if (errorMessage.isNotEmpty()) {
         Toast.makeText(LocalContext.current, errorMessage, Toast.LENGTH_LONG).show()
+        Text(
+            text = errorMessage,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(8.dp)
+        )
     }
 
-    // Show loading indicator
-    if (isLoading) {
-        CircularProgressIndicator()
+    if (emailNotConfirmed) {
+        AlertDialog(
+            onDismissRequest = { /* Cerrar diálogo al hacer clic fuera */ },
+            confirmButton = {
+                Button(onClick = { navController.navigate(Routes.homeVw) }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Verifica tu correo") },
+            text = { Text("Se te ha enviado un correo de confirmación para la creación de tu cuenta") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
     }
 }
 
@@ -101,6 +119,11 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     var showDialog by remember { mutableStateOf(false) } // Estado para controlar el diálogo
+
+    val allFieldsFilled = remember(email, password, name, firstLastName, secondLastName, phone) {
+        email.isNotBlank() && password.isNotBlank() && name.isNotBlank() &&
+                firstLastName.isNotBlank() && phone.isNotBlank()
+    }
 
     Card(
         modifier = Modifier
@@ -261,10 +284,10 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
             Button(
                 onClick = {
                     //showDialog = true
-                    viewModel.signUp(email, password)
-
+                    viewModel.signUp(email, password, name, firstLastName, secondLastName, phone)
                           }, // Mostrar diálogo al hacer clic
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = allFieldsFilled // El botón se habilita solo cuando todos los campos están llenos
             ) {
                 Text("Registro")
             }
@@ -286,5 +309,3 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
         )
     }
 }
-
-

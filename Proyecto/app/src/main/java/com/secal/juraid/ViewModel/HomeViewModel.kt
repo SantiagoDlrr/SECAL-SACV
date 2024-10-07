@@ -1,5 +1,6 @@
 package com.secal.juraid.ViewModel
 
+import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -147,6 +148,29 @@ class HomeViewModel : ViewModel() {
         }
     }
 
+    suspend fun updateContentItem(postId: Int, title: String, category: Int, urlHeader: String, text: String) {
+        //para ver qué función llamamos
+        Log.d(TAG, "updateContentItem() called")
+
+        try {
+            supabase.from("Content").update(
+                {
+                    set("title", title)
+                    set("ID_Category", category)
+                    set("url_header", urlHeader)
+                    set("text", text)
+                }
+            ) {
+                filter {
+                    eq("ID_Post", postId)
+                }
+            }
+            Log.d("DatabaseDebug", "Item updated: $postId")
+        } catch (e: Exception) {
+            Log.e("DatabaseDebug", "Error updating item: ${e.message}", e)
+        }
+    }
+
     @Serializable
     data class ContentInsert(
         val ID_Category: Int,
@@ -162,7 +186,7 @@ class HomeViewModel : ViewModel() {
         val created_at: String,
         val title: String,
         val url_header: String,
-        var category: Category? = null
+        var category: Category? = null,
     )
 
     @Serializable

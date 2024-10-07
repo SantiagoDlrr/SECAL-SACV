@@ -16,7 +16,9 @@ import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +58,7 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
     FloatingActionButton(
         onClick = { navController.navigate(Routes.helpVw) },
         modifier = modifier.padding(16.dp),
+        containerColor = MaterialTheme.colorScheme.primary,
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
@@ -73,7 +76,7 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
 fun BottomBar(navController: NavController) {
     val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
     val isLogged = sessionState is SessionStatus.Authenticated
-    //val isLogged = true
+    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
     Row(
         modifier = Modifier
@@ -114,14 +117,18 @@ fun BottomBar(navController: NavController) {
             )
         }
 
-        // Botón de perfil (lógica de redirección según el estado de sesión)
+        // Botón de perfil (lógica de redirección según el estado de sesión y rol)
         IconButton(
             onClick = {
-
                 if (isLogged) {
-                    navController.navigate(Routes.userHomeVw)  // Si está logueado, va al perfil
+                    when (userRole) {
+                        0 -> navController.navigate(Routes.userHomeVw)
+                        1 -> navController.navigate(Routes.suitVw)
+                        2 -> navController.navigate(Routes.studentHomeVw)
+                        else -> navController.navigate(Routes.userVw)
+                    }
                 } else {
-                    navController.navigate(Routes.userVw)  // Si no está logueado, va a login
+                    navController.navigate(Routes.userVw)
                 }
             },
             modifier = Modifier
@@ -174,6 +181,7 @@ fun TopBar() {
     }
 }
 
+
 @Composable
 fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
     Column {
@@ -194,6 +202,7 @@ fun CategorySection(title: String, items: List<HomeViewModel.ContentItemPreview>
     }
 }
 
+//Son las tarjetitas de la pagina principal, las de categorias
 @Composable
 fun CategoryItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(
@@ -302,13 +311,20 @@ fun ButtonUserCard(navController: NavController, title: String = "", icon: Image
 }
 
 @Composable
-fun NameUserCard(name : String, desc : String) {
+fun NameUserCard(name: String, desc: String) {
+    val viewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
+    val isTec by viewModel.isTec.collectAsState()
+
+    val shouldShowTecLogo by remember {
+        derivedStateOf { isTec }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+            .background(MaterialTheme.colorScheme.primary),
     ) {
         Column(
             modifier = Modifier
@@ -318,23 +334,36 @@ fun NameUserCard(name : String, desc : String) {
                 .height(100.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-
         ) {
             Text(
                 text = name,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
-                fontSize = 30.sp
+                fontSize = 30.sp,
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.padding(4.dp))
-            Text(
-                text = desc,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                fontSize = 20.sp
-            )
+            Row (
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (shouldShowTecLogo) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logotec),
+                        contentDescription = "Tec",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                }
+                Text(
+                    text = desc,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 }

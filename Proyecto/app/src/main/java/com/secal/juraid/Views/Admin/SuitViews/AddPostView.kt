@@ -1,3 +1,7 @@
+//En la lista de articulos, hay un botón de añadir, ese botón te lleva aquí
+
+import android.content.ContentValues.TAG
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -13,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
-import com.secal.juraid.MainActivity
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
@@ -22,6 +25,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
+    //para ver qué función llamamos
+    Log.d(TAG, "AddPostView() called")
+
+
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }

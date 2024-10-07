@@ -1,16 +1,24 @@
+//Es la vista de cada post de información
+//Los abogados verán un botón extra de editar
+
 package com.secal.juraid.Views.Generals.BaseViews
 
+import android.content.ContentValues.TAG
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,8 +35,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
+import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.ViewModel.UserViewModel
+import com.secal.juraid.supabase
+import io.github.jan.supabase.auth.SessionStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -38,9 +53,13 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
+    Log.d(TAG, "ArticuloDetailView() called")
+
     val coroutineScope = rememberCoroutineScope()
     var contentItem by remember { mutableStateOf<HomeViewModel.ContentItem?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    
+    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
     LaunchedEffect(postId) {
         coroutineScope.launch {
@@ -53,6 +72,18 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
+        floatingActionButton = {
+            if (userRole == 1) {
+                FloatingActionButton(
+                    onClick = {
+                        Log.d(TAG, "POST ID $postId")
+                        navController.navigate("${Routes.editArticuloVw}/$postId")
+                    }
+                ) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -64,7 +95,7 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                 return@Box
             }
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(androidx.compose.ui.Alignment.Center))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {
                 contentItem?.let { item ->
                     Column(

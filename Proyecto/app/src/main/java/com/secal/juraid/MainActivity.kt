@@ -3,9 +3,11 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
+import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -33,13 +35,12 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
+import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
@@ -51,15 +52,27 @@ import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.json.Json
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var userViewModel: UserViewModel
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Inicializar el UserViewModel
+        userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+
+        // Manejar el intent para la confirmación de email
+        intent?.data?.let { uri ->
+            handleDeepLink(uri)
+        }
+
         setContent {
             JurAidTheme(
                 darkTheme = isSystemInDarkTheme(),
@@ -69,10 +82,28 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { uri ->
+            handleDeepLink(uri)
+        }
+    }
+
+    private fun handleDeepLink(uri: Uri) {
+        // Captura los parámetros de la URL (como el access_token)
+        val accessToken = uri.getQueryParameter("access_token")
+        val type = uri.getQueryParameter("type")
+
+        if (type == "signup" && accessToken != null) {
+            // Llamar al método del ViewModel para confirmar el email
+            userViewModel.handleEmailConfirmed(accessToken)
+        }
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalAnimationApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalSerializationApi::class)
 @Preview(showBackground = true)
 @Composable
 fun UserScreen() {
@@ -100,12 +131,7 @@ fun UserScreen() {
             UserView(navController = navController)
         }
         composable(Routes.loginVw) {
-            LoginView(navController = navController, UserViewModel(
-                UserRepository(supabase, CoroutineScope(
-                    Dispatchers.IO)
-                )
-            )
-            )
+            LoginView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
 
         composable(Routes.signUpVw) {
@@ -118,31 +144,46 @@ fun UserScreen() {
             MeetingView(navController = navController)
         }
         composable(Routes.suitVw) {
-            SuitHomeView(navController = navController)
+            SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.casosVw) {
-            CasosView(navController = navController)
+            val casesViewModel: CasesViewModel = viewModel()
+            CasosView(navController = navController, viewModel = casesViewModel)
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
         }
         composable(Routes.studentHomeVw) {
-            StudentHomeView(navController = navController)
+            StudentHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.userHomeVw) {
             UserHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
-        composable(Routes.detalleVw) {
-            DetalleView(navController = navController)
+        composable(
+            "${Routes.detalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+            DetalleView(navController = navController, caseId = caseId)
         }
-        composable(Routes.studentHomeVw) {
-            StudentHomeView(navController = navController)
+        composable(Routes.alumnosVw) {
+            AlumnosView(navController = navController)
         }
         composable(Routes.casosStVw) {
             CasosStudentView(navController = navController)
         }
-        composable(Routes.editDetalleVw) {
-            EditDetalleView(navController = navController)
+        //editar casos
+        composable(
+            "${Routes.editDetalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+                val caseViewModel = viewModel<CaseDetailViewModel>()
+                EditDetalleView(
+                    navController = navController,
+                    viewModel = caseViewModel,
+                    caseId = caseId
+                )
         }
         composable(Routes.alumnoDetailVw) {
             AlumnoDetailView(navController = navController)
@@ -175,8 +216,17 @@ fun UserScreen() {
 
         }
 
-        composable(Routes.editArticuloVw) {
-            EditArticuloView(navController = navController)
+        composable(
+            "${Routes.editArticuloVw}/{postId}",
+            arguments = listOf(navArgument("postId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: -1
+            val homeViewModel = viewModel<HomeViewModel>()
+            EditArticuloView(
+                navController = navController,
+                viewModel = homeViewModel,
+                postId = postId
+            )
         }
         composable(Routes.addPostVw) {
             val homeViewModel = viewModel<HomeViewModel>()

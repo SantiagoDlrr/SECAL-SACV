@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Generals.BaseViews
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -40,7 +41,11 @@ import com.secal.juraid.CategorySection
 import com.secal.juraid.ViewModel.HomeViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.material3.*
+import androidx.compose.ui.platform.LocalConfiguration
 import com.secal.juraid.CategoryItem
+import com.secal.juraid.Routes
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun HomeView(navController: NavController, viewModel: HomeViewModel) {
@@ -96,10 +101,16 @@ fun HomeContent(
                 )
             }
         } else {
-            item { LargeCardCarousel(items = contentItems) }
+            // Filter items for the banner carousel
+            val bannerItems = contentItems.filter { it.category?.ID_Category == 0 }
+            item {
+                if (bannerItems.isNotEmpty()) {
+                    LargeCardCarousel(items = bannerItems, navController = navController)
+                }
+            }
 
-            // Group items by category
-            val groupedItems = contentItems.groupBy { it.category }
+            // Group remaining items by category (excluding banner items)
+            val groupedItems = contentItems.filter { it.category?.ID_Category != 0 }.groupBy { it.category }
 
             groupedItems.forEach { (category, items) ->
                 item {
@@ -125,7 +136,7 @@ fun SearchBar(searchQuery: TextFieldValue, onSearchQueryChange: (TextFieldValue)
             .fillMaxWidth()
             .padding(16.dp)
             .height(70.dp),
-        placeholder = { Text("Buscar artículos...") },
+        placeholder = { Text("Buscar artículos...", color = MaterialTheme.colorScheme.onSecondaryContainer) },
         leadingIcon = {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon")
         },
@@ -154,7 +165,13 @@ fun CategorySectionGrid(title: String, items: List<HomeViewModel.ContentItemPrev
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.height((items.size / 2 * 270).dp + 16.dp) // Adjust height based on number of items
+            modifier = Modifier.height(
+                when {
+                    items.isEmpty() -> 0.dp
+                    items.size == 1 -> 270.dp
+                    else -> (((items.size + 1) / 2) * 270).dp + 16.dp
+                }
+            )
         ) {
             items(items) { item ->
                 CategoryItem(item = item, navController = navController)
@@ -186,7 +203,7 @@ fun LoadingScreen() {
 }
 
 @Composable
-fun LargeCardCarousel(items: List<HomeViewModel.ContentItemPreview>) {
+fun LargeCardCarousel(items: List<HomeViewModel.ContentItemPreview>, navController: NavController) {
     val listState = rememberLazyListState()
     val originalItemCount = items.size
 
@@ -196,31 +213,38 @@ fun LargeCardCarousel(items: List<HomeViewModel.ContentItemPreview>) {
     LaunchedEffect(listState) {
         while (true) {
             delay(3000L)
-            if (originalItemCount > 0) {  // Add this check to prevent division by zero
+            if (originalItemCount > 0) {
                 val nextIndex = (listState.firstVisibleItemIndex + 1) % originalItemCount
                 listState.animateScrollToItem(nextIndex)
             }
         }
     }
 
-    LazyRow(
-        state = listState,
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        userScrollEnabled = true
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)  // Ajusta esta altura según tus necesidades
     ) {
-        items(extendedItems) { item ->
-            LargeCardItem(item = item)
+        LazyRow(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = (LocalConfiguration.current.screenWidthDp.dp - 350.dp) / 2),
+            userScrollEnabled = true
+        ) {
+            items(extendedItems) { item ->
+                LargeCardItem(item = item, navController = navController)
+            }
         }
     }
 }
 
-
 @Composable
-fun LargeCardItem(item: HomeViewModel.ContentItemPreview) {
+fun LargeCardItem(item: HomeViewModel.ContentItemPreview, navController: NavController) {
     Card(
-        onClick = { /* TODO: Action when clicking on the card */ },
+        onClick = {
+            val itemJson = Uri.encode(Json.encodeToString(item))
+            navController.navigate("${Routes.articuloDetailVw}/$itemJson") },
         modifier = Modifier
             .width(350.dp)
             .height(200.dp)
@@ -229,29 +253,25 @@ fun LargeCardItem(item: HomeViewModel.ContentItemPreview) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-
+            AsyncImage(
+                model = item.url_header,
+                contentDescription = item.title,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
             )
-            Column(
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Bottom
-            ) {
-                AsyncImage(
-                    model = item.url_header,
-                    contentDescription = item.title,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+            )
         }
     }
 }
