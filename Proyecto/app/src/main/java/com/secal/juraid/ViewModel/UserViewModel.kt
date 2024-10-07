@@ -29,7 +29,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _userName = MutableStateFlow<String>("")
     val userName: StateFlow<String> = _userName
 
-    private val _userRole = MutableStateFlow<Int?>(null)
+    private val _userRole = MutableStateFlow<Int?>(0)
     val userRole: StateFlow<Int?> = _userRole
 
     private val _isTec = MutableStateFlow(false)

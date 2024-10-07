@@ -1,13 +1,17 @@
 package com.secal.juraid.Model
 
+import android.util.Log
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.SessionStatus
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -87,13 +91,20 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 
-    suspend fun getUserRole(): Int? {
+    suspend fun getUserRole(): Int {
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()
-            val metadata = user.userMetadata
-            metadata?.get("role")?.toString()?.toInt() ?: 0
+            val result = supabase.from("users")
+                .select(columns = Columns.list("role")) {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
+                .decodeSingle<UserRole>()
+            result.role
         } catch (e: Exception) {
-            null
+            Log.e("DatabaseDebug", "Error getting user role: ${e.message}")
+            0 // Default role if there's an error
         }
     }
 
@@ -107,3 +118,6 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 }
+
+@Serializable
+data class UserRole(val role: Int)

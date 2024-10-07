@@ -267,11 +267,20 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
 
             OutlinedTextField(
                 value = phone,
-                onValueChange = { phone = it },
+                onValueChange = { newValue ->
+                    // Remove non-digit characters
+                    val digitsOnly = newValue.filter { it.isDigit() }
+                    // Format the phone number
+                    phone = when {
+                        digitsOnly.length <= 3 -> digitsOnly
+                        digitsOnly.length <= 6 -> "${digitsOnly.take(3)}-${digitsOnly.substring(3)}"
+                        else -> "${digitsOnly.take(3)}-${digitsOnly.substring(3, 6)}-${digitsOnly.substring(6, minOf(digitsOnly.length, 10))}"
+                    }
+                },
                 label = { Text("Teléfono") },
-                placeholder = { Text("") },
+                placeholder = { Text("444-444-4444") },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
