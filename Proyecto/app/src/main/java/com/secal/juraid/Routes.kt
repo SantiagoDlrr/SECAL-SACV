@@ -24,6 +24,7 @@ object Routes {
     var casosStVw = "casos_student_view"
 
     var editDetalleVw = "edit_detalle_view"
+    var addCaseVw = "add_case_view"
 
     var alumnoDetailVw = "alumno_detail_view"
 

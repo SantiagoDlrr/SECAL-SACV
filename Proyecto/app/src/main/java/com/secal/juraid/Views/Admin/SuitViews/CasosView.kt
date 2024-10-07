@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
@@ -50,7 +51,14 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
-        topBar = { TopBar() }
+        topBar = { TopBar() },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { navController.navigate(Routes.addCaseVw) }  //Se va a AddPostView.kt
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Agregar caso")
+            }
+        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             TabRow(

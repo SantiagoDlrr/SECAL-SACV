@@ -171,6 +171,60 @@ class CasesViewModel : ViewModel() {
     }
 
 
+    suspend fun addCase(
+        nombreAbogado: String,
+        nombreCliente: String,
+        nuc: String,
+        carpetaJudicial: String,
+        carpetaInvestigacion: String,
+        accesoFv: String,
+        passFv: String,
+        fiscalTitular: String,
+        idUnidadInvestigacion: Int?,
+        drive: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val newCase = CaseInsert(
+                    nombre_abogado = nombreAbogado,
+                    nombre_cliente = nombreCliente,
+                    NUC = nuc,
+                    carpeta_judicial = carpetaJudicial,
+                    carpeta_investigacion = carpetaInvestigacion,
+                    acceso_fv = accesoFv,
+                    pass_fv = passFv,
+                    fiscal_titular = fiscalTitular,
+                    id_unidad_investigacion = idUnidadInvestigacion,
+                    drive = drive,
+                    status = 1
+                )
+
+                val insertedCase = withContext(Dispatchers.IO) {
+                    supabase.from("Cases")
+                        .insert(newCase)
+                        .decodeSingle<Case>()
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error adding case", e)
+            }
+        }
+    }
+
+    @Serializable
+    data class CaseInsert(
+        val nombre_abogado: String,
+        val nombre_cliente: String,
+        val NUC: String,  // Changed from Int to String
+        val carpeta_judicial: String,
+        val carpeta_investigacion: String,
+        val acceso_fv: String,
+        val pass_fv: String,
+        val fiscal_titular: String,
+        val id_unidad_investigacion: Int?,  // Made nullable as it can be NULL in the database
+        val drive: String,
+        val status: Int?  // Made nullable as it can be NULL in the database
+    )
 
 }
 
@@ -190,6 +244,8 @@ data class Case(
     val drive: String,
     val status: Int?  // Made nullable as it can be NULL in the database
 )
+
+
 
 @Serializable
 data class unitInvestigation(

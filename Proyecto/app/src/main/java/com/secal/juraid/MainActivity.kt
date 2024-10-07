@@ -45,6 +45,7 @@ import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
+import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
@@ -200,6 +201,11 @@ fun UserScreen() {
         composable(Routes.addPostVw) {
             val homeViewModel = viewModel<HomeViewModel>()
             AddPostView(navController = navController, homeViewModel)
+        }
+
+        composable(Routes.addCaseVw) {
+            val viewModel = viewModel<CasesViewModel>()
+            AddCaseView(navController = navController, viewModel)
         }
     }
 }
