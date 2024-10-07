@@ -29,8 +29,10 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
@@ -70,7 +72,10 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Column {
+                Column (
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                ) {
                     SignCardView(navController, viewModel)
                 }
             }

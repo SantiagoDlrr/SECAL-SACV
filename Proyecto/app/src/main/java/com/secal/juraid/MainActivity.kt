@@ -50,6 +50,7 @@ import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.BaseViews.SettingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -237,6 +238,11 @@ fun UserScreen() {
         composable(Routes.addCaseVw) {
             val viewModel = viewModel<CasesViewModel>()
             AddCaseView(navController = navController, viewModel)
+        }
+
+        composable(Routes.settingView) {
+            SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
         }
     }
 }

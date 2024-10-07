@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,8 +67,12 @@ fun StudentHomeCardView(navController: NavController, viewModel: UserViewModel) 
 
         Spacer(modifier = Modifier.padding(16.dp))
 
-        Column {
+        Column (
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ){
             ButtonUserCard(navController = navController, "Mis Casos", Icons.Outlined.Menu, route = Routes.casosStVw)
+            ButtonUserCard(navController = navController, "Configuración", Icons.Outlined.Settings, route = Routes.settingView)
            }
 
     }

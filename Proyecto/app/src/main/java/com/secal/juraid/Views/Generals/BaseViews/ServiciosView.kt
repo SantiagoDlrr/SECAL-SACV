@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,6 +73,7 @@ fun ServiciosView(navController : NavController) {
                     .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
             ) {
                 MapCardView()
+                ServiceDistribution(item1 = "Preguntas Frecuentes", route1 = "", item2 = "Nuestros Servicios", route2 = "", navController = navController)
                 ServiceDistribution(item1 = "Preguntas Frecuentes", route1 = "", item2 = "Vista Abogado", route2 = Routes.suitVw, navController = navController)
                 ServiceDistribution(item1 = "Vista Estudiante", route1 = Routes.studentHomeVw, item2 = "Vista Usuario", route2 = Routes.userHomeVw, navController = navController)
 
@@ -87,19 +89,45 @@ fun ServiciosView(navController : NavController) {
 fun MapCardView() {
     val context = LocalContext.current
     var errorMessage by remember { mutableStateOf<String?>(null) }
-
+    val isDarkTheme = isSystemInDarkTheme()
 
     // Reemplaza estas coordenadas con las de la ubicación de tu clínica
-    val latitude = "25.648307"  // Ejemplo: Ciudad de México
+    val latitude = "25.648307"
     val longitude = "-100.289482"
 
-    // Asegúrate de reemplazar YOUR_API_KEY con tu clave real de API de Google Maps
+    val lightModeStyle = listOf(
+        "style=feature:poi|element:all|visibility:off",
+        "style=feature:all|element:labels.text.fill|color:0x000000",
+        "style=feature:all|element:labels.text.stroke|color:0xffffff|weight:3",
+        "style=feature:landscape|element:all|color:0xf2f2f2",
+        "style=feature:road|element:all|color:0xffffff",
+        "style=feature:road|element:geometry.stroke|color:0xdddddd",
+        "style=feature:road|element:labels.text.fill|color:0x000000",
+        "style=feature:water|element:all|color:0x46bcec"
+    ).joinToString("&")
+
+    // Estilos mejorados para mejor contraste en modo oscuro
+    val darkModeStyle = listOf(
+        "style=feature:poi|element:all|visibility:off",
+        "style=feature:all|element:labels.text.fill|color:0xffffff",
+        "style=feature:all|element:labels.text.stroke|color:0x000000|weight:3",
+        "style=feature:landscape|element:all|color:0x1c1c1c",
+        "style=feature:road|element:all|color:0x3c3c3c",
+        "style=feature:road|element:geometry.stroke|color:0x585858",
+        "style=feature:road|element:labels.text.fill|color:0xffffff",
+        "style=feature:water|element:all|color:0x0e4a77"
+
+    ).joinToString("&")
+
+    val mapStyle = if (isDarkTheme) darkModeStyle else lightModeStyle
+
     val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
             "center=$latitude,$longitude" +
-            "&zoom=15" +
+            "&zoom=16" +
             "&size=600x300" +
             "&maptype=roadmap" +
             "&markers=color:red%7C$latitude,$longitude" +
+            "&$mapStyle" +
             "&key=AIzaSyB1GvXqwgi1iaZvAtuaSckad58KzyyAE9w"
 
     Card(
@@ -134,21 +162,19 @@ fun MapCardView() {
                 },
                 error = {
                     errorMessage = "Error al cargar el mapa: ${it.result.throwable.message}"
-                    Text("Error al cargar el mapa")
+                    Text(
+                        text = errorMessage ?: "Ubicación de la Clínica",
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(16.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
-            )
-            Text(
-                text = errorMessage ?: "Ubicación de la Clínica",
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
 
-    // Log del error para debugging
     errorMessage?.let {
         Log.e("MapCardView", "Error: $it")
     }
