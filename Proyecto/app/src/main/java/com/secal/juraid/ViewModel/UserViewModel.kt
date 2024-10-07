@@ -35,6 +35,12 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _isTec = MutableStateFlow(false)
     val isTec: StateFlow<Boolean> = _isTec
 
+    // Estado para la confirmación de correo electrónico
+    val isEmailConfirmed = MutableLiveData<Boolean>()
+
+    // Estado para indicar si se ha enviado el correo de confirmación
+    val emailNotConfirmed = MutableLiveData<Boolean>()
+
     init {
         // Observar cambios en el estado de la sesión
         viewModelScope.launch {
@@ -90,6 +96,23 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
+    // Método para manejar la confirmación de correo electrónico
+    fun handleEmailConfirmed(accessToken: String) {
+        viewModelScope.launch {
+            try {
+                // Puedes realizar una validación adicional con Supabase si es necesario
+                // userRepository.confirmEmail(accessToken)
+
+                // Actualizar el estado de confirmación de correo
+                isEmailConfirmed.value = true
+            } catch (e: Exception) {
+                // Manejar errores
+                isEmailConfirmed.value = false
+                errorMessage.value = "Error al confirmar el correo: ${e.message}"
+            }
+        }
+    }
+
     fun signIn(email: String, password: String) {
         isLoading.value = true
         errorMessage.value = ""
@@ -117,6 +140,8 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 userRepository.signUp(email, password, name, firstLastName, secondLastName, phone)
+                // Notificar que se envió un correo de confirmación
+                emailNotConfirmed.value = true
             } catch (e: Exception) {
                 errorMessage.value = e.message ?: "Unknown error"
             } finally {
@@ -131,7 +156,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 }
-
+// Biometric Authentication
 val biometricAuthenticationResult = MutableLiveData<Boolean>()
 
 fun onBiometricAuthenticated() {

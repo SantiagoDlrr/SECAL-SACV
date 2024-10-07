@@ -1,5 +1,7 @@
 package com.secal.juraid.Views.Admin.SuitViews
 
+import AsesoriasView
+import CasosCardView
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+<<<<<<< HEAD
+=======
 import androidx.compose.foundation.layout.size
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +24,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+<<<<<<< HEAD
+=======
 import androidx.compose.material.icons.filled.DateRange
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
@@ -59,6 +67,14 @@ import androidx.navigation.compose.rememberNavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,18 +82,29 @@ import com.secal.juraid.TopBar
 @Composable
 fun EspaciosView(navController: NavController) {
     var selectedTabIndex by remember { mutableStateOf(0) }
+<<<<<<< HEAD
+=======
     val tabs = listOf("Citas confirmadas")
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) { innerPadding ->
+<<<<<<< HEAD
+        CitasConfirmadasView()
+    }
+}
+
+
+=======
         Column(modifier = Modifier.padding(innerPadding)) {
             CitasConfirmadasView()
         }
     }
 }
 
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
 @Composable
 fun CitasConfirmadasView() {
     var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
@@ -85,6 +112,19 @@ fun CitasConfirmadasView() {
     var showDetailsDialog by remember { mutableStateOf(false) }
     var cancelReason by remember { mutableStateOf("") }
     var selectedCitaIndex by remember { mutableStateOf<Int?>(null) }
+<<<<<<< HEAD
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp), // Agregamos padding al contenedor principal
+        verticalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre los elementos
+    ) {
+        items(9) { index ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+=======
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,6 +146,7 @@ fun CitasConfirmadasView() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
                     .height(100.dp)
                     .clip(MaterialTheme.shapes.medium)
             ) {
@@ -153,17 +194,29 @@ fun CitasConfirmadasView() {
         }
     }
 
+<<<<<<< HEAD
+    // Los AlertDialogs se mantienen igual
+=======
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
     if (showDetailsDialog) {
         AlertDialog(
             onDismissRequest = { showDetailsDialog = false },
             title = { Text("Detalles de la Cita") },
             text = {
                 Column {
+<<<<<<< HEAD
+                    Text("Nombre: Emiliano Luna George")
+                    Text("Región: Región Monterrey")
+                    Text("Situación: En espera")
+                    Text("Fecha: 01/10/2024")
+                    Text("Hora: 13:00hrs")
+=======
                     Text("Nombre")
                     Text("Región")
                     Text("Situación")
                     Text("Fecha")
                     Text("Hora")
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465
                 }
             },
             confirmButton = {
@@ -210,4 +263,7 @@ fun CitasConfirmadasView() {
         )
     }
 }
+<<<<<<< HEAD
+=======
 
+>>>>>>> c24e129ac49ba1983ea6fbc11c372ebb75441465

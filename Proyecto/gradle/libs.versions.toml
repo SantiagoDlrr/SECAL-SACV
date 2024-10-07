@@ -16,6 +16,8 @@ composeBom = "2024.09.02"
 navigationCompose = "2.8.1"
 biometricKtx = "1.1.0"
 appcompat = "1.7.0"
+firebaseAuthKtx = "23.0.0"
+runtimeLivedata = "1.7.3"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
@@ -41,6 +43,8 @@ ktor-client-android = { module = "io.ktor:ktor-client-android", version.ref = "k
 postgrest-kt = { module = "io.github.jan-tennert.supabase:postgrest-kt" }
 androidx-biometric-ktx = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometricKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

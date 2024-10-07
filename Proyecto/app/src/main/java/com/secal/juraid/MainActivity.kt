@@ -7,6 +7,8 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -57,10 +59,21 @@ import kotlinx.serialization.json.Json
 
 
 class MainActivity : ComponentActivity() {
+    private lateinit var userViewModel: UserViewModel
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Inicializar el UserViewModel
+        userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+
+        // Manejar el intent para la confirmación de email
+        intent?.data?.let { uri ->
+            handleDeepLink(uri)
+        }
+
         setContent {
             JurAidTheme(
                 darkTheme = isSystemInDarkTheme(),
@@ -68,6 +81,24 @@ class MainActivity : ComponentActivity() {
             ) {
                 UserScreen()
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.data?.let { uri ->
+            handleDeepLink(uri)
+        }
+    }
+
+    private fun handleDeepLink(uri: Uri) {
+        // Captura los parámetros de la URL (como el access_token)
+        val accessToken = uri.getQueryParameter("access_token")
+        val type = uri.getQueryParameter("type")
+
+        if (type == "signup" && accessToken != null) {
+            // Llamar al método del ViewModel para confirmar el email
+            userViewModel.handleEmailConfirmed(accessToken)
         }
     }
 }
