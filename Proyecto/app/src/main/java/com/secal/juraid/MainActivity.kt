@@ -187,8 +187,12 @@ fun UserScreen() {
                     caseId = caseId
                 )
         }
-        composable(Routes.alumnoDetailVw) {
-            AlumnoDetailView(navController = navController)
+        composable(
+            route = "${Routes.alumnoDetailVw}/{studentId}",
+            arguments = listOf(navArgument("studentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val studentId = backStackEntry.arguments?.getString("studentId") ?: ""
+            AlumnoDetailView(navController = navController, studentId = studentId)
         }
         composable(Routes.articulosVw) {
             val homeViewModel = viewModel<HomeViewModel>()

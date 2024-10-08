@@ -55,6 +55,30 @@ class AlumnosViewModel : ViewModel() {
             }
         }
     }
+
+    fun getStudentById(id: String): StateFlow<Student?> {
+        val studentFlow = MutableStateFlow<Student?>(null)
+        viewModelScope.launch {
+            val student = withContext(Dispatchers.IO) {
+                try {
+                    supabase
+                        .from("users")
+                        .select()
+                        {
+                            filter {
+                                eq("id", id)
+                            }
+                        }
+                        .decodeSingle<Student>()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    null
+                }
+            }
+            studentFlow.value = student
+        }
+        return studentFlow
+    }
 }
 
 @Serializable

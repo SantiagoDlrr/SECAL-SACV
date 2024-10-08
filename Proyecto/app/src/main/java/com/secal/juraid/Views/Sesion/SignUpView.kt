@@ -40,11 +40,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import com.secal.juraid.Routes
 import com.secal.juraid.ViewModel.UserViewModel
 import io.github.jan.supabase.auth.SessionStatus
@@ -229,7 +233,7 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 OutlinedTextField(
                     value = firstLastName,
                     onValueChange = { firstLastName = it },
-                    label = { Text("Apellido Pat") },
+                    label = { Text("Apellido Paterno", fontSize = 15.sp) },
                     placeholder = { Text("") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
@@ -247,7 +251,7 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 OutlinedTextField(
                     value = secondLastName,
                     onValueChange = { secondLastName = it },
-                    label = { Text("Apellido Mat") },
+                    label = { Text("Apellido Materno", fontSize = 15.sp) },
                     placeholder = { Text("") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
@@ -268,19 +272,15 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
             OutlinedTextField(
                 value = phone,
                 onValueChange = { newValue ->
-                    // Remove non-digit characters
-                    val digitsOnly = newValue.filter { it.isDigit() }
-                    // Format the phone number
-                    phone = when {
-                        digitsOnly.length <= 3 -> digitsOnly
-                        digitsOnly.length <= 6 -> "${digitsOnly.take(3)}-${digitsOnly.substring(3)}"
-                        else -> "${digitsOnly.take(3)}-${digitsOnly.substring(3, 6)}-${digitsOnly.substring(6, minOf(digitsOnly.length, 10))}"
+                    // Only allow digits and limit to 10 characters
+                    if (newValue.length <= 10) {
+                        phone = newValue.filter { it.isDigit() }
                     }
                 },
                 label = { Text("Teléfono") },
-                placeholder = { Text("444-444-4444") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                visualTransformation = PhoneVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -288,7 +288,7 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                     unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             )
 
@@ -321,5 +321,50 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
             text = { Text("Se te envió un correo de confirmación para la creación de tu cuenta") },
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
+    }
+}
+
+class PhoneVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val trimmed = if (text.text.length > 10) text.text.substring(0..9) else text.text
+        var output = ""
+        for (i in trimmed.indices) {
+            output += trimmed[i]
+            if (trimmed.startsWith("81")) {
+                if (i == 1 || i == 5) output += "-"
+            } else {
+                if (i == 2 || i == 5) output += "-"
+            }
+        }
+
+        val phoneNumberOffsetTranslator = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                if (trimmed.startsWith("81")) {
+                    if (offset <= 1) return offset
+                    if (offset <= 5) return offset + 1
+                    if (offset <= 10) return offset + 2
+                } else {
+                    if (offset <= 2) return offset
+                    if (offset <= 5) return offset + 1
+                    if (offset <= 10) return offset + 2
+                }
+                return 12
+            }
+
+            override fun transformedToOriginal(offset: Int): Int {
+                if (trimmed.startsWith("81")) {
+                    if (offset <= 2) return offset
+                    if (offset <= 7) return offset - 1
+                    if (offset <= 12) return offset - 2
+                } else {
+                    if (offset <= 3) return offset
+                    if (offset <= 7) return offset - 1
+                    if (offset <= 12) return offset - 2
+                }
+                return 10
+            }
+        }
+
+        return TransformedText(AnnotatedString(output), phoneNumberOffsetTranslator)
     }
 }

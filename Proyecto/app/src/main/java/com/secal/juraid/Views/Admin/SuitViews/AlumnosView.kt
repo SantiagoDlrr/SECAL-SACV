@@ -1,3 +1,5 @@
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -73,11 +75,12 @@ fun AlumnosCardView(
     student: Student,
     navController: NavController
 ) {
+    var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
+    var showDeleteCaseDialog by remember { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .height(100.dp)
             .clip(RoundedCornerShape(8.dp)),
         onClick = { navController.navigate("${Routes.alumnoDetailVw}/${student.id}") },
         colors = CardDefaults.cardColors(
@@ -85,18 +88,20 @@ fun AlumnosCardView(
         )
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_launcher_background),
                 contentDescription = "Placeholder",
                 modifier = Modifier
                     .size(80.dp)
-                    .clip(RoundedCornerShape(16.dp)),
+                    .clip(RoundedCornerShape(10.dp)),
                 contentScale = ContentScale.Crop
             )
+            Spacer(modifier = Modifier.width(16.dp))
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -108,11 +113,24 @@ fun AlumnosCardView(
                 )
                 Text(student.email, style = MaterialTheme.typography.bodyMedium)
             }
-            Icon(
-                Icons.Default.MoreVert,
-                contentDescription = "More options",
-                modifier = Modifier.padding(end = 16.dp)
-            )
+            Box {
+                IconButton(onClick = {expandedMenuIndex = 1}) {
+                    Icon(Icons.Default.MoreVert, contentDescription = "Más opciones")
+                }
+                DropdownMenu(
+                    expanded = expandedMenuIndex == 1,
+                    onDismissRequest = { expandedMenuIndex = null },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Eliminar") },
+                        onClick = {
+
+                        }
+                    )
+                }
+            }
+
         }
     }
 }
