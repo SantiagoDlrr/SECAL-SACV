@@ -60,6 +60,8 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
     val sessionState by viewModel.sessionState.collectAsState()
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
+    val verificationMessage by viewModel.verificationMessage
+    val accountExistsMessage by viewModel.accountExistsMessage  // Estado para cuenta ya registrada
     val emailNotConfirmed by viewModel.emailNotConfirmed.observeAsState(false)
 
     Scaffold(
@@ -76,32 +78,50 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Column (
+                Column(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
                 ) {
                     SignCardView(navController, viewModel)
+
+                    // Mostrar el mensaje de error si existe
+                    if (errorMessage.isNotEmpty()) {
+                        Text(
+                            text = errorMessage,
+                            color = Color.Red,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+
+                    // Mostrar el mensaje de verificación solo si no hay errores
+                    if (verificationMessage.isNotEmpty() && errorMessage.isEmpty()) {
+                        Text(
+                            text = verificationMessage,
+                            color = Color.Green,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
             }
         }
     }
 
-    LaunchedEffect(sessionState) {
-        when (sessionState) {
-            is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
-            else -> {} // Handle other states if needed
-        }
-    }
-
-    if (errorMessage.isNotEmpty()) {
-        Toast.makeText(LocalContext.current, errorMessage, Toast.LENGTH_LONG).show()
-        Text(
-            text = errorMessage,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(8.dp)
+    // Manejar la cuenta ya existente con un AlertDialog
+    if (accountExistsMessage.isNotEmpty()) {
+        AlertDialog(
+            onDismissRequest = { /* Cerrar diálogo al hacer clic fuera */ },
+            confirmButton = {
+                Button(onClick = { navController.navigate(Routes.loginVw) }) {
+                    Text("Continuar")
+                }
+            },
+            title = { Text("Cuenta ya registrada") },
+            text = { Text(accountExistsMessage) },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 
+    // Manejar email no confirmado con AlertDialog
     if (emailNotConfirmed) {
         AlertDialog(
             onDismissRequest = { /* Cerrar diálogo al hacer clic fuera */ },
@@ -114,6 +134,13 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
             text = { Text("Se te ha enviado un correo de confirmación para la creación de tu cuenta") },
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
+    }
+
+    LaunchedEffect(sessionState) {
+        when (sessionState) {
+            is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
+            else -> {} // Manejar otros estados si es necesario
+        }
     }
 }
 
