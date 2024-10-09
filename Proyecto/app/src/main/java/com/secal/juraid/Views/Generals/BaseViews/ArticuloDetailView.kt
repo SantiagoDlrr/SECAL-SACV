@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -65,8 +66,14 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
     //var imageUrl by remember { mutableStateOf<String?>(null) }
 
     var isLoading by remember { mutableStateOf(true) }
-    
-    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
+    var deleteDialog by remember { mutableStateOf(false) }
+
+    val userRole by UserViewModel(
+        UserRepository(
+            supabase,
+            CoroutineScope(Dispatchers.IO)
+        )
+    ).userRole.collectAsState()
 
 
     LaunchedEffect(postId) {
@@ -88,13 +95,30 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
         bottomBar = { BottomBar(navController = navController) },
         floatingActionButton = {
             if (userRole == 1) {
-                FloatingActionButton(
-                    onClick = {
-                        Log.d(TAG, "POST ID $postId")
-                        navController.navigate("${Routes.editArticuloVw}/$postId")
+                Column {
+                    FloatingActionButton(
+                        onClick = {
+                            // Aquí va la lógica para eliminar el artículo
+                            // Por ejemplo, puedes llamar a una función del ViewModel
+
+                            deleteDialog = true
+                            //navController.popBackStack() // Volver atrás después de eliminar
+                        },
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar artículo")
+
                     }
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    FloatingActionButton(
+                        onClick = {
+                            Log.d(TAG, "POST ID $postId")
+                            navController.navigate("${Routes.editArticuloVw}/$postId")
+                        }
+                    ) {
+                        Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
+                    }
                 }
             }
         }
@@ -120,9 +144,33 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                         ArticuloDetailItem(item)
                     }
                 } ?: run {
-                    Text("Error: No se pudo cargar el contenido", modifier = Modifier.padding(16.dp))
+                    Text(
+                        "Error: No se pudo cargar el contenido",
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
+        }
+        if (deleteDialog) {
+            AlertDialog(
+                onDismissRequest = { deleteDialog = false },
+                title = { Text("Eliminar post") },
+                text = { Text("Estás a punto de eliminar el post") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.deleteContentItem(postId)
+                        deleteDialog = false
+                        navController.popBackStack()
+                    }) {
+                        Text("Confirmar")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { deleteDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
@@ -186,7 +234,10 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
                             .clip(MaterialTheme.shapes.medium),
                         contentScale = ContentScale.Crop,
                         onError = {
-                            Log.e("ArticuloDetailView", "Error loading image: ${it.result.throwable}")
+                            Log.e(
+                                "ArticuloDetailView",
+                                "Error loading image: ${it.result.throwable}"
+                            )
                         }
                     )
                     Spacer(modifier = Modifier.height(16.dp))

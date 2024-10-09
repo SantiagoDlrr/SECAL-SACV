@@ -7,7 +7,6 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.secal.juraid.Model.UserState
 import com.secal.juraid.supabase
 import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.postgrest.from
@@ -247,6 +246,35 @@ class HomeViewModel : ViewModel() {
 
             } catch (e: Exception) {
                 Log.e("DatabaseDebug", "Error uploading image: ${e.message}", e)
+            }
+        }
+    }
+
+    fun deleteContentItem(postId: Int) {
+        viewModelScope.launch {
+            try {
+                // Primero, obtenemos el artículo completo para conseguir la URL de la imagen
+                val article = getFullContentItem(postId)
+
+                // Eliminamos el artículo de la base de datos
+                supabase.from("Content")
+                    .delete {
+                        filter { eq("ID_Post", postId) }
+                    }
+
+                // Si el artículo tiene una imagen asociada, la eliminamos del bucket
+                /*article?.url_header?.let { imageUrl ->
+                    if (imageUrl != "https://cdlpmnjnonnruremcszc.supabase.co/storage/v1/object/public/postImage/post_images/martillito.png") {
+                        deleteFileFromBucket("postImage", imageUrl)
+                    }
+                }*/
+
+                // Recargamos los datos para actualizar la lista de artículos
+                loadAllData()
+
+                Log.d("HomeViewModel", "Article with ID $postId deleted successfully")
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error deleting article with ID $postId: ${e.message}", e)
             }
         }
     }
