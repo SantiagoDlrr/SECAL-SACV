@@ -45,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
@@ -172,7 +174,13 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
                             Text("Cambiar imagen")
                         }
 
-                        selectedImageUri?.let {
+                        selectedImageUri?.let { uri ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                painter = rememberAsyncImagePainter(uri),
+                                contentDescription = "Imagen seleccionada",
+                                modifier = Modifier.size(100.dp).clip(RoundedCornerShape(16.dp))
+                            )
                             Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
                         }
 
