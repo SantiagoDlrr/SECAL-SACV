@@ -42,6 +42,7 @@ import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.ViewModel.ScheduleViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
@@ -140,7 +141,8 @@ fun UserScreen() {
             SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
-            HelpView(navController = navController)
+            val scheduleViewModel = remember { ScheduleViewModel() }
+            HelpView(navController = navController, viewModel = scheduleViewModel)
         }
         composable(Routes.meetingVw) {
             MeetingView(navController = navController)

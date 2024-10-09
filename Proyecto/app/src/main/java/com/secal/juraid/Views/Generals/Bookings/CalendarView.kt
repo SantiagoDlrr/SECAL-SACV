@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.Generals.Bookings
+/*package com.secal.juraid.Views.Generals.Bookings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,51 +48,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.secal.juraid.ui.theme.Primary
 
-@Composable
-fun ScheduledCard(deliveryTime: String, status: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = deliveryTime,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = status,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun RescheduleButton(onOpenDialog: () -> Unit) {
-    OutlinedButton(
-        onClick = onOpenDialog,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.DateRange,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("Agendar en otro horario")
-    }
-}
 
 @Composable
 fun TimeSelectionDialog(
@@ -164,140 +119,6 @@ fun TimeSelectionDialog(
     }
 }
 
-@Composable
-fun DateSelector(
-    initialSelectedDate: Int = 0,
-    onDateSelected: (String) -> Unit
-) {
-    val dates = remember {
-        listOf(
-            "Hoy\n2 oct",
-            "Mañana\n3 oct",
-            "Miércoles\n4 oct",
-            "Jueves\n5 oct",
-            "Viernes\n6 oct"
-        )
-    }
-    var selectedDateIndex by remember { mutableStateOf(initialSelectedDate) }
-
-    LaunchedEffect(Unit) {
-        onDateSelected(dates[initialSelectedDate].split("\n")[0])
-    }
-
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(dates) { date ->
-            val index = dates.indexOf(date)
-            DateCard(
-                date = date,
-                isSelected = index == selectedDateIndex,
-                onSelect = {
-                    selectedDateIndex = index
-                    onDateSelected(date.split("\n")[0])
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun TimeSlotList(onTimeSelected: (String) -> Unit) {
-    val timeSlots = remember {
-        listOf(
-            "10:00AM - 11:00AM",
-            "11:00AM - 12:00PM",
-            "12:00PM - 01:00PM",
-            "01:00PM - 02:00PM",
-            "02:00PM - 03:00PM",
-            "03:00PM - 04:00PM"
-        )
-    }
-
-    var selectedTimeSlot by remember { mutableStateOf<String?>(null) }
-
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(timeSlots) { time ->
-            TimeSlotItem(
-                time = time,
-                isAvailable = true,
-                isSelected = time == selectedTimeSlot,
-                onSelect = {
-                    selectedTimeSlot = time
-                    onTimeSelected(time)
-                }
-            )
-        }
-    }
-}
-@Composable
-fun TimeSlotItem(time: String, isAvailable: Boolean, isSelected: Boolean, onSelect: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = isSelected,
-                onClick = onSelect,
-                enabled = isAvailable
-            )
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = onSelect,
-            enabled = isAvailable,
-            colors = RadioButtonDefaults.colors(selectedColor = Primary)
-        )
-        Text(
-            text = time,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
-        )
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(if (isAvailable) Color.Green else Color.Red)
-        )
-    }
-}
-
-@Composable
-fun DateCard(date: String, isSelected: Boolean, onSelect: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .width(80.dp)
-            .height(60.dp)
-            .selectable(selected = isSelected, onClick = onSelect),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = date.split("\n")[0],
-                style = MaterialTheme.typography.labelMedium,
-                color = if (isSelected) Primary else Color.Black
-            )
-            Text(
-                text = date.split("\n")[1],
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) Primary else Color.Gray
-            )
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
@@ -339,4 +160,4 @@ fun ScheduleUI() {
             )
         }
     }
-}
+}*/

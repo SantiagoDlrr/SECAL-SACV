@@ -55,13 +55,15 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.ScheduleViewModel
+import com.secal.juraid.Views.Generals.Bookings.Schedule.ScheduleScreen
 import com.secal.juraid.ui.theme.Purple40
 import kotlinx.atomicfu.TraceBase.None.append
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HelpView(navController: NavController) {
+fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -72,7 +74,7 @@ fun HelpView(navController: NavController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CasoFormView(navController)
+                CasoFormView(navController, viewModel)
             }
         }
 }
@@ -80,7 +82,8 @@ fun HelpView(navController: NavController) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CasoFormView(navController: NavController) {
+fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewModel) {
+
 
     var selectedOption by remember { mutableStateOf("") }
     val options = listOf("Víctima", "Investigado")
@@ -121,7 +124,8 @@ fun CasoFormView(navController: NavController) {
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    ScheduleUI()
+                    // I WANT TO CALL ScheduleScreen here
+                    ScheduleScreen(scheduleViewModel)
                 }
 
                 Column(
