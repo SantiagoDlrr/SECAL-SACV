@@ -11,6 +11,10 @@ import com.secal.juraid.supabase
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -36,6 +40,10 @@ class CasesViewModel : ViewModel() {
 
     private val _assignedCases = MutableStateFlow<List<StudentCaseRelation>>(emptyList())
     val assignedCases: StateFlow<List<StudentCaseRelation>> = _assignedCases.asStateFlow()
+
+    private val _assignedCasesForStudent = MutableStateFlow<Map<String, List<Case>>>(emptyMap())
+    val assignedCasesForStudent: StateFlow<Map<String, List<Case>>> = _assignedCasesForStudent.asStateFlow()
+
 
     init {
         loadAllData()
@@ -68,7 +76,6 @@ class CasesViewModel : ViewModel() {
     suspend fun assignCaseToStudent(studentId: String, caseNUC: String) {
         viewModelScope.launch {
             try {
-                // Primero, encuentra el ID del caso usando el NUC
                 val case = _cases.value.find { it.NUC == caseNUC }
                 case?.let {
                     val relation = StudentCaseRelation(
@@ -76,14 +83,13 @@ class CasesViewModel : ViewModel() {
                         id_Caso = it.id
                     )
 
-                    // Inserta la relación en la base de datos
                     withContext(Dispatchers.IO) {
                         supabase.from("Alumnos_Casos")
                             .insert(relation)
                     }
 
-                    // Actualiza el estado local
                     _assignedCases.value = _assignedCases.value + relation
+                    updateAssignedCasesForStudent(studentId)
                 }
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error assigning case to student: ${e.message}", e)
@@ -91,32 +97,58 @@ class CasesViewModel : ViewModel() {
         }
     }
 
-    fun getAssignedCasesForStudent(studentId: String): StateFlow<List<Case>> {
-        val assignedCasesFlow = MutableStateFlow<List<Case>>(emptyList())
-
+    suspend fun unassignCaseFromStudent(studentId: String, caseId: Int) {
         viewModelScope.launch {
             try {
-                // Asegurarse de que las relaciones estén cargadas
-                if (_assignedCases.value.isEmpty()) {
-                    loadAssignedCases() // Asegúrate de que esta función está siendo llamada antes
+                withContext(Dispatchers.IO) {
+                    supabase.from("Alumnos_Casos")
+                        .delete {
+                            filter {
+                                and {
+                                    eq("id_alumno", studentId)
+                                    eq("id_Caso", caseId)
+                                }
+                            }
+                        }
                 }
 
-                // Obtener las relaciones para este estudiante
-                val relations = _assignedCases.value.filter { it.id_alumno == studentId }
-
-                // Filtrar los casos asignados usando las relaciones
-                val studentCases = _cases.value.filter { case ->
-                    relations.any { relation -> relation.id_Caso == case.id }
+                _assignedCases.value = _assignedCases.value.filterNot {
+                    it.id_alumno == studentId && it.id_Caso == caseId
                 }
-
-                // Actualizar el flujo con los casos asignados
-                assignedCasesFlow.value = studentCases
+                updateAssignedCasesForStudent(studentId)
             } catch (e: Exception) {
-                Log.e("CasesViewModel", "Error getting assigned cases for student: ${e.message}", e)
+                Log.e("CasesViewModel", "Error unassigning case from student: ${e.message}", e)
             }
         }
+    }
 
-        return assignedCasesFlow.asStateFlow()
+    private suspend fun updateAssignedCasesForStudent(studentId: String) {
+        val assignedCaseIds = _assignedCases.value
+            .filter { it.id_alumno == studentId }
+            .map { it.id_Caso }
+        val assignedCases = _cases.value.filter { it.id in assignedCaseIds }
+        _assignedCasesForStudent.update { currentMap ->
+            currentMap + (studentId to assignedCases)
+        }
+    }
+
+
+
+    private suspend fun updateAllAssignedCases() {
+        val studentIds = _assignedCases.value.map { it.id_alumno }.distinct()
+        studentIds.forEach { studentId ->
+            updateAssignedCasesForStudent(studentId)
+        }
+    }
+
+
+
+    fun getAssignedCasesForStudent(studentId: String): StateFlow<List<Case>> {
+        return assignedCasesForStudent.map { it[studentId] ?: emptyList() }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
     }
 
 
@@ -129,7 +161,8 @@ class CasesViewModel : ViewModel() {
                 loadUnitInvestigations()
                 loadHiperlinks()
                 loadNucList()
-                loadAssignedCases() // Asegúrate de que este método está siendo llamado aquí
+                loadAssignedCases()
+                updateAllAssignedCases()
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error loading data: ${e.message}", e)
             } finally {

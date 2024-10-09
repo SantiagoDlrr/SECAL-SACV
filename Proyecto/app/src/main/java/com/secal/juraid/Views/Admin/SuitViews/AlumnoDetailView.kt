@@ -1,15 +1,7 @@
 package com.secal.juraid.Views.Admin.SuitViews
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,29 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +19,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
@@ -72,7 +42,7 @@ fun AlumnoDetailView(
     val allCases by casesViewModel.cases.collectAsState()
 
     LaunchedEffect(Unit) {
-        casesViewModel.loadAllData() // Verifica que los datos se carguen correctamente
+        casesViewModel.loadAllData()
     }
 
     Scaffold(
@@ -95,8 +65,6 @@ fun AlumnoDetailView(
     }
 }
 
-
-
 @Composable
 private fun AlumnoDetailContent(
     navController: NavController,
@@ -108,6 +76,8 @@ private fun AlumnoDetailContent(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var isAssigning by remember { mutableStateOf(false) }
+    var showUnassignConfirmation by remember { mutableStateOf(false) }
+    var caseToUnassign by remember { mutableStateOf<Case?>(null) }
     val scope = rememberCoroutineScope()
 
     LazyColumn(
@@ -116,7 +86,6 @@ private fun AlumnoDetailContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Student info card
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -137,7 +106,6 @@ private fun AlumnoDetailContent(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Cases section header
                     Text(
                         text = "Casos Asignados",
                         style = MaterialTheme.typography.titleLarge
@@ -145,7 +113,6 @@ private fun AlumnoDetailContent(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Assigned cases list
                     if (assignedCases.isEmpty()) {
                         Text(
                             "No hay casos asignados",
@@ -154,7 +121,13 @@ private fun AlumnoDetailContent(
                         )
                     } else {
                         assignedCases.forEach { case ->
-                            AssignedCaseCard(case = case)
+                            AssignedCaseCard(
+                                case = case,
+                                onUnassign = {
+                                    caseToUnassign = case
+                                    showUnassignConfirmation = true
+                                }
+                            )
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
@@ -184,12 +157,64 @@ private fun AlumnoDetailContent(
             }
         )
     }
+
+    if (showUnassignConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showUnassignConfirmation = false },
+            title = { Text("Confirmar desasignación") },
+            text = { Text("¿Estás seguro de que quieres desasignar este caso del alumno?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        caseToUnassign?.let { case ->
+                            scope.launch {
+                                casesViewModel.unassignCaseFromStudent(student.id, case.id)
+                                showUnassignConfirmation = false
+                            }
+                        }
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showUnassignConfirmation = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun StudentInfoSection(student: Student) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_background),
+            contentDescription = "Foto del estudiante",
+            modifier = Modifier
+                .size(100.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+            Text(
+                "${student.name} ${student.first_last_name} ${student.second_last_name}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+            Text(student.email, style = MaterialTheme.typography.bodyMedium)
+            Text("Teléfono: ${student.phone}", style = MaterialTheme.typography.bodyMedium)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssignedCaseCard(
     case: Case,
+    onUnassign: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -284,6 +309,15 @@ fun AssignedCaseCard(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onUnassign,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Desasignar caso")
+            }
         }
     }
 }
@@ -319,30 +353,6 @@ fun StatusChip(status: Int) {
             style = MaterialTheme.typography.labelSmall,
             color = textColor
         )
-    }
-}
-
-@Composable
-private fun StudentInfoSection(student: Student) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = "Foto del estudiante",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                "${student.name} ${student.first_last_name} ${student.second_last_name}",
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
-            Text(student.email, style = MaterialTheme.typography.bodyMedium)
-            Text("Teléfono: ${student.phone}", style = MaterialTheme.typography.bodyMedium)
-        }
     }
 }
 
