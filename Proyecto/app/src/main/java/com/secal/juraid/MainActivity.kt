@@ -70,9 +70,7 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Iniciar autenticación biométrica antes de cargar la UI
         startBiometricAuth {
-            // Configurar la UI después de la autenticación exitosa
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
@@ -83,7 +81,6 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        // Manejar el intent para la confirmación de email
         intent?.data?.let { uri ->
             handleDeepLink(uri)
         }
@@ -105,43 +102,82 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    // Iniciar autenticación biométrica
     private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
         val biometricManager = BiometricManager.from(this)
-        val canAuthenticate = biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+
+        // Check for both strong (fingerprint) and weak (face unlock) biometric authentication
+        val canAuthenticate = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        )
+
+        // Log if face authentication is available
+        val canAuthenticateWithFace = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_WEAK
+        )
+        Log.d(
+            "BiometricAuth",
+            "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}"
+        )
 
         if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
             val executor = ContextCompat.getMainExecutor(this)
 
-            val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    Toast.makeText(this@MainActivity, "Autenticación biométrica exitosa", Toast.LENGTH_LONG).show()
-                    onAuthSuccess()  // Ejecutar la UI después del éxito
-                }
+            val biometricPrompt =
+                BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        val authenticationType = when (result.authenticationType) {
+                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
+                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
+                            else -> AuthenticationType.UNKNOWN
+                        }
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Autenticación exitosa: ${authenticationType.name}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            onAuthSuccess()
+                        }
+                    }
 
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG).show()
-                    finish()  // Cerrar la app si falla la autenticación
-                }
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG)
+                            .show()
+                        finish()
+                    }
 
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    Toast.makeText(this@MainActivity, "Autenticación fallida", Toast.LENGTH_LONG).show()
-                }
-            })
+                    override fun onAuthenticationFailed() {
+                        super.onAuthenticationFailed()
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Autenticación fallida",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                })
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Autenticación Biométrica")
-                .setSubtitle("Usa tu huella digital para autenticarte")
-                .setNegativeButtonText("Cancelar")
+                .setSubtitle("Usa tu huella digital, rostro o PIN para autenticarte")
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
                 .build()
 
             biometricPrompt.authenticate(promptInfo)
         } else {
-            Toast.makeText(this, "Este dispositivo no soporta autenticación biométrica", Toast.LENGTH_LONG).show()
-            finish()  // Cerrar la app si la biometría no está disponible
+            Toast.makeText(
+                this,
+                "Este dispositivo no soporta autenticación biométrica o PIN",
+                Toast.LENGTH_LONG
+            ).show()
+            finish()
         }
     }
 }
@@ -215,18 +251,6 @@ fun UserScreen() {
         }
         composable(Routes.casosStVw) {
             CasosStudentView(navController = navController)
-        }
-        composable(
-            "${Routes.editDetalleVw}/{caseId}",
-            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
-        ) { backStackEntry ->
-            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
-            val caseViewModel = viewModel<CaseDetailViewModel>()
-            EditDetalleView(
-                navController = navController,
-                viewModel = caseViewModel,
-                caseId = caseId
-            )
         }
         composable(
             route = "${Routes.alumnoDetailVw}/{studentId}",

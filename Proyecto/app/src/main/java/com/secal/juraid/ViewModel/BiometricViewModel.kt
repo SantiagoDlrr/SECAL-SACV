@@ -10,8 +10,8 @@ class BiometricViewModel(application: Application) : AndroidViewModel(applicatio
     private val _biometricState = MutableStateFlow<BiometricState>(BiometricState.Idle)
     val biometricState: StateFlow<BiometricState> = _biometricState
 
-    fun setSuccess() {
-        _biometricState.value = BiometricState.Success
+    fun setSuccess(authenticationType: AuthenticationType) {
+        _biometricState.value = BiometricState.Success(authenticationType)
     }
 
     fun setError(message: String) {
@@ -26,6 +26,12 @@ class BiometricViewModel(application: Application) : AndroidViewModel(applicatio
 sealed class BiometricState {
     object Idle : BiometricState()
     object Loading : BiometricState()
-    object Success : BiometricState()
+    data class Success(val authenticationType: AuthenticationType) : BiometricState()
     data class Error(val message: String) : BiometricState()
+}
+
+enum class AuthenticationType {
+    BIOMETRIC,
+    PIN,
+    UNKNOWN
 }
