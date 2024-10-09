@@ -31,10 +31,96 @@ class CasesViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _nucList = MutableStateFlow<List<String>>(emptyList())
+    val nucList: StateFlow<List<String>> = _nucList.asStateFlow()
+
+    private val _assignedCases = MutableStateFlow<List<StudentCaseRelation>>(emptyList())
+    val assignedCases: StateFlow<List<StudentCaseRelation>> = _assignedCases.asStateFlow()
+
     init {
         loadAllData()
     }
 
+    private suspend fun loadAssignedCases() {
+        try {
+            val items = getAssignedCasesFromDatabase()
+            _assignedCases.value = items
+        } catch (e: Exception) {
+            Log.e("CasesViewModel", "Error loading assigned cases: ${e.message}", e)
+        }
+    }
+
+    private suspend fun getAssignedCasesFromDatabase(): List<StudentCaseRelation> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val assignedCasesList = supabase
+                    .from("Alumnos_Casos") // Asegúrate que este sea el nombre correcto de tu tabla
+                    .select()
+                    .decodeList<StudentCaseRelation>()
+                assignedCasesList
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error getting assigned cases from database: ${e.message}", e)
+                emptyList()
+            }
+        }
+    }
+
+    suspend fun assignCaseToStudent(studentId: String, caseNUC: String) {
+        viewModelScope.launch {
+            try {
+                // Primero, encuentra el ID del caso usando el NUC
+                val case = _cases.value.find { it.NUC == caseNUC }
+                case?.let {
+                    val relation = StudentCaseRelation(
+                        id_alumno = studentId,
+                        id_Caso = it.id
+                    )
+
+                    // Inserta la relación en la base de datos
+                    withContext(Dispatchers.IO) {
+                        supabase.from("Alumnos_Casos")
+                            .insert(relation)
+                    }
+
+                    // Actualiza el estado local
+                    _assignedCases.value = _assignedCases.value + relation
+                }
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error assigning case to student: ${e.message}", e)
+            }
+        }
+    }
+
+    fun getAssignedCasesForStudent(studentId: String): StateFlow<List<Case>> {
+        val assignedCasesFlow = MutableStateFlow<List<Case>>(emptyList())
+
+        viewModelScope.launch {
+            try {
+                // Asegurarse de que las relaciones estén cargadas
+                if (_assignedCases.value.isEmpty()) {
+                    loadAssignedCases() // Asegúrate de que esta función está siendo llamada antes
+                }
+
+                // Obtener las relaciones para este estudiante
+                val relations = _assignedCases.value.filter { it.id_alumno == studentId }
+
+                // Filtrar los casos asignados usando las relaciones
+                val studentCases = _cases.value.filter { case ->
+                    relations.any { relation -> relation.id_Caso == case.id }
+                }
+
+                // Actualizar el flujo con los casos asignados
+                assignedCasesFlow.value = studentCases
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error getting assigned cases for student: ${e.message}", e)
+            }
+        }
+
+        return assignedCasesFlow.asStateFlow()
+    }
+
+
+    // Actualiza loadAllData para incluir los casos asignados
     fun loadAllData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -42,6 +128,8 @@ class CasesViewModel : ViewModel() {
                 loadCases()
                 loadUnitInvestigations()
                 loadHiperlinks()
+                loadNucList()
+                loadAssignedCases() // Asegúrate de que este método está siendo llamado aquí
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error loading data: ${e.message}", e)
             } finally {
@@ -50,12 +138,18 @@ class CasesViewModel : ViewModel() {
         }
     }
 
-    fun refreshData() {
-        _cases.value = emptyList()
-        _unitInvestigations.value = emptyList()
-        _hiperlinks.value = emptyList()
-        loadAllData()
+
+    private fun loadNucList() {
+        viewModelScope.launch {
+            try {
+                val nucList = getCasesFromDatabase().map { it.NUC }
+                _nucList.value = nucList
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error loading NUC list: ${e.message}", e)
+            }
+        }
     }
+
 
     private suspend fun loadCases() {
         if (_cases.value.isEmpty()) {
@@ -170,6 +264,12 @@ class CasesViewModel : ViewModel() {
 
     }
 
+    @Serializable
+    data class StudentCaseRelation(
+        val id: Int? = null,
+        val id_alumno: String,
+        val id_Caso: Int
+    )
 
     suspend fun addCase(
         nombreAbogado: String,

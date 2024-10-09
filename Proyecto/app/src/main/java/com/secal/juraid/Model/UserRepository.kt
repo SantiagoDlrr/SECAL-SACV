@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
@@ -59,6 +60,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
                     put("phone", phone)
                     put("role", 0)
                     put("is_tec_email", userEmail.endsWith("@tec.mx"))
+                    put("biometric_enabled", false)  // Inicialmente desactivar biometría
                 }
             }
         } catch (e: Exception) {
@@ -104,26 +106,49 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
             result.role
         } catch (e: Exception) {
             Log.e("DatabaseDebug", "Error getting user role: ${e.message}")
-            0 // Default role if there's an error
+            0 // Retornar rol predeterminado si hay un error
         }
     }
 
-    suspend fun getIsTecEmail(): Boolean? {
+    suspend fun getIsTecEmail(): Boolean {
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()
             val metadata = user.userMetadata
             metadata?.get("is_tec_email")?.toString()?.toBoolean() ?: false
         } catch (e: Exception) {
-            null
+            throw Exception("Error al obtener el email Tec: ${e.message}")
+        }
+    }
+
+    // Función para obtener si la autenticación biométrica está habilitada
+    suspend fun isBiometricEnabledForUser(): Boolean {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            val metadata = user.userMetadata
+            metadata?.get("biometric_enabled")?.toString()?.toBoolean() ?: false
+        } catch (e: Exception) {
+            throw Exception("Error al obtener configuración biométrica: ${e.message}")
+        }
+    }
+
+    // Función para actualizar la configuración de autenticación biométrica
+    suspend fun updateBiometricSetting(enabled: Boolean) {
+        try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            val updatedMetadata = user.userMetadata?.toMutableMap() ?: mutableMapOf()
+            updatedMetadata["biometric_enabled"] = JsonPrimitive(enabled)
+
+            supabase.auth.updateUser {
+                data = buildJsonObject {
+                    updatedMetadata.forEach { (key, value) ->
+                        put(key, value)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            throw Exception("Error al actualizar configuración biométrica: ${e.message}")
         }
     }
 }
-
 @Serializable
 data class UserRole(val role: Int)
-
-sealed class UserState {
-    object Loading: UserState()
-    data class Success(val message: String): UserState()
-    data class Error(val message: String): UserState()
-}

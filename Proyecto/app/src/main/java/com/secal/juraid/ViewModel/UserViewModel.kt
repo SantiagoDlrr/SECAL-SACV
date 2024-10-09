@@ -14,18 +14,17 @@ import kotlinx.coroutines.launch
 
 class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
 
-    // Estado de sesión observable por la UI
     val sessionState: StateFlow<SessionStatus> = userRepository.sessionState.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = SessionStatus.LoadingFromStorage
     )
 
-    // Estados adicionales para controlar la UI durante el proceso de autenticación
     val isLoading = mutableStateOf(false)
     val errorMessage = mutableStateOf("")
+    val verificationMessage = mutableStateOf("")
+    val accountExistsMessage = mutableStateOf("")
 
-    // Nuevo estado para el nombre del usuario
     private val _userName = MutableStateFlow<String>("")
     val userName: StateFlow<String> = _userName
 
@@ -35,24 +34,25 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _isTec = MutableStateFlow(false)
     val isTec: StateFlow<Boolean> = _isTec
 
-    // Estado para la confirmación de correo electrónico
     val isEmailConfirmed = MutableLiveData<Boolean>()
-
-    // Estado para indicar si se ha enviado el correo de confirmación
     val emailNotConfirmed = MutableLiveData<Boolean>()
 
+    private val _isBiometricEnabled = MutableStateFlow(false)
+    val isBiometricEnabled: StateFlow<Boolean> = _isBiometricEnabled
+
     init {
-        // Observar cambios en el estado de la sesión
         viewModelScope.launch {
             sessionState.collect { status ->
                 if (status is SessionStatus.Authenticated) {
                     fetchUserName()
                     fetchUserRole()
                     fetchIsTec()
+                    fetchBiometricSetting()
                 } else {
                     _userName.value = ""
                     _userRole.value = null
                     _isTec.value = false
+                    _isBiometricEnabled.value = false
                 }
             }
         }
@@ -86,9 +86,7 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 val isTec = userRepository.getIsTecEmail()
-                if (isTec != null) {
-                    _isTec.value = isTec
-                }
+                _isTec.value = isTec ?: false
             } catch (e: Exception) {
                 errorMessage.value = "Error al obtener el rol del usuario: ${e.message}"
                 _isTec.value = false
@@ -96,19 +94,26 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
-    // Método para manejar la confirmación de correo electrónico
-    fun handleEmailConfirmed(accessToken: String) {
+    // Método para obtener la configuración de autenticación biométrica
+    private fun fetchBiometricSetting() {
         viewModelScope.launch {
             try {
-                // Puedes realizar una validación adicional con Supabase si es necesario
-                // userRepository.confirmEmail(accessToken)
-
-                // Actualizar el estado de confirmación de correo
-                isEmailConfirmed.value = true
+                val isBiometricEnabled = userRepository.isBiometricEnabledForUser()
+                _isBiometricEnabled.value = isBiometricEnabled
             } catch (e: Exception) {
-                // Manejar errores
-                isEmailConfirmed.value = false
-                errorMessage.value = "Error al confirmar el correo: ${e.message}"
+                errorMessage.value = "Error al obtener la configuración de autenticación biométrica: ${e.message}"
+            }
+        }
+    }
+
+    // Método para actualizar la configuración de autenticación biométrica
+    fun updateBiometricSetting(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                userRepository.updateBiometricSetting(enabled)
+                _isBiometricEnabled.value = enabled
+            } catch (e: Exception) {
+                errorMessage.value = "Error al actualizar la configuración de autenticación biométrica: ${e.message}"
             }
         }
     }
@@ -137,13 +142,23 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     ) {
         isLoading.value = true
         errorMessage.value = ""
+        verificationMessage.value = ""
+        accountExistsMessage.value = ""
+        emailNotConfirmed.value = false
+
         viewModelScope.launch {
             try {
                 userRepository.signUp(email, password, name, firstLastName, secondLastName, phone)
-                // Notificar que se envió un correo de confirmación
+                verificationMessage.value = "Se ha enviado un correo de verificación a tu cuenta."
                 emailNotConfirmed.value = true
             } catch (e: Exception) {
-                errorMessage.value = e.message ?: "Unknown error"
+                val errorMsg = e.message?.lowercase()
+                if (errorMsg != null && (errorMsg.contains("user already registered") || errorMsg.contains("correo ya está registrado"))) {
+                    accountExistsMessage.value = "Este correo ya está registrado. Por favor, inicia sesión."
+                    emailNotConfirmed.value = false
+                } else {
+                    errorMessage.value = e.message ?: "Error desconocido"
+                }
             } finally {
                 isLoading.value = false
             }
@@ -155,14 +170,4 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
             userRepository.signOut()
         }
     }
-}
-// Biometric Authentication
-val biometricAuthenticationResult = MutableLiveData<Boolean>()
-
-fun onBiometricAuthenticated() {
-    biometricAuthenticationResult.value = true
-}
-
-fun onBiometricFailed() {
-    biometricAuthenticationResult.value = false
 }

@@ -87,7 +87,3 @@ fun UserView(navController: NavController) {
     }
 
 }
-
-
-
-
