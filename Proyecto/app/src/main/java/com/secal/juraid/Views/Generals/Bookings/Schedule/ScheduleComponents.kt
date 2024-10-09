@@ -57,7 +57,7 @@ fun DateCard(
     Card(
         modifier = Modifier
             .width(80.dp)
-            .height(60.dp) // Increased height to accommodate two lines
+            .height(60.dp)
             .clickable(onClick = onSelect),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White

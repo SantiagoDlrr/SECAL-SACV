@@ -124,7 +124,6 @@ fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewMo
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // I WANT TO CALL ScheduleScreen here
                     ScheduleScreen(scheduleViewModel)
                 }
 

@@ -45,13 +45,6 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Horario de Asesoría",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Current Schedule Card with formatted date
         Card(
@@ -104,9 +97,10 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
     ) {
         Surface(
             modifier = Modifier
-                .width(360.dp)
-                .height(600.dp),
-            shape = RoundedCornerShape(16.dp)
+                .width(380.dp)
+                .height(640.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.background
         ) {
             Column(
                 modifier = Modifier
@@ -114,7 +108,7 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
                     .padding(16.dp)
             ) {
                 Text(
-                    text = "Seleccionar Horario",
+                    text = "Horarios Disponibles",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
