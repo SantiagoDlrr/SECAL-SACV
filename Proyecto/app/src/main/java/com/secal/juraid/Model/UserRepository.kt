@@ -110,6 +110,15 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 
+    suspend fun getUserId(): String {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            user.id
+        } catch (e: Exception) {
+            throw Exception("Error al obtener el ID del usuario: ${e.message}")
+        }
+    }
+
     suspend fun getIsTecEmail(): Boolean {
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()

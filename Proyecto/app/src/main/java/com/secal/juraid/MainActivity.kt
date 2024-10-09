@@ -214,7 +214,10 @@ fun UserScreen() {
             AlumnosView(navController = navController)
         }
         composable(Routes.casosStVw) {
-            CasosStudentView(navController = navController)
+            CasosStudentView(
+                navController = navController,
+                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
         }
         composable(
             "${Routes.editDetalleVw}/{caseId}",

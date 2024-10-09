@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,8 +23,6 @@ import com.secal.juraid.R
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.AlumnosViewModel
-import com.secal.juraid.ViewModel.Student
 
 
 @Composable
@@ -33,10 +32,16 @@ fun AlumnosView(
 ) {
     val students by viewModel.students.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    var showAddStudentDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
-        topBar = { TopBar() }
+        topBar = { TopBar() },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { showAddStudentDialog = true }) {
+                Icon(Icons.Default.Add, contentDescription = "Añadir Alumno")
+            }
+        }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
             TitlesView(title = "Alumnos")
@@ -68,15 +73,39 @@ fun AlumnosView(
             }
         }
     }
+
+    if (showAddStudentDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddStudentDialog = false
+                viewModel.resetAddStudentResult()
+            },
+            title = { Text("Añadir Alumno") },
+            text = {
+                AddStudentView(
+                    viewModel = viewModel,
+                    onClose = {
+                        showAddStudentDialog = false
+                        viewModel.resetAddStudentResult()
+                    }
+                )
+            },
+            confirmButton = { }
+        )
+    }
 }
 
 @Composable
 fun AlumnosCardView(
     student: Student,
-    navController: NavController
+    navController: NavController,
+    viewModel: AlumnosViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
-    var showDeleteCaseDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showSnackbar by remember { mutableStateOf(false) }
+    var snackbarMessage by remember { mutableStateOf("") }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,7 +143,7 @@ fun AlumnosCardView(
                 Text(student.email, style = MaterialTheme.typography.bodyMedium)
             }
             Box {
-                IconButton(onClick = {expandedMenuIndex = 1}) {
+                IconButton(onClick = { expandedMenuIndex = 1 }) {
                     Icon(Icons.Default.MoreVert, contentDescription = "Más opciones")
                 }
                 DropdownMenu(
@@ -123,14 +152,62 @@ fun AlumnosCardView(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Eliminar") },
+                        text = { Text("Desactivar alumno") },
                         onClick = {
-
+                            expandedMenuIndex = null
+                            showDeleteDialog = true
                         }
                     )
                 }
             }
+        }
+    }
 
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Confirmar desactivación") },
+            text = { Text("¿Estás seguro que deseas desactivar a este alumno?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deactivateStudent(
+                            studentId = student.id,
+                            onSuccess = {
+                                showDeleteDialog = false
+                                snackbarMessage = "Alumno desactivado exitosamente"
+                                showSnackbar = true
+                            },
+                            onError = { error ->
+                                showDeleteDialog = false
+                                snackbarMessage = error
+                                showSnackbar = true
+                            }
+                        )
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showSnackbar) {
+        Snackbar(
+            modifier = Modifier.padding(16.dp),
+            action = {
+                TextButton(onClick = { showSnackbar = false }) {
+                    Text("Cerrar")
+                }
+            }
+        ) {
+            Text(snackbarMessage)
         }
     }
 }
+

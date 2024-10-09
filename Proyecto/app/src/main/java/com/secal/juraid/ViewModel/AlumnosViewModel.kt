@@ -1,5 +1,3 @@
-package com.secal.juraid.ViewModel
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.supabase
@@ -19,6 +17,10 @@ class AlumnosViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _addStudentResult = MutableStateFlow<AddStudentResult?>(null)
+    val addStudentResult: StateFlow<AddStudentResult?> = _addStudentResult.asStateFlow()
+
+
     init {
         loadStudents()
     }
@@ -30,7 +32,6 @@ class AlumnosViewModel : ViewModel() {
                 val studentList = getStudentsFromDatabase()
                 _students.value = studentList
             } catch (e: Exception) {
-                // Aquí podrías manejar el error, por ejemplo con un estado de error
                 e.printStackTrace()
             } finally {
                 _isLoading.value = false
@@ -63,8 +64,7 @@ class AlumnosViewModel : ViewModel() {
                 try {
                     supabase
                         .from("users")
-                        .select()
-                        {
+                        .select() {
                             filter {
                                 eq("id", id)
                             }
@@ -79,7 +79,89 @@ class AlumnosViewModel : ViewModel() {
         }
         return studentFlow
     }
+
+    fun deactivateStudent(studentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase
+                        .from("users")
+                        .update(
+                            {
+                                Student::role setTo 0
+                            }
+                        ) {
+                            filter {
+                                eq("id", studentId)
+                            }
+                        }
+                }
+                loadStudents() // Recargar la lista después de la actualización
+                onSuccess()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                onError("Error al desactivar el estudiante")
+            }
+        }
+    }
+
+    fun addStudentByEmail(email: String) {
+        viewModelScope.launch {
+            _addStudentResult.value = AddStudentResult.Loading
+            try {
+                val existingUser = withContext(Dispatchers.IO) {
+                    supabase
+                        .from("users")
+                        .select() {
+                            filter {
+                                eq("email", email)
+                            }
+                        }
+                        .decodeList<Student>()
+                }
+
+                if (existingUser.isNullOrEmpty()) {
+                    _addStudentResult.value = AddStudentResult.Error("No se encontró un usuario con ese correo electrónico")
+                } else {
+                    val user = existingUser.first()
+                    if (user.role == 2) {
+                        _addStudentResult.value = AddStudentResult.Error("Este usuario ya es un alumno")
+                    } else {
+                        withContext(Dispatchers.IO) {
+                            supabase
+                                .from("users")
+                                .update(
+                                    {
+                                        Student::role setTo 2
+                                    }
+                                ) {
+                                    filter {
+                                        eq("id", user.id)
+                                    }
+                                }
+                        }
+                        loadStudents() // Reload the list after updating
+                        _addStudentResult.value = AddStudentResult.Success("Alumno añadido exitosamente")
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _addStudentResult.value = AddStudentResult.Error("Error al añadir el alumno: ${e.message}")
+            }
+        }
+    }
+
+    fun resetAddStudentResult() {
+        _addStudentResult.value = null
+    }
 }
+
+sealed class AddStudentResult {
+    object Loading : AddStudentResult()
+    data class Success(val message: String) : AddStudentResult()
+    data class Error(val message: String) : AddStudentResult()
+}
+
 
 @Serializable
 data class Student(

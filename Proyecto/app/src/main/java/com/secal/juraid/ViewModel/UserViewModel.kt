@@ -34,6 +34,9 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
     private val _isTec = MutableStateFlow(false)
     val isTec: StateFlow<Boolean> = _isTec
 
+    private val _userId = MutableStateFlow<String>("")
+    val userId: StateFlow<String> = _userId
+
     val isEmailConfirmed = MutableLiveData<Boolean>()
     val emailNotConfirmed = MutableLiveData<Boolean>()
 
@@ -48,12 +51,25 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
                     fetchUserRole()
                     fetchIsTec()
                     fetchBiometricSetting()
+                    fetchUserId()
                 } else {
                     _userName.value = ""
                     _userRole.value = null
                     _isTec.value = false
                     _isBiometricEnabled.value = false
                 }
+            }
+        }
+    }
+
+    private fun fetchUserId() {
+        viewModelScope.launch {
+            try {
+                val id = userRepository.getUserId()
+                _userId.value = id ?: ""
+            } catch (e: Exception) {
+                errorMessage.value = "Error al obtener el ID del usuario: ${e.message}"
+                _userId.value = ""
             }
         }
     }

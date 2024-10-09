@@ -1,5 +1,7 @@
 package com.secal.juraid.Views.Admin.SuitViews
 
+import AlumnosViewModel
+import Student
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,10 +26,8 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.R
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.AlumnosViewModel
 import com.secal.juraid.ViewModel.Case
 import com.secal.juraid.ViewModel.CasesViewModel
-import com.secal.juraid.ViewModel.Student
 import kotlinx.coroutines.launch
 
 @Composable
@@ -94,6 +94,15 @@ private fun AlumnoDetailContent(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     StudentInfoSection(student)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Ver horario")
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
