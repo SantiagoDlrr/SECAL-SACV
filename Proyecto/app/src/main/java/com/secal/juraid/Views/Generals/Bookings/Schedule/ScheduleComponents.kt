@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.secal.juraid.ViewModel.TimeSlot
 import com.secal.juraid.ui.theme.Primary
 
 
@@ -83,10 +84,10 @@ fun DateCard(
     }
 }
 
-// Simplified Time Slot Item
+
 @Composable
 fun TimeSlotItem(
-    time: String,
+    timeSlot: TimeSlot,
     isSelected: Boolean,
     onSelect: () -> Unit
 ) {
@@ -95,18 +96,37 @@ fun TimeSlotItem(
             .fillMaxWidth()
             .clickable(onClick = onSelect)
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = onSelect,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = Primary
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = isSelected,
+                onClick = onSelect,
+                enabled = timeSlot.isAvailable,
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = Primary,
+                    disabledSelectedColor = Color.Gray,
+                    disabledUnselectedColor = Color.Gray
+                )
             )
-        )
-        Text(
-            text = time,
-            modifier = Modifier.padding(start = 8.dp)
+            Text(
+                text = timeSlot.time,
+                modifier = Modifier.padding(start = 8.dp),
+                color = if (timeSlot.isAvailable) Color.Black else Color.Gray
+            )
+        }
+
+        // Availability indicator
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(
+                    color = if (timeSlot.isAvailable) Color.Green else Color.Red,
+                    shape = CircleShape
+                )
         )
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,6 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.secal.juraid.ViewModel.ScheduleViewModel
+import com.secal.juraid.ViewModel.TimeSlot
 
 // Schedule View
 @Composable
@@ -69,13 +72,18 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // Schedule Button
-        Button(
+        OutlinedButton(
             onClick = viewModel::openDialog,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp)
         ) {
-            Icon(Icons.Default.DateRange, contentDescription = null)
+            Icon(
+                imageVector = Icons.Default.DateRange,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Agendar Cita")
+            Text("Agendar en otro horario")
         }
 
         // Schedule Dialog
@@ -85,11 +93,11 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
     }
 }
 
-// Simplified Schedule Dialog
+
 @Composable
 fun ScheduleDialog(viewModel: ScheduleViewModel) {
     var selectedDate by remember { mutableStateOf<String?>(null) }
-    var selectedTime by remember { mutableStateOf<String?>(null) }
+    var selectedTimeSlot by remember { mutableStateOf<TimeSlot?>(null) }
 
     Dialog(
         onDismissRequest = viewModel::closeDialog,
@@ -143,26 +151,29 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
                     items(
                         count = viewModel.availableTimeSlots.size,
                         itemContent = { index ->
-                            val time = viewModel.availableTimeSlots[index]
+                            val timeSlot = viewModel.availableTimeSlots[index]
                             TimeSlotItem(
-                                time = time,
-                                isSelected = time == selectedTime,
-                                onSelect = { selectedTime = time }
+                                timeSlot = timeSlot,
+                                isSelected = timeSlot == selectedTimeSlot,
+                                onSelect = {
+                                    if (timeSlot.isAvailable) {
+                                        selectedTimeSlot = timeSlot
+                                    }
+                                }
                             )
                         }
                     )
                 }
 
-
                 // Confirm Button
                 Button(
                     onClick = {
-                        if (selectedDate != null && selectedTime != null) {
-                            viewModel.scheduleAppointment(selectedDate!!, selectedTime!!)
+                        if (selectedDate != null && selectedTimeSlot != null) {
+                            viewModel.scheduleAppointment(selectedDate!!, selectedTimeSlot!!)
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedDate != null && selectedTime != null
+                    enabled = selectedDate != null && selectedTimeSlot != null && selectedTimeSlot?.isAvailable == true
                 ) {
                     Text("Confirmar")
                 }
@@ -171,4 +182,11 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
     }
 }
 
-
+/*Button(
+            onClick = viewModel::openDialog,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.DateRange, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Agendar Cita")
+        }*/

@@ -11,7 +11,6 @@ class ScheduleViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ScheduleUiState())
     val uiState: StateFlow<ScheduleUiState> = _uiState.asStateFlow()
 
-    // Updated dates with day names
     val availableDates = listOf(
         "Hoy\n2 oct",
         "Mañana\n3 oct",
@@ -21,29 +20,37 @@ class ScheduleViewModel : ViewModel() {
     )
 
     val availableTimeSlots = listOf(
-        "10:00AM - 11:00AM",
-        "11:00AM - 12:00PM",
-        "12:00PM - 01:00PM",
-        "01:00PM - 02:00PM",
-        "02:00PM - 03:00PM",
-        "03:00PM - 04:00PM"
+        TimeSlot("10:00AM - 11:00AM", true),
+        TimeSlot("11:00AM - 12:00PM", true),
+        TimeSlot("12:00PM - 01:00PM", true),
+        TimeSlot("01:00PM - 02:00PM", false),
+        TimeSlot("02:00PM - 03:00PM", true),
+        TimeSlot("03:00PM - 04:00PM", false)
     )
 
-    fun scheduleAppointment(date: String, time: String) {
-        _uiState.update {
-            it.copy(
-                selectedDate = date.split("\n")[0], // Only use the day name
-                selectedTime = time,
-                isDialogOpen = false
-            )
+    fun scheduleAppointment(date: String, timeSlot: TimeSlot) {
+        if (timeSlot.isAvailable) {
+            _uiState.update {
+                it.copy(
+                    selectedDate = date.split("\n")[0],
+                    selectedTime = timeSlot.time,
+                    isDialogOpen = false
+                )
+            }
         }
     }
 
     fun openDialog() = _uiState.update { it.copy(isDialogOpen = true) }
     fun closeDialog() = _uiState.update { it.copy(isDialogOpen = false) }
 }
+
 data class ScheduleUiState(
     val selectedDate: String? = null,
     val selectedTime: String? = null,
     val isDialogOpen: Boolean = false
+)
+
+data class TimeSlot(
+    val time: String,
+    val isAvailable: Boolean
 )
