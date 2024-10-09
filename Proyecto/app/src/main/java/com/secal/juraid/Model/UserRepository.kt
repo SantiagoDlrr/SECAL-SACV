@@ -121,3 +121,9 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
 
 @Serializable
 data class UserRole(val role: Int)
+
+sealed class UserState {
+    object Loading: UserState()
+    data class Success(val message: String): UserState()
+    data class Error(val message: String): UserState()
+}

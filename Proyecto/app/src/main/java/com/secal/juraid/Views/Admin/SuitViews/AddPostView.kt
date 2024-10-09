@@ -1,8 +1,11 @@
 //En la lista de articulos, hay un botón de añadir, ese botón te lleva aquí
 
 import android.content.ContentValues.TAG
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -32,6 +35,8 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
     var urlHeader by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
@@ -39,6 +44,12 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
 
     val categories by viewModel.categories.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadCategories()
@@ -112,6 +123,7 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
+                    /*
                     OutlinedTextField(
                         value = urlHeader,
                         onValueChange = { urlHeader = it },
@@ -121,6 +133,7 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
+                     */
 
                     OutlinedTextField(
                         value = text,
@@ -131,6 +144,18 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    //BOTON PARA IMAGEN
+                    Button(
+                        onClick = { imagePicker.launch("image/*") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (selectedImageUri != null) "Cambiar imagen" else "Seleccionar imagen")
+                    }
+
+                    selectedImageUri?.let {
+                        Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
+                    }
 
                     Button(
                         onClick = { showDialog = true },
@@ -151,11 +176,18 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                     coroutineScope.launch {
                         selectedCategory?.let { category ->
                             try {
+                                /*if(selectedImageUri != null){
+                                    val imageByteArray = selectedImageUri?.uriToByteArray(context)
+                                    imageByteArray?.let {
+                                        viewModel.uploadFile("postImage", imageByteArray)
+                                    }
+                                }*/
                                 viewModel.addContentItem(
                                     title = title,
                                     category = category.ID_Category,
-                                    urlHeader = urlHeader,
-                                    text = text
+                                    imageUri = selectedImageUri,
+                                    text = text,
+                                    context = context
                                 )
                                 // Mostrar Toast cuando se añade el post exitosamente
                                 Toast.makeText(context, "Post añadido con éxito", Toast.LENGTH_LONG).show()

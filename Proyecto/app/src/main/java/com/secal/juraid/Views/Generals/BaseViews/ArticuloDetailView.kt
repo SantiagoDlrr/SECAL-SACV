@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
@@ -40,10 +42,12 @@ import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
+//import com.secal.juraid.ViewModel.getImageUrl
 import com.secal.juraid.supabase
 import io.github.jan.supabase.auth.SessionStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -54,17 +58,27 @@ import java.util.Locale
 @Composable
 fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
     Log.d(TAG, "ArticuloDetailView() called")
+    Log.d(TAG, "POST ID $postId")
 
     val coroutineScope = rememberCoroutineScope()
     var contentItem by remember { mutableStateOf<HomeViewModel.ContentItem?>(null) }
+    //var imageUrl by remember { mutableStateOf<String?>(null) }
+
     var isLoading by remember { mutableStateOf(true) }
     
     val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
+
 
     LaunchedEffect(postId) {
         coroutineScope.launch {
             isLoading = true
             contentItem = viewModel.getFullContentItem(postId)
+            /*contentItem?.let { item ->
+                viewModel.readFile("postImage", item.url_header)
+                delay(500) // Ajusta este valor según sea necesario
+                imageUrl = item.getImageUrl(viewModel)
+                Log.d("ArticuloDetailView", "Loaded imageUrl: $imageUrl")
+            }*/
             isLoading = false
         }
     }
@@ -129,6 +143,19 @@ fun String.formatDate(): String {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
+    val viewModel = viewModel<HomeViewModel>()
+
+    /*val imageUrl by remember(item) {
+        derivedStateOf {
+            val url = item.getImageUrl(viewModel)
+            Log.d("ArticuloDetailView", "Image URL: $url")
+        }
+    }*/
+
+    /*val imageUrl by remember(item) {
+        derivedStateOf { item.getImageUrl(viewModel) }
+    }*/
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -157,7 +184,10 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
                             .fillMaxWidth()
                             .height(200.dp)
                             .clip(MaterialTheme.shapes.medium),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        onError = {
+                            Log.e("ArticuloDetailView", "Error loading image: ${it.result.throwable}")
+                        }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(

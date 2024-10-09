@@ -192,6 +192,8 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 fun CitasPasadasView() {
     var showAcceptDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
+
+
     var currentCitaIndex by remember { mutableStateOf(-1) }
 
     LazyColumn {

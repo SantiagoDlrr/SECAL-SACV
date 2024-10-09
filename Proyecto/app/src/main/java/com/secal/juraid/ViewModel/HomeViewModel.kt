@@ -1,21 +1,38 @@
 package com.secal.juraid.ViewModel
 
 import android.content.ContentValues.TAG
+import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.secal.juraid.Model.UserState
 import com.secal.juraid.supabase
+import io.github.jan.supabase.storage.storage
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.ktor.http.ContentDisposition.Companion.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.io.IOException
+import kotlin.time.Duration.Companion.minutes
 
 class HomeViewModel : ViewModel() {
+
     private val _contentItems = MutableStateFlow<List<ContentItemPreview>>(emptyList())
     val contentItems: StateFlow<List<ContentItemPreview>> = _contentItems.asStateFlow()
 
@@ -123,41 +140,63 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun addContentItem(title: String, category: Int, urlHeader: String, text: String) {
+    fun addContentItem(title: String, category: Int, imageUri: Uri?, text: String, context: Context) {
         viewModelScope.launch {
             try {
-                val newItem = ContentInsert(
-                    ID_Category = category,
-                    title = title,
-                    url_header = urlHeader,
-                    text = text
-                )
+                val fileName = "post_images/${UUID.randomUUID()}.jpg"
+                var imageUrl: String? = null
 
-
-                val insertedItem = withContext(Dispatchers.IO) {
-                    supabase.from("Content")
-                        .insert(newItem)
-                        .decodeSingle<ContentItem>()
+                if(imageUri != null) {
+                    val imageByteArray = imageUri.uriToByteArray(context)
+                    imageByteArray?.let {
+                        uploadFile("postImage",fileName, imageByteArray)
+                        // Obtener la URL pública inmediatamente después de cargar
+                        imageUrl = supabase.storage["postImage"].publicUrl(fileName)
+                    }
                 }
 
 
-                Log.d("DatabaseDebug", "Nuevo item añadido: $insertedItem")
+                val newItem = ContentInsert(
+                    ID_Category = category,
+                    title = title,
+                    url_header = imageUrl ?: "https://cdlpmnjnonnruremcszc.supabase.co/storage/v1/object/public/postImage/post_images/martillito.png",
+                    text = text
+                )
+
+                val insertedItem = supabase.from("Content")
+                    .insert(newItem)
+                    .decodeSingle<ContentItem>()
+
+                loadAllData()
+
             } catch (e: Exception) {
                 Log.e("DatabaseDebug", "Error añadiendo nuevo item: ${e.message}", e)
             }
         }
     }
 
-    suspend fun updateContentItem(postId: Int, title: String, category: Int, urlHeader: String, text: String) {
+    suspend fun updateContentItem(postId: Int, title: String, category: Int, urlHeader: String, text: String, imageUri: Uri?, context: Context) {
         //para ver qué función llamamos
         Log.d(TAG, "updateContentItem() called")
 
+        var url = urlHeader
+
         try {
+            if(imageUri != null) {
+                val fileName = "post_images/${UUID.randomUUID()}.jpg"
+                val imageByteArray = imageUri.uriToByteArray(context)
+                imageByteArray?.let {
+                    uploadFile("postImage", fileName, imageByteArray)
+                    // Obtener la URL pública inmediatamente después de cargar
+                    url = supabase.storage["postImage"].publicUrl(fileName)
+                }
+                //deleteFileFromBucket("postImage", urlHeader)
+            }
             supabase.from("Content").update(
                 {
                     set("title", title)
                     set("ID_Category", category)
-                    set("url_header", urlHeader)
+                    set("url_header", url)
                     set("text", text)
                 }
             ) {
@@ -168,6 +207,47 @@ class HomeViewModel : ViewModel() {
             Log.d("DatabaseDebug", "Item updated: $postId")
         } catch (e: Exception) {
             Log.e("DatabaseDebug", "Error updating item: ${e.message}", e)
+        }
+    }
+
+    private fun extractFileNameFromUrl(url: String): String? {
+        return try {
+            val uri = Uri.parse(url)
+            uri.lastPathSegment
+        } catch (e: Exception) {
+            Log.e("HomeViewModel", "Error extracting filename from URL: ${e.message}")
+            null
+        }
+    }
+
+    fun deleteFileFromBucket(bucketName: String, fileUrl: String) {
+        viewModelScope.launch {
+            try {
+                val fileName = extractFileNameFromUrl(fileUrl)
+                if (fileName != null) {
+                    val bucket = supabase.storage.from(bucketName)
+                    bucket.delete(fileName)
+                    Log.d("HomeViewModel", "File deleted successfully: $fileName")
+                } else {
+                    Log.e("HomeViewModel", "Unable to extract filename from URL: $fileUrl")
+                }
+                Log.d("HomeViewModel", "File deleted successfully: $fileName")
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error deleting file: ${e.message}", e)
+            }
+        }
+    }
+
+
+    fun uploadFile(bucketName: String, fileName: String, byteArray: ByteArray){
+        viewModelScope.launch {
+            try {
+                val bucket = supabase.storage[bucketName]
+                bucket.upload(fileName, byteArray)
+
+            } catch (e: Exception) {
+                Log.e("DatabaseDebug", "Error uploading image: ${e.message}", e)
+            }
         }
     }
 
@@ -206,3 +286,7 @@ class HomeViewModel : ViewModel() {
         val name_category: String
     )
 }
+
+@Throws(IOException::class)
+fun Uri.uriToByteArray(context: Context) =
+    context.contentResolver.openInputStream(this)?.use { it.buffered().readBytes() }
