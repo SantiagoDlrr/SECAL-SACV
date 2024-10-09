@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
@@ -153,7 +155,13 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                         Text(if (selectedImageUri != null) "Cambiar imagen" else "Seleccionar imagen")
                     }
 
-                    selectedImageUri?.let {
+                    selectedImageUri?.let { uri ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Image(
+                            painter = rememberAsyncImagePainter(uri),
+                            contentDescription = "Imagen seleccionada",
+                            modifier = Modifier.size(100.dp).clip(RoundedCornerShape(16.dp))
+                        )
                         Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
                     }
 
