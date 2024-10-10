@@ -222,8 +222,10 @@ fun UserScreen() {
         }
         composable(Routes.helpVw) {
             val scheduleViewModel = remember { ScheduleViewModel() }
-            val BookingsViewModel = remember { BookingsViewModel() }
-            HelpView(navController = navController, viewModel = scheduleViewModel, otherVM = BookingsViewModel)
+            val bookingsViewModel = remember { BookingsViewModel() }
+            val userViewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))}
+
+            HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
