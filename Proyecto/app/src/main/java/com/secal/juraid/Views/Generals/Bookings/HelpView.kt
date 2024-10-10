@@ -321,14 +321,6 @@ fun CasoFormView(
                         // AVISO PRIVACIDAD
 
                         Button(
-                            onClick = { navController.navigate(Routes.meetingVw) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = termsAccepted
-                        ) {
-                            Text("Siguiente")
-                        }
-
-                        Button(
                             onClick = {
                                 scope.launch {
                                     bookingsViewModel.addBooking(
@@ -341,9 +333,7 @@ fun CasoFormView(
                                     navController.popBackStack()
                                 }
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             enabled = termsAccepted
                         ) {
                             Text("Confirmar")

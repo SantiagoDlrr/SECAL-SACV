@@ -6,7 +6,6 @@ import ArticulosView
 import CaseDetailViewModel
 import CasosView
 import DetalleView
-import MeetingView
 import ScheduleViewModel
 import android.content.Intent
 import android.net.Uri
@@ -225,9 +224,6 @@ fun UserScreen() {
             val scheduleViewModel = remember { ScheduleViewModel() }
             val BookingsViewModel = remember { BookingsViewModel() }
             HelpView(navController = navController, viewModel = scheduleViewModel, otherVM = BookingsViewModel)
-        }
-        composable(Routes.meetingVw) {
-            MeetingView(navController = navController)
         }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
