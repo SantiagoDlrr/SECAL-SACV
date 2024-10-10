@@ -26,6 +26,25 @@ class AlumnosViewModel : ViewModel() {
         loadStudents()
     }
 
+    // New method to load all data
+    fun loadAllData() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                // Load students
+                loadStudents()
+
+                // If there are other data that needs to be loaded, add them here
+                // For example, if you need to load related data or additional information
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     private fun loadStudents() {
         viewModelScope.launch {
             _isLoading.value = true
