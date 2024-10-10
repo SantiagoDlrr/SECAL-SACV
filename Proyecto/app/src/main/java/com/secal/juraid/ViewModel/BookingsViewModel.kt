@@ -23,18 +23,24 @@ class BookingsViewModel : ViewModel() {
 
 
     suspend fun addBooking(
+        nombre: String,
+        apellido: String,
         fecha: String,
         hora: String,
         idRegion: Int,
-        idSituacion: Int
+        idSituacion: Int,
+        id_usuario: String
     ) {
         viewModelScope.launch {
             try {
                 val newBooking = BookingInsert(
+                    nombre = nombre,
+                    apellido = apellido,
                     fecha = fecha,
                     hora = hora,
                     id_region = idRegion,
-                    id_situacion = idSituacion
+                    id_situacion = idSituacion,
+                    id_usuario = id_usuario
                 )
 
                 val insertedBooking = withContext(Dispatchers.IO) {
@@ -55,14 +61,14 @@ class BookingsViewModel : ViewModel() {
 
 @Serializable
 data class BookingInsert(
-    val nombre: String = "S",
-    val apellido: String = "Prueba",
+    val nombre: String,
+    val apellido: String,
     val fecha: String,
     val hora: String,
     val id_region: Int,
     val estado_cita: Boolean? = null,
     val id_situacion: Int,
-    val id_usuario: String? = null
+    val id_usuario: String
 )
 
 @Serializable

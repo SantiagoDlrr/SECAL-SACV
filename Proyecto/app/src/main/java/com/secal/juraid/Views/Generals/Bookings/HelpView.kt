@@ -61,6 +61,7 @@ import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.BookingsViewModel
+import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Generals.Bookings.Schedule.ScheduleScreen
 import com.secal.juraid.ui.theme.Purple40
 import kotlinx.atomicfu.TraceBase.None.append
@@ -70,7 +71,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HelpView(navController: NavController, viewModel: ScheduleViewModel, otherVM: BookingsViewModel) {
+fun HelpView(navController: NavController, viewModel: ScheduleViewModel, bookingsViewModel: BookingsViewModel, userViewModel: UserViewModel) {
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -81,7 +82,7 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel, otherVM
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CasoFormView(navController, viewModel, otherVM)
+                CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
             }
         }
 }
@@ -93,7 +94,8 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel, otherVM
 fun CasoFormView(
     navController: NavController,
     scheduleViewModel: ScheduleViewModel,
-    bookingsViewModel: BookingsViewModel // Add this parameter
+    bookingsViewModel: BookingsViewModel,
+    userViewModel: UserViewModel
 ) {
     var selectedSituation by remember { mutableStateOf("") }
     val situationOptions = listOf("Víctima", "Investigado")
@@ -110,7 +112,10 @@ fun CasoFormView(
     val appointmentDate = scheduleState.databaseDateTime?.split(" ")?.getOrNull(0) ?: ""
     val appointmentTime = scheduleState.databaseDateTime?.split(" ")?.getOrNull(1) ?: ""
 
-    // Helper function to convert region name to ID
+    val userName by userViewModel.userName.collectAsState()
+    val userId by userViewModel.userId.collectAsState()
+
+
     fun getRegionId(regionName: String): Int {
         return when (regionName) {
             "Apodaca" -> 1
@@ -320,30 +325,25 @@ fun CasoFormView(
 
                         // AVISO PRIVACIDAD
 
-                        Button(
-                            onClick = { navController.navigate(Routes.meetingVw) },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = termsAccepted
-                        ) {
-                            Text("Siguiente")
-                        }
+                        val parts = userName.split(" ")
 
                         Button(
                             onClick = {
                                 scope.launch {
                                     bookingsViewModel.addBooking(
+                                        nombre = parts[0],
+                                        apellido = parts.drop(1).joinToString(" "),
                                         fecha = appointmentDate,
                                         hora = appointmentTime,
                                         idRegion = getRegionId(selectedOption),
-                                        idSituacion = getSituationId(selectedSituation)
+                                        idSituacion = getSituationId(selectedSituation),
+                                        id_usuario = userId
                                     )
                                     // Navigate back or show success message
                                     navController.popBackStack()
                                 }
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             enabled = termsAccepted
                         ) {
                             Text("Confirmar")
