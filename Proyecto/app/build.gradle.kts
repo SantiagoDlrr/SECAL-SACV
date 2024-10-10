@@ -84,6 +84,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:2.3.4")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation ("androidx.biometric:biometric:1.2.0-alpha05")
+    implementation ("androidx.compose.material:material-icons-extended:1.7.3")
 
 
     implementation(libs.androidx.navigation.compose)
