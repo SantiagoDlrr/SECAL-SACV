@@ -2,6 +2,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -154,6 +155,63 @@ class AlumnosViewModel : ViewModel() {
     fun resetAddStudentResult() {
         _addStudentResult.value = null
     }
+
+    //TODO LO DE HORARIOS
+
+    private val _horarioUrl = MutableStateFlow<String?>(null)
+    val horarioUrl: StateFlow<String?> = _horarioUrl.asStateFlow()
+
+    private val _insertHorarioResult = MutableStateFlow<InsertHorarioResult?>(null)
+    val insertHorarioResult: StateFlow<InsertHorarioResult?> = _insertHorarioResult.asStateFlow()
+
+    fun getHorarioUrlByStudentId(studentId: String) {
+        viewModelScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    supabase
+                        .from("Horarios")
+                        .select(columns = Columns.list("url")) {
+                            filter {
+                                eq("id_alumno", studentId)
+                            }
+                        }
+                        .decodeSingle<HorarioUrl>()
+                }
+                _horarioUrl.value = result.url
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _horarioUrl.value = null
+            }
+        }
+    }
+
+    fun insertHorario(studentId: String, url: String) {
+        viewModelScope.launch {
+            _insertHorarioResult.value = InsertHorarioResult.Loading
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase
+                        .from("Horarios")
+                        .insert(
+                            Horario(
+                                id_horario = null, // Supabase generará automáticamente el ID
+                                url = url,
+                                id_alumno = studentId
+                            )
+                        )
+                }
+                _insertHorarioResult.value = InsertHorarioResult.Success("Horario insertado exitosamente")
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _insertHorarioResult.value = InsertHorarioResult.Error("Error al insertar el horario: ${e.message}")
+            }
+        }
+    }
+
+    fun resetInsertHorarioResult() {
+        _insertHorarioResult.value = null
+    }
+
 }
 
 sealed class AddStudentResult {
@@ -173,3 +231,22 @@ data class Student(
     val phone: String,
     val role: Int
 )
+
+//PARA HORARIOS
+@Serializable
+data class HorarioUrl(
+    val url: String
+)
+
+@Serializable
+data class Horario(
+    val id_horario: String? = null,
+    val url: String,
+    val id_alumno: String
+)
+
+sealed class InsertHorarioResult {
+    object Loading : InsertHorarioResult()
+    data class Success(val message: String) : InsertHorarioResult()
+    data class Error(val message: String) : InsertHorarioResult()
+}
