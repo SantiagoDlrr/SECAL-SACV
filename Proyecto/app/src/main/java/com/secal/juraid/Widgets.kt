@@ -56,9 +56,16 @@ val supabase = createSupabaseClient(
 
 @Composable
 fun HelpButton(modifier: Modifier, navController: NavController) {
+    val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
+    val isLogged = sessionState is SessionStatus.Authenticated
     // Botón flotante en la esquina inferior derecha
     FloatingActionButton(
-        onClick = { navController.navigate(Routes.helpVw) },
+        onClick = {
+            if (isLogged) {
+                navController.navigate(Routes.helpVw)
+            } else {
+                navController.navigate(Routes.userVw)
+            }},
         modifier = modifier.padding(16.dp),
         containerColor = MaterialTheme.colorScheme.primary,
     ) {

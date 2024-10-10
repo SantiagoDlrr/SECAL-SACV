@@ -39,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,15 +60,18 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
+import com.secal.juraid.ViewModel.BookingsViewModel
+import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Generals.Bookings.Schedule.ScheduleScreen
 import com.secal.juraid.ui.theme.Purple40
 import kotlinx.atomicfu.TraceBase.None.append
+import kotlinx.coroutines.launch
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
+fun HelpView(navController: NavController, viewModel: ScheduleViewModel, bookingsViewModel: BookingsViewModel, userViewModel: UserViewModel) {
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
@@ -78,7 +82,7 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CasoFormView(navController, viewModel)
+                CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
             }
         }
 }
@@ -87,19 +91,51 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewModel) {
-
-
-    var selectedOption by remember { mutableStateOf("") }
-    val options = listOf("Víctima", "Investigado")
+fun CasoFormView(
+    navController: NavController,
+    scheduleViewModel: ScheduleViewModel,
+    bookingsViewModel: BookingsViewModel,
+    userViewModel: UserViewModel
+) {
+    var selectedSituation by remember { mutableStateOf("") }
+    val situationOptions = listOf("Víctima", "Investigado")
     var termsAccepted by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf("Selecciona tu opción") }
+    val options = listOf("Apodaca", "Escobedo", "Guadalupe", "Monterrey", "San Nicolás", "San Pedro")
 
+    val scope = rememberCoroutineScope()
 
     val scheduleState by scheduleViewModel.uiState.collectAsState()
 
-    val appointmentDate = scheduleState.databaseDateTime?.split(" ")?.getOrNull(0)
-    val appointmentTime = scheduleState.databaseDateTime?.split(" ")?.getOrNull(1)
+    val appointmentDate = scheduleState.databaseDateTime?.split(" ")?.getOrNull(0) ?: ""
+    val appointmentTime = scheduleState.databaseDateTime?.split(" ")?.getOrNull(1) ?: ""
+
+    val userName by userViewModel.userName.collectAsState()
+    val userId by userViewModel.userId.collectAsState()
+
+
+    fun getRegionId(regionName: String): Int {
+        return when (regionName) {
+            "Apodaca" -> 1
+            "Escobedo" -> 2
+            "Guadalupe" -> 3
+            "Monterrey" -> 4
+            "San Nicolás" -> 5
+            "San Pedro" -> 6
+            else -> 1 // Default to first region
+        }
+    }
+
+    // Helper function to convert situation to ID
+    fun getSituationId(situation: String): Int {
+        return when (situation) {
+            "Víctima" -> 1
+            "Investigado" -> 2
+            else -> 1 // Default to first situation
+        }
+    }
 
     Scaffold(
     ) {
@@ -151,16 +187,13 @@ fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewMo
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        var expanded by remember { mutableStateOf(false) }
-                        var selectedOption by remember { mutableStateOf("Selecciona tu opción") }
-                        val options = listOf("Apodaca", "Escobedo", "Guadalupe", "Monterrey", "San Nicolás", "San Pedro")
 
                         ExposedDropdownMenuBox(
                             expanded = expanded,
                             onExpandedChange = { expanded = !expanded }
                         ) {
                             OutlinedTextField(
-                                value = selectedOption,
+                                value = selectedOption, //id región
                                 onValueChange = {},
                                 label = { Text("Selecciona tu región") },
                                 readOnly = true,
@@ -197,20 +230,20 @@ fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewMo
                     ) {
                         Text("Selecciona tu situación:", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(8.dp))
-                        options.forEach { option ->
+                        situationOptions.forEach { option ->
                             Row(
                                 Modifier
                                     .fillMaxWidth()
                                     .selectable(
-                                        selected = (option == selectedOption),
-                                        onClick = { selectedOption = option }
+                                        selected = (option == selectedSituation), //id_situacion
+                                        onClick = { selectedSituation = option }
                                     )
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
-                                    selected = (option == selectedOption),
-                                    onClick = { selectedOption = option },
+                                    selected = (option == selectedSituation),
+                                    onClick = { selectedSituation = option },
                                     modifier = Modifier
                                         .size(20.dp)
                                         .clip(CircleShape)
@@ -292,12 +325,28 @@ fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewMo
 
                         // AVISO PRIVACIDAD
 
+                        val parts = userName.split(" ")
+
                         Button(
-                            onClick = { navController.navigate(Routes.meetingVw) },
+                            onClick = {
+                                scope.launch {
+                                    bookingsViewModel.addBooking(
+                                        nombre = parts[0],
+                                        apellido = parts.drop(1).joinToString(" "),
+                                        fecha = appointmentDate,
+                                        hora = appointmentTime,
+                                        idRegion = getRegionId(selectedOption),
+                                        idSituacion = getSituationId(selectedSituation),
+                                        id_usuario = userId
+                                    )
+                                    // Navigate back or show success message
+                                    navController.popBackStack()
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = termsAccepted
                         ) {
-                            Text("Siguiente")
+                            Text("Confirmar")
                         }
                     }
                 }

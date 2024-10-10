@@ -2,7 +2,6 @@ package com.secal.juraid.Views.Generals.Bookings.Schedule
 
 import ScheduleViewModel
 import TimeSlot
-import TimeSlotItem
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement

@@ -36,4 +36,6 @@ object Routes {
     var editArticuloVw = "edit_articulo_view"
 
     var settingView = "setting_view"
+
+    var bookingsVw = "bookings_view"
 }

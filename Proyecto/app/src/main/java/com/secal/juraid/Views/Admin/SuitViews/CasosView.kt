@@ -177,7 +177,26 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = case.nombre_cliente,
+                            text = "Cliente:" + case.nombre_cliente,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Abogado",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Abogado:" + case.nombre_abogado,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }

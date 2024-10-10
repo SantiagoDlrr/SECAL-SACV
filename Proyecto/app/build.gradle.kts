@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version "2.0.0"
     id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
-
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -21,6 +21,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Agregar el ID del proyecto Firebase
+        buildConfigField("String", "FIREBASE_PROJECT_ID", "\"${project.findProperty("FIREBASE_PROJECT_ID") ?: ""}\"")
     }
 
     buildTypes {
@@ -41,6 +44,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // Habilitar BuildConfig
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -48,6 +53,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
         }
     }
 }
@@ -86,6 +92,22 @@ dependencies {
     implementation ("androidx.biometric:biometric:1.2.0-alpha05")
     implementation ("androidx.compose.material:material-icons-extended:1.7.3")
 
-
     implementation(libs.androidx.navigation.compose)
+
+    // Firebase y FCM
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Nuevas dependencias para FCM con autenticación de cuenta de servicio
+    //
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
+    implementation("com.google.auth:google-auth-library-credentials:1.19.0")
+
+    // OkHttp y Gson (ya los tienes, pero los dejo aquí para referencia)
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.transport.api)
+
+    // ... resto de tus dependencias ...
 }

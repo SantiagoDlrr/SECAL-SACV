@@ -3,18 +3,22 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
+import CaseDetailViewModel
 import CasosView
 import DetalleView
-import MeetingView
 import ScheduleViewModel
+import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -44,8 +48,11 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.remember
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.ViewModel.*
 import com.secal.juraid.Views.*
@@ -55,16 +62,16 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-
-
 
 class MainActivity : FragmentActivity() {
 
@@ -73,21 +80,101 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        startBiometricAuth {
+        if (isUserLoggedIn()) {
+            if (isBiometricEnabled()) {
+                startBiometricAuth {
+                    setContent {
+                        JurAidTheme(
+                            darkTheme = isSystemInDarkTheme(),
+                            dynamicColor = false
+                        ) {
+                            UserScreen()
+                        }
+                    }
+                }
+            } else {
+                // If biometric is not enabled, proceed directly to the main content (home view)
+                setContent {
+                    JurAidTheme(
+                        darkTheme = isSystemInDarkTheme(),
+                        dynamicColor = false
+                    ) {
+                        UserScreen()
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(this, "Por favor, inicia sesión", Toast.LENGTH_LONG).show()
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
                     dynamicColor = false
                 ) {
-                    UserScreen()
+                    UserScreen(startDestination = Routes.loginVw)
                 }
             }
         }
 
+  
+
+        askNotificationPermission()
+
         intent?.data?.let { uri ->
             handleDeepLink(uri)
         }
+       
     }
+
+    // Declare the launcher at the top of your Activity/Fragment:
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+
+                // Log and toast
+                val msg = getString(R.string.msg_token_fmt, token)
+                Log.d(TAG, msg)
+                Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+            })
+        } else {
+            // TODO: Inform user that that your app will not show notifications.
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+
+            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
+
+            } else {
+
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(TAG, "Fetching FCM registration token")
+                    return@OnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+            })
+        }
+    }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -105,17 +192,24 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
-        val biometricManager = BiometricManager.from(this)
+    private fun isUserLoggedIn(): Boolean {
+        val session = supabase.auth.sessionManager
+        return session != null
+    }
 
-        // Check for both strong (fingerprint) and weak (face unlock) biometric authentication
+    private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
+        if (!isUserLoggedIn()) {
+            Log.d("BiometricAuth", "User is not logged in, skipping biometrics")
+            Toast.makeText(this, "Por favor, inicia sesión antes de usar biometría", Toast.LENGTH_LONG).show()
+            return
+        }
+        val biometricManager = BiometricManager.from(this)
         val canAuthenticate = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.BIOMETRIC_WEAK or
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )
 
-        // Log if face authentication is available
         val canAuthenticateWithFace = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_WEAK
         )
@@ -183,19 +277,32 @@ class MainActivity : FragmentActivity() {
             finish()
         }
     }
+
+    private fun saveBiometricPreference(isEnabled: Boolean) {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean("biometric_enabled", isEnabled)
+            apply()
+        }
+    }
+
+    private fun isBiometricEnabled(): Boolean {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        return sharedPref.getBoolean("biometric_enabled", false)
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class, ExperimentalSerializationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun UserScreen() {
+fun UserScreen(startDestination: String = Routes.homeVw) {
     val navController = rememberNavController()
     val biometricViewModel: BiometricViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Routes.homeVw,
+        startDestination = startDestination,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -222,10 +329,10 @@ fun UserScreen() {
         }
         composable(Routes.helpVw) {
             val scheduleViewModel = remember { ScheduleViewModel() }
-            HelpView(navController = navController, viewModel = scheduleViewModel)
-        }
-        composable(Routes.meetingVw) {
-            MeetingView(navController = navController)
+            val bookingsViewModel = remember { BookingsViewModel() }
+            val userViewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))}
+
+            HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
@@ -257,6 +364,12 @@ fun UserScreen() {
             CasosStudentView(
                 navController = navController,
                 userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
+        }
+
+        composable(Routes.bookingsVw) {
+            BookingsView(
+                navController = navController
             )
         }
         composable(
@@ -343,3 +456,5 @@ fun UserScreen() {
         }
     }
 }
+
+
