@@ -80,42 +80,16 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (isUserLoggedIn()) {
-            if (isBiometricEnabled()) {
-                startBiometricAuth {
-                    setContent {
-                        JurAidTheme(
-                            darkTheme = isSystemInDarkTheme(),
-                            dynamicColor = false
-                        ) {
-                            UserScreen()
-                        }
-                    }
-                }
-            } else {
-                // If biometric is not enabled, proceed directly to the main content (home view)
-                setContent {
-                    JurAidTheme(
-                        darkTheme = isSystemInDarkTheme(),
-                        dynamicColor = false
-                    ) {
-                        UserScreen()
-                    }
-                }
-            }
-        } else {
-            Toast.makeText(this, "Por favor, inicia sesión", Toast.LENGTH_LONG).show()
+        startBiometricAuth {
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
                     dynamicColor = false
                 ) {
-                    UserScreen(startDestination = Routes.loginVw)
+                    UserScreen()
                 }
             }
         }
-
-  
 
         askNotificationPermission()
 
@@ -193,69 +167,53 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun isUserLoggedIn(): Boolean {
-        val session = supabase.auth.sessionManager
-        return session != null
+        supabase.auth.sessionManager
+        return true
     }
 
     private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
-        if (!isUserLoggedIn()) {
-            Log.d("BiometricAuth", "User is not logged in, skipping biometrics")
-            Toast.makeText(this, "Por favor, inicia sesión antes de usar biometría", Toast.LENGTH_LONG).show()
-            return
-        }
         val biometricManager = BiometricManager.from(this)
+
         val canAuthenticate = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.BIOMETRIC_WEAK or
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )
 
+        // Log if face authentication is available
         val canAuthenticateWithFace = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_WEAK
         )
-        Log.d(
-            "BiometricAuth",
-            "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}"
-        )
+        Log.d("BiometricAuth", "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}")
 
         if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
             val executor = ContextCompat.getMainExecutor(this)
 
-            val biometricPrompt =
-                BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        val authenticationType = when (result.authenticationType) {
-                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
-                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
-                            else -> AuthenticationType.UNKNOWN
-                        }
-                        runOnUiThread {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Autenticación exitosa: ${authenticationType.name}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            onAuthSuccess()
-                        }
+            val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    val authenticationType = when (result.authenticationType) {
+                        BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
+                        BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
+                        else -> AuthenticationType.UNKNOWN
                     }
+                    runOnUiThread {
+                        Toast.makeText(this@MainActivity, "Autenticación exitosa: ${authenticationType.name}", Toast.LENGTH_LONG).show()
+                        onAuthSuccess()
+                    }
+                }
 
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG)
-                            .show()
-                        finish()
-                    }
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG).show()
+                    finish()
+                }
 
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Autenticación fallida",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                })
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(this@MainActivity, "Autenticación fallida", Toast.LENGTH_LONG).show()
+                }
+            })
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Autenticación Biométrica")
@@ -269,14 +227,11 @@ class MainActivity : FragmentActivity() {
 
             biometricPrompt.authenticate(promptInfo)
         } else {
-            Toast.makeText(
-                this,
-                "Este dispositivo no soporta autenticación biométrica o PIN",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(this, "Este dispositivo no soporta autenticación biométrica o PIN", Toast.LENGTH_LONG).show()
             finish()
         }
     }
+
 
     private fun saveBiometricPreference(isEnabled: Boolean) {
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
