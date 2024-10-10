@@ -7,6 +7,7 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import ScheduleViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -42,7 +43,6 @@ import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.HomeViewModel
-import com.secal.juraid.ViewModel.ScheduleViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView

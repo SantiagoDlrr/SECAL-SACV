@@ -1,6 +1,9 @@
 package com.secal.juraid.Views.Generals.Bookings
 
+import ScheduleViewModel
 import android.annotation.SuppressLint
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +35,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,7 +59,6 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.ScheduleViewModel
 import com.secal.juraid.Views.Generals.Bookings.Schedule.ScheduleScreen
 import com.secal.juraid.ui.theme.Purple40
 import kotlinx.atomicfu.TraceBase.None.append
@@ -79,6 +82,7 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
         }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,9 +92,13 @@ fun CasoFormView(navController: NavController, scheduleViewModel: ScheduleViewMo
     var selectedOption by remember { mutableStateOf("") }
     val options = listOf("Víctima", "Investigado")
     var termsAccepted by remember { mutableStateOf(false) }
-
-
     var showDialog by remember { mutableStateOf(false) }
+
+
+    val scheduleState by scheduleViewModel.uiState.collectAsState()
+
+    val appointmentDate = scheduleState.databaseDateTime?.split(" ")?.getOrNull(0)
+    val appointmentTime = scheduleState.databaseDateTime?.split(" ")?.getOrNull(1)
 
     Scaffold(
     ) {

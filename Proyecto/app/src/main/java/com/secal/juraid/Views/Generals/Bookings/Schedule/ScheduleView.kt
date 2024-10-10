@@ -1,6 +1,10 @@
 package com.secal.juraid.Views.Generals.Bookings.Schedule
 
+import ScheduleViewModel
+import TimeSlot
 import TimeSlotItem
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,10 +39,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.secal.juraid.ViewModel.ScheduleViewModel
-import com.secal.juraid.ViewModel.TimeSlot
 
 // Schedule View
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleScreen(viewModel: ScheduleViewModel) {
     val uiState by viewModel.uiState.collectAsState()
@@ -49,7 +52,6 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
             .padding(16.dp)
     ) {
 
-        // Current Schedule Card with formatted date
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -94,6 +96,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleDialog(viewModel: ScheduleViewModel) {
     var selectedDate by remember { mutableStateOf<String?>(null) }

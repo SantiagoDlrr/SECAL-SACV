@@ -1,4 +1,5 @@
 package com.secal.juraid.Views.Generals.Bookings.Schedule
+import TimeSlot
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +43,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.secal.juraid.ViewModel.TimeSlot
 import com.secal.juraid.ui.theme.Primary
 
 
@@ -113,7 +113,7 @@ fun TimeSlotItem(
                 )
             )
             Text(
-                text = timeSlot.time,
+                text = timeSlot.displayTime,
                 modifier = Modifier.padding(start = 8.dp),
                 color = if (timeSlot.isAvailable) Color.Black else Color.Gray
             )
