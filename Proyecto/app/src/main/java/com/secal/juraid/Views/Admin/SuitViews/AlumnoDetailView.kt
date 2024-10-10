@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
 import com.secal.juraid.R
 import com.secal.juraid.TopBar
@@ -80,6 +81,13 @@ private fun AlumnoDetailContent(
     var caseToUnassign by remember { mutableStateOf<Case?>(null) }
     val scope = rememberCoroutineScope()
 
+    val alumnosViewModel: AlumnosViewModel = viewModel()
+    var horarioDialog by remember { mutableStateOf(false) }
+    val horarioUrl by alumnosViewModel.horarioUrl.collectAsState()
+
+    LaunchedEffect(student.id) {
+        alumnosViewModel.getHorarioUrlByStudentId(student.id)
+    }
     LazyColumn(
         modifier = modifier
             .fillMaxWidth()
@@ -98,7 +106,9 @@ private fun AlumnoDetailContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
-                        onClick = { },
+                        onClick = {
+                            horarioDialog = true
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Ver horario")
@@ -189,6 +199,43 @@ private fun AlumnoDetailContent(
             dismissButton = {
                 Button(onClick = { showUnassignConfirmation = false }) {
                     Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (horarioDialog) {
+        AlertDialog(
+            onDismissRequest = { horarioDialog = false },
+            title = { Text("Horario de ${student.name}") },
+            text = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp) // Adjust the height as needed
+                ) {
+                    AsyncImage(
+                        model = horarioUrl,
+                        contentDescription = "Horario del estudiante",
+                        modifier = Modifier
+                            .size(300.dp)
+                            .clip(RoundedCornerShape(10.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                    /*CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(50.dp)
+                            .align(Alignment.Center)
+                    )*/
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        horarioDialog = false
+                    }
+                ) {
+                    Text("Cerrar")
                 }
             }
         )
