@@ -64,7 +64,7 @@ fun UserHomeCardView(navController: NavController, viewModel: UserViewModel) {
         Spacer(modifier = Modifier.padding(16.dp))
 
         Column {
-            ButtonUserCard(navController = navController, "Mi Caso", Icons.Outlined.Menu, route = Routes.detalleVw)
+            ButtonUserCard(navController = navController, "Mi Caso", Icons.Outlined.Menu, route = Routes.bookingsVw)
             ButtonUserCard(navController = navController, "Configuración", Icons.Outlined.Settings, route = Routes.settingView)
         }
 

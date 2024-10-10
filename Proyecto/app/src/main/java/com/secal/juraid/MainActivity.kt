@@ -55,6 +55,7 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
 import io.github.jan.supabase.auth.auth
@@ -299,6 +300,12 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             CasosStudentView(
                 navController = navController,
                 userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
+        }
+
+        composable(Routes.bookingsVw) {
+            BookingsView(
+                navController = navController
             )
         }
         composable(
