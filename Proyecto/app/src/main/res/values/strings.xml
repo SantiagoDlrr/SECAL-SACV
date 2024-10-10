@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">JurAid</string>
+
+    <string name="msg_token_fmt" translatable="false">FCM registration Token: %s</string>
 </resources>
