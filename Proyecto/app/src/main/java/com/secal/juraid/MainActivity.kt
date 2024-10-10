@@ -3,6 +3,7 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
+import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
@@ -222,7 +223,8 @@ fun UserScreen() {
         }
         composable(Routes.helpVw) {
             val scheduleViewModel = remember { ScheduleViewModel() }
-            HelpView(navController = navController, viewModel = scheduleViewModel)
+            val BookingsViewModel = remember { BookingsViewModel() }
+            HelpView(navController = navController, viewModel = scheduleViewModel, otherVM = BookingsViewModel)
         }
         composable(Routes.meetingVw) {
             MeetingView(navController = navController)
