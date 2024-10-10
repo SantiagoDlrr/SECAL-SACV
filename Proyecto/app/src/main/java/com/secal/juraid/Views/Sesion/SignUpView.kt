@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -219,8 +221,8 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
                 shape = RoundedCornerShape(16.dp),
                 trailingIcon = {
                     val image = if (passwordVisible)
-                        Icons.Filled.Favorite
-                    else Icons.Outlined.FavoriteBorder
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
 
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña")
