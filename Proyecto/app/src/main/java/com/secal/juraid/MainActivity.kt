@@ -7,6 +7,7 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import ScheduleViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -61,7 +62,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+
+
 
 class MainActivity : FragmentActivity() {
 
@@ -218,7 +222,9 @@ fun UserScreen() {
             SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
-            HelpView(navController = navController)
+            val scheduleViewModel = remember { ScheduleViewModel() }
+            val BookingsViewModel = remember { BookingsViewModel() }
+            HelpView(navController = navController, viewModel = scheduleViewModel, otherVM = BookingsViewModel)
         }
         composable(Routes.meetingVw) {
             MeetingView(navController = navController)
@@ -309,6 +315,19 @@ fun UserScreen() {
         }
         composable(Routes.settingView) {
             SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+        }
+
+        composable(
+            "${Routes.editDetalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+            val caseViewModel = viewModel<CaseDetailViewModel>()
+            EditDetalleView(
+                navController = navController,
+                viewModel = caseViewModel,
+                caseId = caseId
+            )
         }
 
         composable(Routes.biometricAuthVw) {

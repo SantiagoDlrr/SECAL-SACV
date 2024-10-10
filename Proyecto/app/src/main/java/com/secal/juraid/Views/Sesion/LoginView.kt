@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.sharp.AccountCircle
 import androidx.compose.material3.Button
@@ -169,8 +171,8 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
                 ),
                 trailingIcon = {
                     val image = if (passwordVisible)
-                        Icons.Filled.Favorite
-                    else Icons.Outlined.FavoriteBorder
+                        Icons.Filled.Visibility
+                    else Icons.Filled.VisibilityOff
 
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(imageVector = image, contentDescription = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña")
