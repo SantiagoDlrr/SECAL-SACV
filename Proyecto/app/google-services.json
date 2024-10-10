@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "318922957398",
+    "project_id": "secal-402a6",
+    "storage_bucket": "secal-402a6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318922957398:android:f246245c39545167c311f7",
+        "android_client_info": {
+          "package_name": "com.secal.juraid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBv2jMJs3G-txDNG4Riytvo1j0cPQqr2do"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

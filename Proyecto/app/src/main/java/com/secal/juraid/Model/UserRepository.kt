@@ -1,6 +1,7 @@
 package com.secal.juraid.Model
 
 import android.util.Log
+import com.google.firebase.messaging.FirebaseMessaging
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.SessionStatus
 import io.github.jan.supabase.auth.auth
@@ -11,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -36,6 +38,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
                 email = userEmail
                 password = userPassword
             }
+            updateFCMToken()
         } catch (e: Exception) {
             throw Exception("Error al iniciar sesión: ${e.message}")
         }
@@ -63,6 +66,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
                     put("biometric_enabled", false)  // Inicialmente desactivar biometría
                 }
             }
+            updateFCMToken()
         } catch (e: Exception) {
             throw Exception("Error al registrarse: ${e.message}")
         }
@@ -73,6 +77,25 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
             supabase.auth.signOut()
         } catch (e: Exception) {
             throw Exception("Error al cerrar sesión: ${e.message}")
+        }
+    }
+
+    public suspend fun updateFCMToken() {
+        try {
+            val token = FirebaseMessaging.getInstance().token.await()
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            supabase.from("users")
+                .update(
+                    {
+                        set("fcm_token", token)
+                    }
+                ) {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error updating FCM token", e)
         }
     }
 
