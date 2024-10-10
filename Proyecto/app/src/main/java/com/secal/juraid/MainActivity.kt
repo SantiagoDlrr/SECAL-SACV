@@ -7,6 +7,7 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import ScheduleViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -218,7 +219,8 @@ fun UserScreen() {
             SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
-            HelpView(navController = navController)
+            val scheduleViewModel = remember { ScheduleViewModel() }
+            HelpView(navController = navController, viewModel = scheduleViewModel)
         }
         composable(Routes.meetingVw) {
             MeetingView(navController = navController)
