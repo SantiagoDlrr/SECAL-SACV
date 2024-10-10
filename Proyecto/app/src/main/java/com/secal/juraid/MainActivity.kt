@@ -57,14 +57,13 @@ import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-
-
 
 class MainActivity : FragmentActivity() {
 
@@ -73,20 +72,43 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        startBiometricAuth {
+        if (isUserLoggedIn()) {
+            if (isBiometricEnabled()) {
+                startBiometricAuth {
+                    setContent {
+                        JurAidTheme(
+                            darkTheme = isSystemInDarkTheme(),
+                            dynamicColor = false
+                        ) {
+                            UserScreen()
+                        }
+                    }
+                }
+            } else {
+                // If biometric is not enabled, proceed directly to the main content (home view)
+                setContent {
+                    JurAidTheme(
+                        darkTheme = isSystemInDarkTheme(),
+                        dynamicColor = false
+                    ) {
+                        UserScreen()
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(this, "Por favor, inicia sesión", Toast.LENGTH_LONG).show()
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
                     dynamicColor = false
                 ) {
-                    UserScreen()
+                    UserScreen(startDestination = Routes.loginVw)
                 }
             }
         }
 
-        intent?.data?.let { uri ->
-            handleDeepLink(uri)
-        }
+        // Handle any deep links or intents
+        intent?.data?.let { uri -> handleDeepLink(uri) }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -105,17 +127,24 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
-        val biometricManager = BiometricManager.from(this)
+    private fun isUserLoggedIn(): Boolean {
+        val session = supabase.auth.sessionManager
+        return session != null
+    }
 
-        // Check for both strong (fingerprint) and weak (face unlock) biometric authentication
+    private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
+        if (!isUserLoggedIn()) {
+            Log.d("BiometricAuth", "User is not logged in, skipping biometrics")
+            Toast.makeText(this, "Por favor, inicia sesión antes de usar biometría", Toast.LENGTH_LONG).show()
+            return
+        }
+        val biometricManager = BiometricManager.from(this)
         val canAuthenticate = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.BIOMETRIC_WEAK or
                     BiometricManager.Authenticators.DEVICE_CREDENTIAL
         )
 
-        // Log if face authentication is available
         val canAuthenticateWithFace = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_WEAK
         )
@@ -183,19 +212,32 @@ class MainActivity : FragmentActivity() {
             finish()
         }
     }
+
+    private fun saveBiometricPreference(isEnabled: Boolean) {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean("biometric_enabled", isEnabled)
+            apply()
+        }
+    }
+
+    private fun isBiometricEnabled(): Boolean {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        return sharedPref.getBoolean("biometric_enabled", false)
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class, ExperimentalSerializationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun UserScreen() {
+fun UserScreen(startDestination: String = Routes.homeVw) {
     val navController = rememberNavController()
     val biometricViewModel: BiometricViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Routes.homeVw,
+        startDestination = startDestination,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
