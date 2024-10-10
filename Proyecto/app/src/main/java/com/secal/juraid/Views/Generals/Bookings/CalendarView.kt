@@ -1,4 +1,4 @@
-package com.secal.juraid.Views.Generals.Bookings
+/*package com.secal.juraid.Views.Generals.Bookings
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +32,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,77 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.secal.juraid.ui.theme.Primary
+
+
+@Composable
+fun TimeSelectionDialog(
+    onDismissRequest: () -> Unit,
+    onTimeSelected: (String, String) -> Unit
+) {
+    // Initialize with the first date (Hoy)
+    var selectedDate by remember { mutableStateOf("Hoy") }
+    var selectedTime by remember { mutableStateOf<String?>(null) }
+
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(360.dp)
+                .height(640.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Horarios Disponibles",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                DateSelector(
+                    initialSelectedDate = 0,  // Select first date by default
+                    onDateSelected = { date ->
+                        selectedDate = date
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    TimeSlotList { time ->
+                        selectedTime = time
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        if (selectedTime != null) {
+                            onTimeSelected(selectedDate, selectedTime!!)
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    enabled = selectedTime != null  // Only check for selectedTime since date is always selected
+                ) {
+                    Text("Seleccionar", color = Color.White)
+                }
+            }
+        }
+    }
+}
 
 
 @Preview(showBackground = true)
@@ -88,249 +160,4 @@ fun ScheduleUI() {
             )
         }
     }
-}
-
-@Composable
-fun ScheduledCard(deliveryTime: String, status: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = deliveryTime,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = status,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun RescheduleButton(onOpenDialog: () -> Unit) {
-    OutlinedButton(
-        onClick = onOpenDialog,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.DateRange,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("Agendar en otro horario")
-    }
-}
-
-@Composable
-fun TimeSelectionDialog(
-    onDismissRequest: () -> Unit,
-    onTimeSelected: (String, String) -> Unit
-) {
-    var selectedDate by remember { mutableStateOf<String?>(null) }
-    var selectedTime by remember { mutableStateOf<String?>(null) }
-
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier
-                .width(360.dp)
-                .height(640.dp),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Horarios Disponibles",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                DateSelector(
-                    onDateSelected = { date ->
-                        selectedDate = date
-                    }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    TimeSlotList { time ->
-                        selectedTime = time
-                    }
-                }
-
-                Button(
-                    onClick = {
-                        if (selectedDate != null && selectedTime != null) {
-                            onTimeSelected(selectedDate!!, selectedTime!!)
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
-                    enabled = selectedDate != null && selectedTime != null
-                ) {
-                    Text("Seleccionar", color = Color.White)
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun DateSelector(onDateSelected: (String) -> Unit) {
-    val dates = remember {
-        listOf(
-            "Hoy\n2 oct",
-            "Mañana\n3 oct",
-            "Miércoles\n4 oct",
-            "Jueves\n5 oct",
-            "Viernes\n6 oct"
-        )
-    }
-    var selectedDateIndex by remember { mutableStateOf(0) }
-
-    LazyRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(dates) { date ->
-            val index = dates.indexOf(date)
-            DateCard(
-                date = date,
-                isSelected = index == selectedDateIndex,
-                onSelect = {
-                    selectedDateIndex = index
-                    onDateSelected(date.split("\n")[0])
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun DateCard(date: String, isSelected: Boolean, onSelect: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .width(80.dp)
-            .height(60.dp)
-            .selectable(selected = isSelected, onClick = onSelect),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = date.split("\n")[0],
-                style = MaterialTheme.typography.labelMedium,
-                color = if (isSelected) Primary else Color.Black
-            )
-            Text(
-                text = date.split("\n")[1],
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) Primary else Color.Gray
-            )
-        }
-    }
-}
-
-@Composable
-fun TimeSlotList(onTimeSelected: (String) -> Unit) {
-    val timeSlots = remember {
-        listOf(
-            "10:00AM - 11:00AM",
-            "11:00AM - 12:00PM",
-            "12:00PM - 01:00PM",
-            "01:00PM - 02:00PM",
-            "02:00PM - 03:00PM",
-            "03:00PM - 04:00PM"
-        )
-    }
-
-    var selectedTimeSlot by remember { mutableStateOf<String?>(null) }
-
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(timeSlots) { time ->
-            TimeSlotItem(
-                time = time,
-                isAvailable = true,
-                isSelected = time == selectedTimeSlot,
-                onSelect = {
-                    selectedTimeSlot = time
-                    onTimeSelected(time)
-                }
-            )
-        }
-    }
-}
-
-@Composable
-fun TimeSlotItem(time: String, isAvailable: Boolean, isSelected: Boolean, onSelect: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = isSelected,
-                onClick = onSelect,
-                enabled = isAvailable
-            )
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = onSelect,
-            enabled = isAvailable,
-            colors = RadioButtonDefaults.colors(selectedColor = Primary)
-        )
-        Text(
-            text = time,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
-        )
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .clip(CircleShape)
-                .background(if (isAvailable) Color.Green else Color.Red)
-        )
-    }
-}
-
+}*/

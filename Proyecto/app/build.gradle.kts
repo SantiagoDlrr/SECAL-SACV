@@ -79,8 +79,11 @@ dependencies {
     // Supabase dependencies
     implementation(platform("io.github.jan-tennert.supabase:bom:3.0.0-beta-1"))
     implementation("io.github.jan-tennert.supabase:postgrest-kt:3.0.0-beta-1")
+    implementation (libs.supabase.storage.kt)
     implementation("io.ktor:ktor-client-android:3.0.0-rc-1")
-    implementation ("androidx.biometric:biometric:1.2.0-alpha05") // o la última versión estable
+    implementation("io.ktor:ktor-client-cio:2.3.4")
+    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation ("androidx.biometric:biometric:1.2.0-alpha05")
 
 
     implementation(libs.androidx.navigation.compose)

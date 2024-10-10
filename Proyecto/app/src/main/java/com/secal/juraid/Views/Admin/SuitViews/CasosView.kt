@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +28,7 @@ import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.Case
 import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.UserViewModel
+import com.secal.juraid.Views.Admin.SuitViews.StatusChip
 import com.secal.juraid.supabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -108,52 +110,109 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(100.dp)
                     .clip(RoundedCornerShape(8.dp)),
                 onClick = { navController.navigate("${Routes.detalleVw}/${case.id}") },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 2.dp
+                )
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize()
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(case.nombre_cliente, fontWeight = FontWeight.Bold)
-                        Text("NUC: ${case.NUC}", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("Abogado: ${case.nombre_abogado}", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
-                    if (userRole == 1) { // 1 = Abogado
-                        Box {
-                            IconButton(onClick = { expandedMenuIndex = case.id }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = "Más opciones")
-                            }
-                            DropdownMenu(
-                                expanded = expandedMenuIndex == case.id,
-                                onDismissRequest = { expandedMenuIndex = null }
-                            ) {
-                                DropdownMenuItem(
-                                    text = { Text("Editar") },
-                                    onClick = {
-                                        // Lógica para editar el caso
-                                        Log.d(TAG, "CASE ID $caseId")
-                                        navController.navigate("${Routes.editDetalleVw}/$caseId")
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("Eliminar") },
-                                    onClick = {
-                                        showDeleteCaseDialog = true
-                                        deletingCaseId = case.id
-                                        expandedMenuIndex = null
-                                    }
-                                )
+                        Text(
+                            text = "NUC: ${case.NUC}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        StatusChip(status = case.status ?: 0)
+                        if (userRole == 1) { // 1 = Abogado
+                            Box {
+                                IconButton(onClick = { expandedMenuIndex = case.id }) {
+                                    Icon(Icons.Default.MoreVert, contentDescription = "Más opciones")
+                                }
+                                DropdownMenu(
+                                    expanded = expandedMenuIndex == case.id,
+                                    onDismissRequest = { expandedMenuIndex = null }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Editar") },
+                                        onClick = {
+                                            // Lógica para editar el caso
+                                            Log.d(TAG, "CASE ID $caseId")
+                                            navController.navigate("${Routes.editDetalleVw}/$caseId")
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Eliminar") },
+                                        onClick = {
+                                            showDeleteCaseDialog = true
+                                            deletingCaseId = case.id
+                                            expandedMenuIndex = null
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
-                    //Icon(Icons.Default.MoreVert, contentDescription = "More options")
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Cliente",
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = case.nombre_cliente,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Carpeta Judicial",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = case.carpeta_judicial,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Fiscal Titular",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = case.fiscal_titular,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+
                 }
             }
         }
@@ -192,6 +251,8 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 fun CitasPasadasView() {
     var showAcceptDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
+
+
     var currentCitaIndex by remember { mutableStateOf(-1) }
 
     LazyColumn {

@@ -3,85 +3,89 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
-import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
+import ScheduleViewModel
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import com.secal.juraid.Views.Generals.BaseViews.BienvenidaView
 import com.secal.juraid.Views.Generals.Bookings.HelpView
 import com.secal.juraid.Views.Generals.BaseViews.HomeView
 import com.secal.juraid.Views.Sesion.LoginView
 import com.secal.juraid.Views.Generals.BaseViews.ServiciosView
+import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Sesion.SignUpView
 import com.secal.juraid.Views.Admin.SuitViews.EspaciosView
 import com.secal.juraid.Views.Admin.SuitViews.SuitHomeView
 import com.secal.juraid.Views.Generals.BaseViews.UserView
+import com.secal.juraid.Views.Generals.BaseViews.SettingsView
 import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.secal.juraid.Model.UserRepository
-import com.secal.juraid.ViewModel.CasesViewModel
-import com.secal.juraid.ViewModel.HomeViewModel
-import com.secal.juraid.ViewModel.UserViewModel
+import com.secal.juraid.ViewModel.*
+import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
-import com.secal.juraid.Views.Admin.StudentsView.StudentHomeView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
-import com.secal.juraid.Views.Generals.BaseViews.SettingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
+import com.secal.juraid.Views.Sesion.BiometricAuthView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 
-class MainActivity : ComponentActivity() {
-    private lateinit var userViewModel: UserViewModel
+
+class MainActivity : FragmentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Inicializar el UserViewModel
-        userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
-
-        // Manejar el intent para la confirmación de email
-        intent?.data?.let { uri ->
-            handleDeepLink(uri)
+        startBiometricAuth {
+            setContent {
+                JurAidTheme(
+                    darkTheme = isSystemInDarkTheme(),
+                    dynamicColor = false
+                ) {
+                    UserScreen()
+                }
+            }
         }
 
-        setContent {
-            JurAidTheme(
-                darkTheme = isSystemInDarkTheme(),
-                dynamicColor = false // Asegura que los colores dinámicos estén desactivados
-            ) {
-                UserScreen()
-            }
+        intent?.data?.let { uri ->
+            handleDeepLink(uri)
         }
     }
 
@@ -93,13 +97,90 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleDeepLink(uri: Uri) {
-        // Captura los parámetros de la URL (como el access_token)
         val accessToken = uri.getQueryParameter("access_token")
         val type = uri.getQueryParameter("type")
 
         if (type == "signup" && accessToken != null) {
-            // Llamar al método del ViewModel para confirmar el email
-            userViewModel.handleEmailConfirmed(accessToken)
+            Toast.makeText(this, "Correo confirmado, iniciando sesión...", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
+        val biometricManager = BiometricManager.from(this)
+
+        // Check for both strong (fingerprint) and weak (face unlock) biometric authentication
+        val canAuthenticate = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
+        )
+
+        // Log if face authentication is available
+        val canAuthenticateWithFace = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_WEAK
+        )
+        Log.d(
+            "BiometricAuth",
+            "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}"
+        )
+
+        if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+            val executor = ContextCompat.getMainExecutor(this)
+
+            val biometricPrompt =
+                BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        val authenticationType = when (result.authenticationType) {
+                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
+                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
+                            else -> AuthenticationType.UNKNOWN
+                        }
+                        runOnUiThread {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Autenticación exitosa: ${authenticationType.name}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            onAuthSuccess()
+                        }
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG)
+                            .show()
+                        finish()
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        super.onAuthenticationFailed()
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Autenticación fallida",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                })
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Autenticación Biométrica")
+                .setSubtitle("Usa tu huella digital, rostro o PIN para autenticarte")
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                )
+                .build()
+
+            biometricPrompt.authenticate(promptInfo)
+        } else {
+            Toast.makeText(
+                this,
+                "Este dispositivo no soporta autenticación biométrica o PIN",
+                Toast.LENGTH_LONG
+            ).show()
+            finish()
         }
     }
 }
@@ -110,6 +191,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun UserScreen() {
     val navController = rememberNavController()
+    val biometricViewModel: BiometricViewModel = viewModel()
+
     NavHost(
         navController = navController,
         startDestination = Routes.homeVw,
@@ -128,19 +211,18 @@ fun UserScreen() {
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
         }
-
         composable(Routes.userVw) {
             UserView(navController = navController)
         }
         composable(Routes.loginVw) {
             LoginView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
-
         composable(Routes.signUpVw) {
             SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
-            HelpView(navController = navController)
+            val scheduleViewModel = remember { ScheduleViewModel() }
+            HelpView(navController = navController, viewModel = scheduleViewModel)
         }
         composable(Routes.meetingVw) {
             MeetingView(navController = navController)
@@ -172,23 +254,17 @@ fun UserScreen() {
             AlumnosView(navController = navController)
         }
         composable(Routes.casosStVw) {
-            CasosStudentView(navController = navController)
+            CasosStudentView(
+                navController = navController,
+                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
         }
-        //editar casos
         composable(
-            "${Routes.editDetalleVw}/{caseId}",
-            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
-            ) { backStackEntry ->
-                val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
-                val caseViewModel = viewModel<CaseDetailViewModel>()
-                EditDetalleView(
-                    navController = navController,
-                    viewModel = caseViewModel,
-                    caseId = caseId
-                )
-        }
-        composable(Routes.alumnoDetailVw) {
-            AlumnoDetailView(navController = navController)
+            route = "${Routes.alumnoDetailVw}/{studentId}",
+            arguments = listOf(navArgument("studentId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val studentId = backStackEntry.arguments?.getString("studentId") ?: ""
+            AlumnoDetailView(navController = navController, studentId = studentId)
         }
         composable(Routes.articulosVw) {
             val homeViewModel = viewModel<HomeViewModel>()
@@ -204,18 +280,15 @@ fun UserScreen() {
                 val item = try {
                     Json.decodeFromString(HomeViewModel.ContentItem.serializer(), it)
                 } catch (e: MissingFieldException) {
-                    // Maneja el caso donde faltan campos
                     Log.e("Error", "Faltan campos en el JSON: ${e.message}")
                     null
                 }
 
                 item?.let {
-                    // Solo llama a ArticuloDetailView si el item es válido
                     val viewModel = remember { HomeViewModel() }
                     ArticuloDetailView(navController = navController, viewModel = viewModel, postId = item.ID_Post)
                 }
             }
-
         }
 
         composable(
@@ -234,16 +307,39 @@ fun UserScreen() {
             val homeViewModel = viewModel<HomeViewModel>()
             AddPostView(navController = navController, homeViewModel)
         }
-
         composable(Routes.addCaseVw) {
             val viewModel = viewModel<CasesViewModel>()
             AddCaseView(navController = navController, viewModel)
         }
-
         composable(Routes.settingView) {
-            SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+        }
+
+        composable(
+            "${Routes.editDetalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+            val caseViewModel = viewModel<CaseDetailViewModel>()
+            EditDetalleView(
+                navController = navController,
+                viewModel = caseViewModel,
+                caseId = caseId
+            )
+        }
+
+        composable(Routes.biometricAuthVw) {
+            val context = LocalContext.current
+
+            BiometricAuthView(
+                biometricViewModel = biometricViewModel,
+                onAuthSuccess = {
+                    Toast.makeText(context, "Autenticación biométrica exitosa", Toast.LENGTH_LONG).show()
+                },
+                onAuthError = { errorMessage ->
+                    Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
+                }
             )
         }
     }
 }
-

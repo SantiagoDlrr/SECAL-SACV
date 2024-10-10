@@ -38,6 +38,7 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.SessionStatus
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.encodeToString
@@ -50,6 +51,7 @@ val supabase = createSupabaseClient(
 ) {
     install(Postgrest)
     install(Auth)
+    install(Storage)
 }
 
 @Composable

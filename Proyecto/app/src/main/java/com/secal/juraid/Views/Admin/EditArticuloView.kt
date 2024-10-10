@@ -3,7 +3,10 @@
 package com.secal.juraid.Views.Admin
 
 import android.content.ContentValues.TAG
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,12 +45,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
@@ -70,6 +77,15 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
     val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     val categories by viewModel.categories.collectAsState()
+
+    //PARA LO DE GALERÍA
+    val context = LocalContext.current
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadCategories()
@@ -150,12 +166,23 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        OutlinedTextField(
-                            value = urlHeader,
-                            onValueChange = { urlHeader = it },
-                            label = { Text("URL de la imagen") },
+                        //BOTON PARA IMAGEN
+                        Button(
+                            onClick = { imagePicker.launch("image/*") },
                             modifier = Modifier.fillMaxWidth()
-                        )
+                        ) {
+                            Text("Cambiar imagen")
+                        }
+
+                        selectedImageUri?.let { uri ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Image(
+                                painter = rememberAsyncImagePainter(uri),
+                                contentDescription = "Imagen seleccionada",
+                                modifier = Modifier.size(100.dp).clip(RoundedCornerShape(16.dp))
+                            )
+                            Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -180,7 +207,9 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
                                             title = title,
                                             category = category.ID_Category,
                                             urlHeader = urlHeader,
-                                            text = content
+                                            text = content,
+                                            imageUri = selectedImageUri,
+                                            context = context
                                         )
                                         navController.navigateUp()
                                     }
