@@ -3,7 +3,6 @@ package com.secal.juraid
 import AddPostView
 import AlumnosView
 import ArticulosView
-import CaseDetailViewModel
 import CasosView
 import DetalleView
 import MeetingView
@@ -61,7 +60,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+
+
 
 class MainActivity : FragmentActivity() {
 
@@ -309,6 +311,19 @@ fun UserScreen() {
         }
         composable(Routes.settingView) {
             SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+        }
+
+        composable(
+            "${Routes.editDetalleVw}/{caseId}",
+            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val caseId = backStackEntry.arguments?.getInt("caseId") ?: -1
+            val caseViewModel = viewModel<CaseDetailViewModel>()
+            EditDetalleView(
+                navController = navController,
+                viewModel = caseViewModel,
+                caseId = caseId
+            )
         }
 
         composable(Routes.biometricAuthVw) {
