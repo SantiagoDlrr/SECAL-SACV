@@ -18,6 +18,8 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.CitasViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -30,7 +32,7 @@ fun EspaciosView(
         topBar = { TopBar() }
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
-            CitasConfirmadasView(citasViewModel)
+            CitasConfirmadasView(viewModel = citasViewModel)
         }
     }
 }
@@ -48,6 +50,7 @@ fun CitasHeader() {
 fun CitasConfirmadasView(viewModel: CitasViewModel) {
     var showCancelDialog by remember { mutableStateOf(false) }
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
+    var cancelReason by remember { mutableStateOf("") }
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -88,15 +91,47 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
     }
 
     if (showCancelDialog) {
-        CancelCitaDialog(
-            onConfirm = {
-                // Aquí implementar la lógica para cancelar la cita
+        AlertDialog(
+            onDismissRequest = {
                 showCancelDialog = false
-                selectedCita = null
+                cancelReason = ""
             },
-            onDismiss = {
-                showCancelDialog = false
-                selectedCita = null
+            title = { Text("Cancelar Cita") },
+            text = {
+                Column {
+                    Text("¿Estás seguro de que deseas cancelar esta cita?")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = cancelReason,
+                        onValueChange = { cancelReason = it },
+                        label = { Text("Motivo de cancelación") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        selectedCita?.let { cita ->
+                            viewModel.cancelarCita(cita, cancelReason)
+                        }
+                        showCancelDialog = false
+                        cancelReason = ""
+                    },
+                    enabled = cancelReason.isNotBlank()
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCancelDialog = false
+                        cancelReason = ""
+                    }
+                ) {
+                    Text("Cancelar")
+                }
             }
         )
     }
@@ -158,26 +193,4 @@ fun CitaCard(
             }
         }
     }
-}
-
-@Composable
-fun CancelCitaDialog(
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Cancelar Cita") },
-        text = { Text("¿Estás seguro de que deseas cancelar esta cita?") },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Confirmar")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
 }
