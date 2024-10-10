@@ -64,6 +64,7 @@ import com.secal.juraid.ui.theme.Purple40
 import kotlinx.atomicfu.TraceBase.None.append
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HelpView(navController: NavController, viewModel: ScheduleViewModel) {
