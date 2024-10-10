@@ -1,4 +1,6 @@
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -14,7 +16,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
-class AlumnosViewModel : ViewModel() {
+class AlumnosViewModel(application: Application) : AndroidViewModel(application) {
     private val _students = MutableStateFlow<List<Student>>(emptyList())
     val students: StateFlow<List<Student>> = _students.asStateFlow()
 
@@ -24,6 +26,7 @@ class AlumnosViewModel : ViewModel() {
     private val _addStudentResult = MutableStateFlow<AddStudentResult?>(null)
     val addStudentResult: StateFlow<AddStudentResult?> = _addStudentResult.asStateFlow()
 
+    private val notificationService = NotificationService(application)
 
     init {
         loadStudents()
@@ -56,7 +59,7 @@ class AlumnosViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                NotificationService.sendNotification(token, title, message)
+                notificationService.sendNotification(token, title, message)
                 Log.d("AlumnosViewModel", "Notification sent successfully")
             } catch (e: Exception) {
                 Log.e("AlumnosViewModel", "Error sending notification", e)

@@ -1,3 +1,4 @@
+import android.content.Context
 import android.util.Log
 import com.google.auth.oauth2.GoogleCredentials
 import com.google.gson.Gson
@@ -7,11 +8,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
-object NotificationService {
-    private const val FCM_API = "https://fcm.googleapis.com/v1/projects/secal-402a6/messages:send"
-    private const val SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
-    private const val TAG = "NotificationService"
+class NotificationService(private val context: Context) {
+    private companion object {
+        const val FCM_API = "https://fcm.googleapis.com/v1/projects/secal-402a6/messages:send"
+        const val SCOPE = "https://www.googleapis.com/auth/firebase.messaging"
+        const val TAG = "NotificationService"
+    }
 
     private var credentials: GoogleCredentials? = null
     private val client = OkHttpClient.Builder()
@@ -20,19 +24,38 @@ object NotificationService {
         .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
-    data class Message(
-        val message: FCMMessage
-    )
+    data class Message(val message: FCMMessage)
+    data class FCMMessage(val token: String, val notification: NotificationData)
+    data class NotificationData(val title: String, val body: String)
 
-    data class FCMMessage(
-        val token: String,
-        val notification: NotificationData
-    )
-
-    data class NotificationData(
-        val title: String,
-        val body: String
-    )
+    private fun getAccessToken(): String {
+        if (credentials == null) {
+            try {
+                context.assets.open("service-account.json").use { inputStream ->
+                    Log.d(TAG, "Reading service account file")
+                    val jsonContent = inputStream.bufferedReader().use { it.readText() }
+                    Log.d(TAG, "Service account file content (first 100 chars): ${jsonContent.take(100)}")
+                    credentials = GoogleCredentials
+                        .fromStream(jsonContent.byteInputStream())
+                        .createScoped(listOf(SCOPE))
+                    Log.d(TAG, "Credentials created successfully")
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "Error reading service account file", e)
+                throw IllegalStateException("Failed to read service account file", e)
+            }
+        }
+        try {
+            Log.d(TAG, "Refreshing credentials")
+            credentials?.refresh()
+            val token = credentials?.accessToken?.tokenValue
+            Log.d(TAG, "Access token obtained (first 10 chars): ${token?.take(10)}")
+            return token ?: throw IllegalStateException("Failed to obtain access token")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error refreshing credentials", e)
+            throw IllegalStateException("Failed to refresh credentials", e)
+        }
+    }
 
     suspend fun sendNotification(token: String, title: String, message: String) {
         withContext(Dispatchers.IO) {
@@ -52,14 +75,19 @@ object NotificationService {
                 )
 
                 val jsonBody = Gson().toJson(fcmMessage)
+                Log.d(TAG, "Prepared JSON body: $jsonBody")
+
+                val accessToken = getAccessToken()
+                Log.d(TAG, "Obtained access token")
 
                 val request = Request.Builder()
                     .url(FCM_API)
-                    .addHeader("Authorization", "key=TU_SERVER_KEY_AQUI")  // Reemplaza con tu server key
+                    .addHeader("Authorization", "Bearer $accessToken")
                     .addHeader("Content-Type", "application/json")
                     .post(jsonBody.toRequestBody("application/json".toMediaType()))
                     .build()
 
+                Log.d(TAG, "Sending FCM request")
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) {
                         val errorBody = response.body?.string()
