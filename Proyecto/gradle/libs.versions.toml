@@ -22,6 +22,7 @@ storageKtVersion = "3.0.0-beta-1"
 googleGmsGoogleServices = "4.4.2"
 firebaseMessaging = "24.0.2"
 transportApi = "3.0.0"
+firebaseMessagingKtx = "24.0.2"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
@@ -52,6 +53,7 @@ androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtim
 supabase-storage-kt = { module = "io.github.jan-tennert.supabase:storage-kt", version.ref = "storageKtVersion" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 transport-api = { group = "com.google.android.datatransport", name = "transport-api", version.ref = "transportApi" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

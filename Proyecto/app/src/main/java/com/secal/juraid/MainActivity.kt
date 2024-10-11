@@ -80,7 +80,18 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        startBiometricAuth {
+        if (isBiometricEnabled()) {
+            startBiometricAuth {
+                setContent {
+                    JurAidTheme(
+                        darkTheme = isSystemInDarkTheme(),
+                        dynamicColor = false
+                    ) {
+                        UserScreen()
+                    }
+                }
+            }
+        } else {
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
@@ -96,7 +107,6 @@ class MainActivity : FragmentActivity() {
         intent?.data?.let { uri ->
             handleDeepLink(uri)
         }
-       
     }
 
     // Declare the launcher at the top of your Activity/Fragment:
@@ -166,11 +176,6 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun isUserLoggedIn(): Boolean {
-        supabase.auth.sessionManager
-        return true
-    }
-
     private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
         val biometricManager = BiometricManager.from(this)
 
@@ -233,17 +238,17 @@ class MainActivity : FragmentActivity() {
     }
 
 
+    private fun isBiometricEnabled(): Boolean {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        return sharedPref.getBoolean("biometric_enabled", false)
+    }
+
     private fun saveBiometricPreference(isEnabled: Boolean) {
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         with(sharedPref.edit()) {
             putBoolean("biometric_enabled", isEnabled)
             apply()
         }
-    }
-
-    private fun isBiometricEnabled(): Boolean {
-        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        return sharedPref.getBoolean("biometric_enabled", false)
     }
 }
 
@@ -411,5 +416,3 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
     }
 }
-
-
