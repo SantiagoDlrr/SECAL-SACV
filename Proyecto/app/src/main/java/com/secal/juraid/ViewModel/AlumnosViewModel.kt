@@ -1,8 +1,12 @@
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.RemoteMessage
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.HomeViewModel.ContentInsert
 import com.secal.juraid.ViewModel.HomeViewModel.ContentItem
@@ -20,7 +24,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-class AlumnosViewModel : ViewModel() {
+class AlumnosViewModel(application: Application) : AndroidViewModel(application) {
     private val _students = MutableStateFlow<List<Student>>(emptyList())
     val students: StateFlow<List<Student>> = _students.asStateFlow()
 
@@ -30,6 +34,7 @@ class AlumnosViewModel : ViewModel() {
     private val _addStudentResult = MutableStateFlow<AddStudentResult?>(null)
     val addStudentResult: StateFlow<AddStudentResult?> = _addStudentResult.asStateFlow()
 
+    private val notificationService = NotificationService(application)
 
     init {
         loadStudents()
@@ -53,6 +58,24 @@ class AlumnosViewModel : ViewModel() {
             }
         }
     }
+
+    private fun sendNotification(token: String?, title: String, message: String) {
+        if (token == null) {
+            Log.w("AlumnosViewModel", "Attempted to send notification but token was null")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                notificationService.sendNotification(token, title, message)
+                Log.d("AlumnosViewModel", "Notification sent successfully")
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error sending notification", e)
+            }
+        }
+    }
+
+
 
     private fun loadStudents() {
         viewModelScope.launch {
@@ -109,6 +132,8 @@ class AlumnosViewModel : ViewModel() {
         return studentFlow
     }
 
+
+
     fun deactivateStudent(studentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -126,6 +151,11 @@ class AlumnosViewModel : ViewModel() {
                         }
                 }
                 loadStudents() // Recargar la lista después de la actualización
+                val token = getStudentToken(studentId)
+                Log.d("AlumnosViewModel", "Token: $token")
+                if (token != null) {
+                    sendNotification(token, "Cuenta desactivada", "Tu cuenta de alumno ha sido desactivada")
+                }
                 onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -169,6 +199,12 @@ class AlumnosViewModel : ViewModel() {
                                     }
                                 }
                         }
+
+                        val token = getStudentToken(user.id) // Necesitas implementar esta función
+                        if (token != null) {
+                            sendNotification(token, "Bienvenido", "Has sido añadido como alumno")
+                        }
+
                         loadStudents() // Reload the list after updating
                         _addStudentResult.value = AddStudentResult.Success("Alumno añadido exitosamente")
                     }
@@ -180,9 +216,33 @@ class AlumnosViewModel : ViewModel() {
         }
     }
 
+
+
     fun resetAddStudentResult() {
         _addStudentResult.value = null
     }
+
+    private suspend fun getStudentToken(studentId: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("id", studentId)
+                        }
+                    }
+                    .decodeSingle<FCMToken>()
+                result.fcm_token
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error getting student token", e)
+                null
+            }
+        }
+    }
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
 
 
 
