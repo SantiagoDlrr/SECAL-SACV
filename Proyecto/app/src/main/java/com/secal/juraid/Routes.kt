@@ -23,6 +23,7 @@ object Routes {
     var studentHomeVw = "student_home_view"
     var userHomeVw = "user_home_view"
     var casosStVw = "casos_student_view"
+    var horarioStVw = "horario_student_view"
 
     var editDetalleVw = "edit_detalle_view"
     var addCaseVw = "add_case_view"

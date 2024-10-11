@@ -214,14 +214,19 @@ private fun AlumnoDetailContent(
                         .fillMaxWidth()
                         .height(300.dp) // Adjust the height as needed
                 ) {
-                    AsyncImage(
-                        model = horarioUrl,
-                        contentDescription = "Horario del estudiante",
-                        modifier = Modifier
-                            .size(300.dp)
-                            .clip(RoundedCornerShape(10.dp)),
-                        contentScale = ContentScale.Fit
-                    )
+                    if (horarioUrl != null) {
+                        AsyncImage(
+                            model = horarioUrl,
+                            contentDescription = "Horario del estudiante",
+                            modifier = Modifier
+                                .size(400.dp)
+                                .clip(RoundedCornerShape(10.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text("No se pudo cargar el horario")
+                    }
+
                     /*CircularProgressIndicator(
                         modifier = Modifier
                             .size(50.dp)

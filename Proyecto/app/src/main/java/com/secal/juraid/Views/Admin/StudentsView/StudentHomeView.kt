@@ -10,6 +10,7 @@
     import androidx.compose.foundation.rememberScrollState
     import androidx.compose.foundation.verticalScroll
     import androidx.compose.material.icons.Icons
+    import androidx.compose.material.icons.outlined.CalendarMonth
     import androidx.compose.material.icons.outlined.Menu
     import androidx.compose.material.icons.outlined.Search
     import androidx.compose.material.icons.outlined.Settings
@@ -72,6 +73,7 @@
                     .verticalScroll(rememberScrollState())
             ){
                 ButtonUserCard(navController = navController, "Mis Casos", Icons.Outlined.Menu, route = Routes.casosStVw)
+                ButtonUserCard(navController = navController, "Mi horario", Icons.Outlined.CalendarMonth, route = Routes.horarioStVw)
                 ButtonUserCard(navController = navController, "Configuración", Icons.Outlined.Settings, route = Routes.settingView)
                }
 

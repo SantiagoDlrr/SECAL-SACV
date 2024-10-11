@@ -1,8 +1,16 @@
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.ViewModel.HomeViewModel.ContentInsert
+import com.secal.juraid.ViewModel.HomeViewModel.ContentItem
+import com.secal.juraid.ViewModel.uriToByteArray
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 class AlumnosViewModel : ViewModel() {
     private val _students = MutableStateFlow<List<Student>>(emptyList())
@@ -181,54 +190,85 @@ class AlumnosViewModel : ViewModel() {
     val horarioUrl: StateFlow<String?> = _horarioUrl.asStateFlow()
 
     private val _insertHorarioResult = MutableStateFlow<InsertHorarioResult?>(null)
-    val insertHorarioResult: StateFlow<InsertHorarioResult?> = _insertHorarioResult.asStateFlow()
 
-    fun getHorarioUrlByStudentId(studentId: String) {
+
+    suspend fun getHorarioUrlByStudentId(studentId: String) {
+        val url = try {
+            withContext(Dispatchers.IO) {
+                val result = supabase.from("Horarios")
+                    .select(columns = Columns.list("url")) {
+                        filter {
+                            eq("id_alumno", studentId)
+                        }
+                    }
+                    .decodeSingle<HorarioUrl>()
+                result.url
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+        _horarioUrl.value = url
+    }
+
+
+    fun insertHorario(studentId: String, imageUri: Uri, context: Context) {
+        val homeviewModel = HomeViewModel()
         viewModelScope.launch {
             try {
-                val result = withContext(Dispatchers.IO) {
-                    supabase
-                        .from("Horarios")
-                        .select(columns = Columns.list("url")) {
+                val fileName = "horarios/${UUID.randomUUID()}.jpg"
+                var imageUrl: String? = null
+
+                val imageByteArray = imageUri.uriToByteArray(context)
+                imageByteArray?.let {
+                    homeviewModel.uploadFile("horarios",fileName, imageByteArray)
+                    // Obtener la URL pública inmediatamente después de cargar
+                    imageUrl = supabase.storage["horarios"].publicUrl(fileName)
+                }
+
+                // Verificar si ya existe un registro para este estudiante
+                val existingHorario = supabase.from("Horarios")
+                    .select() {
+                        filter {
+                            eq("id_alumno", studentId)
+                        }
+                    }
+                    .decodeList<Horario>()
+
+                if (existingHorario.isNotEmpty()) {
+                    // Actualizar el registro existente
+                    supabase.from("Horarios")
+                        .update(
+                            {
+                                set("url", imageUrl ?: "")
+                            }
+                        ) {
                             filter {
                                 eq("id_alumno", studentId)
                             }
                         }
-                        .decodeSingle<HorarioUrl>()
+                    Log.d("DatabaseDebug", "Horario actualizado para el estudiante: $studentId")
+                } else {
+                    // Insertar un nuevo registro
+                    val newItem = Horario(
+                        id_horario = null,
+                        id_alumno = studentId,
+                        url = imageUrl ?: ""
+                    )
+                    supabase.from("Horarios")
+                        .insert(newItem)
+                        .decodeSingle<Horario>()
+                    Log.d("DatabaseDebug", "Nuevo horario insertado para el estudiante: $studentId")
                 }
-                _horarioUrl.value = result.url
+
+                // Actualizar el estado del ViewModel
+                _horarioUrl.value = imageUrl
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                _horarioUrl.value = null
+                Log.e("DatabaseDebug", "Error añadiendo nuevo horario: ${e.message}", e)
             }
         }
-    }
-
-    fun insertHorario(studentId: String, url: String) {
-        viewModelScope.launch {
-            _insertHorarioResult.value = InsertHorarioResult.Loading
-            try {
-                withContext(Dispatchers.IO) {
-                    supabase
-                        .from("Horarios")
-                        .insert(
-                            Horario(
-                                id_horario = null, // Supabase generará automáticamente el ID
-                                url = url,
-                                id_alumno = studentId
-                            )
-                        )
-                }
-                _insertHorarioResult.value = InsertHorarioResult.Success("Horario insertado exitosamente")
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _insertHorarioResult.value = InsertHorarioResult.Error("Error al insertar el horario: ${e.message}")
-            }
-        }
-    }
-
-    fun resetInsertHorarioResult() {
-        _insertHorarioResult.value = null
     }
 
 }
@@ -259,9 +299,10 @@ data class HorarioUrl(
 
 @Serializable
 data class Horario(
-    val id_horario: String? = null,
-    val url: String,
-    val id_alumno: String
+    val id_horario: Int? = null,
+    val id_alumno: String,
+    val url: String
+
 )
 
 sealed class InsertHorarioResult {
@@ -269,3 +310,4 @@ sealed class InsertHorarioResult {
     data class Success(val message: String) : InsertHorarioResult()
     data class Error(val message: String) : InsertHorarioResult()
 }
+
