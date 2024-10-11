@@ -14,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -203,7 +202,6 @@ class MainActivity : FragmentActivity() {
                         else -> AuthenticationType.UNKNOWN
                     }
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Autenticación exitosa: ${authenticationType.name}", Toast.LENGTH_LONG).show()
                         onAuthSuccess()
                     }
                 }
@@ -216,7 +214,6 @@ class MainActivity : FragmentActivity() {
 
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
-                    Toast.makeText(this@MainActivity, "Autenticación fallida", Toast.LENGTH_LONG).show()
                 }
             })
 

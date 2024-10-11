@@ -73,6 +73,7 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
                 }
             }
         }
+        Spacer(modifier = Modifier.padding(50.dp))
     }
 }
 

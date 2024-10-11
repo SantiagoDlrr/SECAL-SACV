@@ -63,8 +63,9 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
     val verificationMessage by viewModel.verificationMessage
-    val accountExistsMessage by viewModel.accountExistsMessage  // Estado para cuenta ya registrada
+    val accountExistsMessage by viewModel.accountExistsMessage
     val emailNotConfirmed by viewModel.emailNotConfirmed.observeAsState(false)
+    val context = LocalContext.current
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -86,20 +87,10 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
                 ) {
                     SignCardView(navController, viewModel)
 
-                    // Mostrar el mensaje de error si existe
                     if (errorMessage.isNotEmpty()) {
                         Text(
                             text = errorMessage,
                             color = Color.Red,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-
-                    // Mostrar el mensaje de verificación solo si no hay errores
-                    if (verificationMessage.isNotEmpty() && errorMessage.isEmpty()) {
-                        Text(
-                            text = verificationMessage,
-                            color = Color.Green,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -108,40 +99,40 @@ fun SignUpView(navController: NavController, viewModel: UserViewModel) {
         }
     }
 
-    // Manejar la cuenta ya existente con un AlertDialog
-    if (accountExistsMessage.isNotEmpty()) {
-        AlertDialog(
-            onDismissRequest = { /* Cerrar diálogo al hacer clic fuera */ },
-            confirmButton = {
-                Button(onClick = { navController.navigate(Routes.loginVw) }) {
-                    Text("Continuar")
-                }
-            },
-            title = { Text("Cuenta ya registrada") },
-            text = { Text(accountExistsMessage) },
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
-    }
-
-    // Manejar email no confirmado con AlertDialog
+    // Mostrar diálogo cuando se envía el correo de confirmación
     if (emailNotConfirmed) {
         AlertDialog(
-            onDismissRequest = { /* Cerrar diálogo al hacer clic fuera */ },
+            onDismissRequest = {
+                viewModel.emailNotConfirmed.value = false
+                navController.navigate(Routes.homeVw)
+            },
             confirmButton = {
-                Button(onClick = { navController.navigate(Routes.homeVw) }) {
+                Button(onClick = {
+                    viewModel.emailNotConfirmed.value = false
+                    navController.navigate(Routes.homeVw)
+                }) {
                     Text("OK")
                 }
             },
             title = { Text("Verifica tu correo") },
-            text = { Text("Se te ha enviado un correo de confirmación para la creación de tu cuenta") },
+            text = { Text(verificationMessage) },
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
+    }
+
+    // Mostrar toast cuando la cuenta ya existe
+    LaunchedEffect(accountExistsMessage) {
+        if (accountExistsMessage.isNotEmpty()) {
+            Toast.makeText(context, accountExistsMessage, Toast.LENGTH_LONG).show()
+            viewModel.accountExistsMessage.value = "" // Limpiar el mensaje después de mostrarlo
+            navController.navigate(Routes.loginVw) // Navegar a la pantalla de inicio de sesión
+        }
     }
 
     LaunchedEffect(sessionState) {
         when (sessionState) {
             is SessionStatus.Authenticated -> navController.navigate(Routes.homeVw)
-            else -> {} // Manejar otros estados si es necesario
+            else -> {}
         }
     }
 }
@@ -326,11 +317,10 @@ fun SignCardView(navController: NavController, viewModel: UserViewModel) {
             // Botón de registro
             Button(
                 onClick = {
-                    //showDialog = true
                     viewModel.signUp(email, password, name, firstLastName, secondLastName, phone)
-                          }, // Mostrar diálogo al hacer clic
+                },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = allFieldsFilled // El botón se habilita solo cuando todos los campos están llenos
+                enabled = allFieldsFilled
             ) {
                 Text("Registro")
             }
