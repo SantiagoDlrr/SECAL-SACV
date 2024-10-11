@@ -35,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.UserViewModel
 
@@ -60,8 +61,13 @@ fun SettingsView(navController: NavController, viewModel: UserViewModel) {
 @Composable
 fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel) {
 
-    // Recoger el estado de autenticación biométrica desde el ViewModel usando collectAsState
-    val isBiometricEnabled by viewModel.isBiometricEnabled.collectAsState(initial = false)
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("AppPreferences", android.content.Context.MODE_PRIVATE)
+
+    // Recoger el estado de autenticación biométrica desde SharedPreferences
+    var isBiometricEnabled by remember {
+        mutableStateOf(sharedPreferences.getBoolean("biometric_enabled", false))
+    }
 
     Column(
         modifier = Modifier
@@ -98,8 +104,12 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
                 Switch(
                     checked = isBiometricEnabled,
                     onCheckedChange = { isChecked ->
-                        // Actualizar la preferencia del usuario en la base de datos
-                        viewModel.updateBiometricSetting(isChecked)
+                        isBiometricEnabled = isChecked
+                        // Actualizar la preferencia del usuario en SharedPreferences
+                        with(sharedPreferences.edit()) {
+                            putBoolean("biometric_enabled", isChecked)
+                            apply()
+                        }
                     }
                 )
             }

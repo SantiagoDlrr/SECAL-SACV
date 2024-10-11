@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class CitasViewModel : ViewModel() {
     sealed class UiState {
@@ -22,8 +23,6 @@ class CitasViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
-
-    private val json = Json { ignoreUnknownKeys = true; coerceInputValues = true }
 
     init {
         loadCitas()
@@ -46,16 +45,47 @@ class CitasViewModel : ViewModel() {
     private suspend fun getCitasFromDatabase(): List<Cita> {
         return withContext(Dispatchers.IO) {
             try {
-                val result = supabase.from("Citas").select().decodeList<Cita>()
-                println("Citas recuperadas: ${result.size}")
-                result.forEach { cita ->
-                    println("Cita: $cita")
-                }
-                result
+                supabase.from("Citas")
+                    .select() {
+                        filter {
+                            this.eq("estado_cita", true)
+                        }
+                    }
+                    .decodeList<Cita>()
             } catch (e: Exception) {
-                println("Error al obtener citas: ${e.message}")
+                println("Error detallado en getCitasFromDatabase: ${e.message}")
                 e.printStackTrace()
                 throw Exception("Error al obtener citas de la base de datos: ${e.message}")
+            }
+        }
+    }
+
+    fun cancelarCita(cita: Cita, motivo: String) {
+        viewModelScope.launch {
+            try {
+                println("Iniciando cancelación de cita: ${cita.id}")
+                withContext(Dispatchers.IO) {
+                    val updates = JsonObject(mapOf(
+                        "estado_cita" to JsonPrimitive(false),
+                        "motivo_cancelacion" to JsonPrimitive(motivo)
+                    ))
+
+                    val response = supabase.from("Citas")
+                        .update(updates) {
+                            filter {
+                                this.eq("id", cita.id)
+                            }
+                        }
+
+                    println("Respuesta de Supabase: $response")
+                    println("Cancelación completada para la cita: ${cita.id}")
+                }
+                // Recargar las citas después de la cancelación
+                loadCitas()
+            } catch (e: Exception) {
+                println("Error detallado en cancelarCita: ${e.message}")
+                e.printStackTrace()
+                _uiState.value = UiState.Error("Error al cancelar la cita: ${e.message}")
             }
         }
     }
@@ -63,14 +93,15 @@ class CitasViewModel : ViewModel() {
     @Serializable
     data class Cita(
         val id: Int,
-        val nombre: String? = null,
-        val apellido: String? = null,
-        val fecha: String? = null,
-        val hora: String? = null,
-        val id_region: Int? = null,
-        val estado_cita: Boolean? = null,
-        val id_situacion: Int? = null,
-        val id_usuario: String? = null
+        val nombre: String,
+        val apellido: String,
+        val fecha: String,
+        val hora: String,
+        val id_region: Int,
+        val estado_cita: Boolean,
+        val id_situacion: Int,
+        val id_usuario: String,
+        val motivo_cancelacion: String? = null
     ) {
         companion object {
             private val regionesMap = mapOf(

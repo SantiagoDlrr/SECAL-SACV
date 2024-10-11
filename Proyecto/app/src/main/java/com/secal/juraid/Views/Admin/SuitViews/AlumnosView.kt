@@ -38,7 +38,7 @@ fun AlumnosView(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddStudentDialog = true }) {
+            FloatingActionButton(onClick = { showAddStudentDialog = true }, contentColor = MaterialTheme.colorScheme.onPrimary, containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir Alumno")
             }
         }
@@ -90,7 +90,10 @@ fun AlumnosView(
                     }
                 )
             },
-            confirmButton = { }
+            confirmButton = { },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 }
@@ -169,7 +172,7 @@ fun AlumnosCardView(
             title = { Text("Confirmar desactivación") },
             text = { Text("¿Estás seguro que deseas desactivar a este alumno?") },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         viewModel.deactivateStudent(
                             studentId = student.id,
@@ -190,10 +193,13 @@ fun AlumnosCardView(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                Button(onClick = { showDeleteDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 

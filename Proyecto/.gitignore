@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+# .gitignore
+app/src/main/assets/service-account.json

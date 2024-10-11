@@ -22,18 +22,25 @@ fun AddStudentView(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Correo electrónico del alumno") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
 
         Button(
             onClick = {
@@ -49,7 +56,7 @@ fun AddStudentView(
         when (val result = addStudentResult) {
             is AddStudentResult.Loading -> CircularProgressIndicator()
             is AddStudentResult.Success -> {
-                Text(result.message, color = MaterialTheme.colorScheme.primary)
+                Text(result.message, color = MaterialTheme.colorScheme.onSecondaryContainer)
             }
             is AddStudentResult.Error -> {
                 Text(result.message, color = MaterialTheme.colorScheme.error)
@@ -60,7 +67,13 @@ fun AddStudentView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = onClose) {
+        Button(onClick = onClose,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            ) {
             Text("Cerrar")
         }
     }

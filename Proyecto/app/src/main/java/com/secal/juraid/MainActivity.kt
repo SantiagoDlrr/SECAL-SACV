@@ -7,7 +7,9 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import ScheduleViewModel
+import android.content.ContentValues.TAG
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +17,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -44,28 +47,31 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.remember
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.ViewModel.*
 import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
+import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
-
-
 
 class MainActivity : FragmentActivity() {
 
@@ -74,7 +80,18 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        startBiometricAuth {
+        if (isBiometricEnabled()) {
+            startBiometricAuth {
+                setContent {
+                    JurAidTheme(
+                        darkTheme = isSystemInDarkTheme(),
+                        dynamicColor = false
+                    ) {
+                        UserScreen()
+                    }
+                }
+            }
+        } else {
             setContent {
                 JurAidTheme(
                     darkTheme = isSystemInDarkTheme(),
@@ -85,10 +102,63 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+        askNotificationPermission()
+
         intent?.data?.let { uri ->
             handleDeepLink(uri)
         }
     }
+
+    // Declare the launcher at the top of your Activity/Fragment:
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(TAG, "Fetching FCM registration token failed", task.exception)
+                    return@OnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+
+                // Log and toast
+                val msg = getString(R.string.msg_token_fmt, token)
+                Log.d(TAG, msg)
+                Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+            })
+        } else {
+            // TODO: Inform user that that your app will not show notifications.
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // This is only necessary for API level >= 33 (TIRAMISU)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+
+            } else if (shouldShowRequestPermissionRationale(android.Manifest.permission.POST_NOTIFICATIONS)) {
+
+            } else {
+
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        } else {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
+                if (!task.isSuccessful) {
+                    Log.w(TAG, "Fetching FCM registration token")
+                    return@OnCompleteListener
+                }
+
+                // Get new FCM registration token
+                val token = task.result
+            })
+        }
+    }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -109,7 +179,6 @@ class MainActivity : FragmentActivity() {
     private fun startBiometricAuth(onAuthSuccess: () -> Unit) {
         val biometricManager = BiometricManager.from(this)
 
-        // Check for both strong (fingerprint) and weak (face unlock) biometric authentication
         val canAuthenticate = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.BIOMETRIC_WEAK or
@@ -120,49 +189,34 @@ class MainActivity : FragmentActivity() {
         val canAuthenticateWithFace = biometricManager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_WEAK
         )
-        Log.d(
-            "BiometricAuth",
-            "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}"
-        )
+        Log.d("BiometricAuth", "Face Auth Available: ${canAuthenticateWithFace == BiometricManager.BIOMETRIC_SUCCESS}")
 
         if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
             val executor = ContextCompat.getMainExecutor(this)
 
-            val biometricPrompt =
-                BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        val authenticationType = when (result.authenticationType) {
-                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
-                            BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
-                            else -> AuthenticationType.UNKNOWN
-                        }
-                        runOnUiThread {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Autenticación exitosa: ${authenticationType.name}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                            onAuthSuccess()
-                        }
+            val biometricPrompt = BiometricPrompt(this, executor, object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    val authenticationType = when (result.authenticationType) {
+                        BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC -> AuthenticationType.BIOMETRIC
+                        BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL -> AuthenticationType.PIN
+                        else -> AuthenticationType.UNKNOWN
                     }
+                    runOnUiThread {
+                        onAuthSuccess()
+                    }
+                }
 
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG)
-                            .show()
-                        finish()
-                    }
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(this@MainActivity, "Error: $errString", Toast.LENGTH_LONG).show()
+                    finish()
+                }
 
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Autenticación fallida",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                })
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                }
+            })
 
             val promptInfo = BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Autenticación Biométrica")
@@ -176,12 +230,22 @@ class MainActivity : FragmentActivity() {
 
             biometricPrompt.authenticate(promptInfo)
         } else {
-            Toast.makeText(
-                this,
-                "Este dispositivo no soporta autenticación biométrica o PIN",
-                Toast.LENGTH_LONG
-            ).show()
+            Toast.makeText(this, "Este dispositivo no soporta autenticación biométrica o PIN", Toast.LENGTH_LONG).show()
             finish()
+        }
+    }
+
+
+    private fun isBiometricEnabled(): Boolean {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        return sharedPref.getBoolean("biometric_enabled", false)
+    }
+
+    private fun saveBiometricPreference(isEnabled: Boolean) {
+        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putBoolean("biometric_enabled", isEnabled)
+            apply()
         }
     }
 }
@@ -190,13 +254,13 @@ class MainActivity : FragmentActivity() {
 @OptIn(ExperimentalAnimationApi::class, ExperimentalSerializationApi::class)
 @Preview(showBackground = true)
 @Composable
-fun UserScreen() {
+fun UserScreen(startDestination: String = Routes.homeVw) {
     val navController = rememberNavController()
     val biometricViewModel: BiometricViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = Routes.homeVw,
+        startDestination = startDestination,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -262,6 +326,12 @@ fun UserScreen() {
         }
         composable(Routes.casosStVw) {
             CasosStudentView(
+                navController = navController,
+                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
+        }
+        composable(Routes.horarioStVw) {
+            HorarioStudentView(
                 navController = navController,
                 userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
             )

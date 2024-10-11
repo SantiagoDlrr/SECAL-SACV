@@ -1,8 +1,20 @@
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.RemoteMessage
+import com.secal.juraid.ViewModel.HomeViewModel
+import com.secal.juraid.ViewModel.HomeViewModel.ContentInsert
+import com.secal.juraid.ViewModel.HomeViewModel.ContentItem
+import com.secal.juraid.ViewModel.uriToByteArray
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.query.Columns
+import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,8 +22,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
-class AlumnosViewModel : ViewModel() {
+class AlumnosViewModel(application: Application) : AndroidViewModel(application) {
     private val _students = MutableStateFlow<List<Student>>(emptyList())
     val students: StateFlow<List<Student>> = _students.asStateFlow()
 
@@ -21,6 +34,7 @@ class AlumnosViewModel : ViewModel() {
     private val _addStudentResult = MutableStateFlow<AddStudentResult?>(null)
     val addStudentResult: StateFlow<AddStudentResult?> = _addStudentResult.asStateFlow()
 
+    private val notificationService = NotificationService(application)
 
     init {
         loadStudents()
@@ -44,6 +58,24 @@ class AlumnosViewModel : ViewModel() {
             }
         }
     }
+
+    private fun sendNotification(token: String?, title: String, message: String) {
+        if (token == null) {
+            Log.w("AlumnosViewModel", "Attempted to send notification but token was null")
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                notificationService.sendNotification(token, title, message)
+                Log.d("AlumnosViewModel", "Notification sent successfully")
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error sending notification", e)
+            }
+        }
+    }
+
+
 
     private fun loadStudents() {
         viewModelScope.launch {
@@ -100,6 +132,8 @@ class AlumnosViewModel : ViewModel() {
         return studentFlow
     }
 
+
+
     fun deactivateStudent(studentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
@@ -117,6 +151,11 @@ class AlumnosViewModel : ViewModel() {
                         }
                 }
                 loadStudents() // Recargar la lista después de la actualización
+                val token = getStudentToken(studentId)
+                Log.d("AlumnosViewModel", "Token: $token")
+                if (token != null) {
+                    sendNotification(token, "Cuenta desactivada", "Tu cuenta de alumno ha sido desactivada")
+                }
                 onSuccess()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -160,6 +199,12 @@ class AlumnosViewModel : ViewModel() {
                                     }
                                 }
                         }
+
+                        val token = getStudentToken(user.id) // Necesitas implementar esta función
+                        if (token != null) {
+                            sendNotification(token, "Bienvenido", "Has sido añadido como alumno")
+                        }
+
                         loadStudents() // Reload the list after updating
                         _addStudentResult.value = AddStudentResult.Success("Alumno añadido exitosamente")
                     }
@@ -171,9 +216,33 @@ class AlumnosViewModel : ViewModel() {
         }
     }
 
+
+
     fun resetAddStudentResult() {
         _addStudentResult.value = null
     }
+
+    private suspend fun getStudentToken(studentId: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("id", studentId)
+                        }
+                    }
+                    .decodeSingle<FCMToken>()
+                result.fcm_token
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error getting student token", e)
+                null
+            }
+        }
+    }
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
 
 
 
@@ -181,54 +250,85 @@ class AlumnosViewModel : ViewModel() {
     val horarioUrl: StateFlow<String?> = _horarioUrl.asStateFlow()
 
     private val _insertHorarioResult = MutableStateFlow<InsertHorarioResult?>(null)
-    val insertHorarioResult: StateFlow<InsertHorarioResult?> = _insertHorarioResult.asStateFlow()
 
-    fun getHorarioUrlByStudentId(studentId: String) {
+
+    suspend fun getHorarioUrlByStudentId(studentId: String) {
+        val url = try {
+            withContext(Dispatchers.IO) {
+                val result = supabase.from("Horarios")
+                    .select(columns = Columns.list("url")) {
+                        filter {
+                            eq("id_alumno", studentId)
+                        }
+                    }
+                    .decodeSingle<HorarioUrl>()
+                result.url
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+        _horarioUrl.value = url
+    }
+
+
+    fun insertHorario(studentId: String, imageUri: Uri, context: Context) {
+        val homeviewModel = HomeViewModel()
         viewModelScope.launch {
             try {
-                val result = withContext(Dispatchers.IO) {
-                    supabase
-                        .from("Horarios")
-                        .select(columns = Columns.list("url")) {
+                val fileName = "horarios/${UUID.randomUUID()}.jpg"
+                var imageUrl: String? = null
+
+                val imageByteArray = imageUri.uriToByteArray(context)
+                imageByteArray?.let {
+                    homeviewModel.uploadFile("horarios",fileName, imageByteArray)
+                    // Obtener la URL pública inmediatamente después de cargar
+                    imageUrl = supabase.storage["horarios"].publicUrl(fileName)
+                }
+
+                // Verificar si ya existe un registro para este estudiante
+                val existingHorario = supabase.from("Horarios")
+                    .select() {
+                        filter {
+                            eq("id_alumno", studentId)
+                        }
+                    }
+                    .decodeList<Horario>()
+
+                if (existingHorario.isNotEmpty()) {
+                    // Actualizar el registro existente
+                    supabase.from("Horarios")
+                        .update(
+                            {
+                                set("url", imageUrl ?: "")
+                            }
+                        ) {
                             filter {
                                 eq("id_alumno", studentId)
                             }
                         }
-                        .decodeSingle<HorarioUrl>()
+                    Log.d("DatabaseDebug", "Horario actualizado para el estudiante: $studentId")
+                } else {
+                    // Insertar un nuevo registro
+                    val newItem = Horario(
+                        id_horario = null,
+                        id_alumno = studentId,
+                        url = imageUrl ?: ""
+                    )
+                    supabase.from("Horarios")
+                        .insert(newItem)
+                        .decodeSingle<Horario>()
+                    Log.d("DatabaseDebug", "Nuevo horario insertado para el estudiante: $studentId")
                 }
-                _horarioUrl.value = result.url
+
+                // Actualizar el estado del ViewModel
+                _horarioUrl.value = imageUrl
+
             } catch (e: Exception) {
                 e.printStackTrace()
-                _horarioUrl.value = null
+                Log.e("DatabaseDebug", "Error añadiendo nuevo horario: ${e.message}", e)
             }
         }
-    }
-
-    fun insertHorario(studentId: String, url: String) {
-        viewModelScope.launch {
-            _insertHorarioResult.value = InsertHorarioResult.Loading
-            try {
-                withContext(Dispatchers.IO) {
-                    supabase
-                        .from("Horarios")
-                        .insert(
-                            Horario(
-                                id_horario = null, // Supabase generará automáticamente el ID
-                                url = url,
-                                id_alumno = studentId
-                            )
-                        )
-                }
-                _insertHorarioResult.value = InsertHorarioResult.Success("Horario insertado exitosamente")
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _insertHorarioResult.value = InsertHorarioResult.Error("Error al insertar el horario: ${e.message}")
-            }
-        }
-    }
-
-    fun resetInsertHorarioResult() {
-        _insertHorarioResult.value = null
     }
 
 }
@@ -259,9 +359,10 @@ data class HorarioUrl(
 
 @Serializable
 data class Horario(
-    val id_horario: String? = null,
-    val url: String,
-    val id_alumno: String
+    val id_horario: Int? = null,
+    val id_alumno: String,
+    val url: String
+
 )
 
 sealed class InsertHorarioResult {
@@ -269,3 +370,4 @@ sealed class InsertHorarioResult {
     data class Success(val message: String) : InsertHorarioResult()
     data class Error(val message: String) : InsertHorarioResult()
 }
+
