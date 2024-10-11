@@ -10,13 +10,19 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -30,16 +36,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
-    //para ver qué función llamamos
     Log.d(TAG, "AddPostView() called")
-
 
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    var urlHeader by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
@@ -59,117 +61,220 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
 
     Scaffold(
         topBar = { TopBar() },
-        bottomBar = { BottomBar(navController = navController) },
+        bottomBar = { BottomBar(navController = navController) }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center,
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
+            TitlesView(title = "Añadir Post")
+
             Card(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp)),
-                elevation = CardDefaults.cardElevation(4.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                TitlesView(title = "Añadir Post")
-
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Título") },
+                    // Header Card (Image Upload and Title)
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = { expanded = !expanded },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        OutlinedTextField(
-                            value = selectedCategory?.name_category ?: "",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Categoría") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                            modifier = Modifier.fillMaxWidth().menuAnchor(),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                        Column(
+                            modifier = Modifier.padding(16.dp)
                         ) {
-                            categories.forEach { category ->
-                                DropdownMenuItem(
-                                    text = { Text(category.name_category) },
-                                    onClick = {
-                                        selectedCategory = category
-                                        expanded = false
+                            // Image Preview and Change Button
+                            if (selectedImageUri != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                ) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(selectedImageUri),
+                                        contentDescription = "Vista previa de imagen",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+
+                                    // Botón flotante para cambiar la imagen
+                                    Button(
+                                        onClick = { imagePicker.launch("image/*") },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(8.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    ) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Cambiar imagen"
+                                            )
+                                            Text("Cambiar imagen")
+                                        }
                                     }
+                                }
+                            } else {
+                                Button(
+                                    onClick = { imagePicker.launch("image/*") },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Add,
+                                            contentDescription = "Añadir imagen",
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                        Text("Seleccionar imagen de portada")
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            OutlinedTextField(
+                                value = title,
+                                onValueChange = { title = it },
+                                label = { Text("Título") },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Category Selection Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Categoría",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            ExposedDropdownMenuBox(
+                                expanded = expanded,
+                                onExpandedChange = { expanded = !expanded }
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedCategory?.name_category ?: "",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                )
+
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    categories.forEach { category ->
+                                        DropdownMenuItem(
+                                            text = { Text(category.name_category) },
+                                            onClick = {
+                                                selectedCategory = category
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    /*
-                    OutlinedTextField(
-                        value = urlHeader,
-                        onValueChange = { urlHeader = it },
-                        label = { Text("URL de la imagen") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-                     */
-
-                    OutlinedTextField(
-                        value = text,
-                        onValueChange = { text = it },
-                        label = { Text("Contenido") },
-                        modifier = Modifier.fillMaxWidth().height(120.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    //BOTON PARA IMAGEN
-                    Button(
-                        onClick = { imagePicker.launch("image/*") },
-                        modifier = Modifier.fillMaxWidth()
+                    // Content Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(if (selectedImageUri != null) "Cambiar imagen" else "Seleccionar imagen")
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                "Contenido",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            OutlinedTextField(
+                                value = text,
+                                onValueChange = { text = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                )
+                            )
+                        }
                     }
 
-                    selectedImageUri?.let { uri ->
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Image(
-                            painter = rememberAsyncImagePainter(uri),
-                            contentDescription = "Imagen seleccionada",
-                            modifier = Modifier.size(100.dp).clip(RoundedCornerShape(16.dp))
-                        )
-                        Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
                         onClick = { showDialog = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Añadir Post")
+                        Text("Publicar Post")
                     }
                 }
             }
@@ -179,34 +284,31 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
+            title = { Text("Confirmación") },
+            text = { Text("¿Estás seguro de que deseas publicar este post?") },
             confirmButton = {
-                Button(onClick = {
-                    coroutineScope.launch {
-                        selectedCategory?.let { category ->
-                            try {
-                                /*if(selectedImageUri != null){
-                                    val imageByteArray = selectedImageUri?.uriToByteArray(context)
-                                    imageByteArray?.let {
-                                        viewModel.uploadFile("postImage", imageByteArray)
-                                    }
-                                }*/
-                                viewModel.addContentItem(
-                                    title = title,
-                                    category = category.ID_Category,
-                                    imageUri = selectedImageUri,
-                                    text = text,
-                                    context = context
-                                )
-                                // Mostrar Toast cuando se añade el post exitosamente
-                                Toast.makeText(context, "Post añadido con éxito", Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
-                            } catch (e: Exception) {
-                                // Mostrar Toast cuando hay un error al añadir el post
-                                Toast.makeText(context, "Error al añadir el post", Toast.LENGTH_LONG).show()
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            selectedCategory?.let { category ->
+                                try {
+                                    viewModel.addContentItem(
+                                        title = title,
+                                        category = category.ID_Category,
+                                        imageUri = selectedImageUri,
+                                        text = text,
+                                        context = context
+                                    )
+                                    Toast.makeText(context, "Post añadido con éxito", Toast.LENGTH_LONG).show()
+                                    navController.popBackStack()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Error al añadir el post", Toast.LENGTH_LONG).show()
+                                }
                             }
                         }
+                        showDialog = false
                     }
-                }) {
+                ) {
                     Text("Confirmar")
                 }
             },
@@ -215,9 +317,9 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                     Text("Cancelar")
                 }
             },
-            title = { Text("Confirmación") },
-            text = { Text("Estás a punto de publicar un post.") },
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer
         )
     }
 }

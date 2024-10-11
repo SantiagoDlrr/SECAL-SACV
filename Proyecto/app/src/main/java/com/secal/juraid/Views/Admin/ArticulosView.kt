@@ -47,7 +47,9 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
         bottomBar = { BottomBar(navController = navController) },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.addPostVw) }  //Se va a AddPostView.kt
+                onClick = { navController.navigate(Routes.addPostVw) },  //Se va a AddPostView.kt
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar artículo")
             }

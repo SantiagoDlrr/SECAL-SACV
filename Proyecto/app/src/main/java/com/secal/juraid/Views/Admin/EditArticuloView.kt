@@ -5,12 +5,16 @@ package com.secal.juraid.Views.Admin
 import android.content.ContentValues.TAG
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,9 +25,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -33,6 +41,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +66,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Routes
+import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailItem
@@ -66,21 +76,21 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, postId: Int) {
-    //para ver qué función llamamos
     Log.d(TAG, "EditArticuloView() called")
 
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var urlHeader by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
-    val categories by viewModel.categories.collectAsState()
-
-    //PARA LO DE GALERÍA
-    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val categories by viewModel.categories.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -96,7 +106,6 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
             title = item.title
             content = item.text ?: ""
             urlHeader = item.url_header
-            // Encontrar la categoría correspondiente al ID_Category del artículo
             selectedCategory = categories.find { it.ID_Category == item.ID_Category }
             isLoading = false
         }
@@ -104,195 +113,272 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
 
     Scaffold(
         topBar = { TopBar() },
-        bottomBar = { BottomBar(navController = navController) },
+        bottomBar = { BottomBar(navController = navController) }
     ) { innerPadding ->
         if (isLoading) {
             LoadingScreen()
         } else {
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(16.dp)
                     .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
+                TitlesView(title = "Editar Post")
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth()
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        OutlinedTextField(
-                            value = title,
-                            onValueChange = { title = it },
-                            label = { Text("Título") },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // Header Card (Image Upload and Title)
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                // Image Preview and Change Button
+                                if (selectedImageUri != null || urlHeader.isNotEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                    ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(selectedImageUri ?: urlHeader),
+                                            contentDescription = "Vista previa de imagen",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+
+                                        Button(
+                                            onClick = { imagePicker.launch("image/*") },
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .padding(8.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        ) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Edit,
+                                                    contentDescription = "Cambiar imagen"
+                                                )
+                                                Text("Cambiar imagen")
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = { imagePicker.launch("image/*") },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
+                                        ),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = "Añadir imagen",
+                                                modifier = Modifier.size(48.dp)
+                                            )
+                                            Text("Seleccionar imagen de portada")
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                OutlinedTextField(
+                                    value = title,
+                                    onValueChange = { title = it },
+                                    label = { Text("Título") },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        ExposedDropdownMenuBox(
-                            expanded = expanded,
-                            onExpandedChange = { expanded = !expanded },
+                        // Category Selection Card
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
                         ) {
-                            OutlinedTextField(
-                                value = selectedCategory?.name_category ?: "Selecciona una categoría",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Categoría") },
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                shape = RoundedCornerShape(16.dp)
-                                //colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
+                            Column(
+                                modifier = Modifier.padding(16.dp)
                             ) {
-                                categories.forEach { category ->
-                                    DropdownMenuItem(
-                                        text = { Text(category.name_category) },
-                                        onClick = {
-                                            selectedCategory = category
-                                            expanded = false
-                                        }
+                                Text(
+                                    "Categoría",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                ExposedDropdownMenuBox(
+                                    expanded = expanded,
+                                    onExpandedChange = { expanded = !expanded }
+                                ) {
+                                    OutlinedTextField(
+                                        value = selectedCategory?.name_category ?: "",
+                                        onValueChange = {},
+                                        readOnly = true,
+                                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .menuAnchor(),
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
                                     )
+
+                                    ExposedDropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false }
+                                    ) {
+                                        categories.forEach { category ->
+                                            DropdownMenuItem(
+                                                text = { Text(category.name_category) },
+                                                onClick = {
+                                                    selectedCategory = category
+                                                    expanded = false
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        //BOTON PARA IMAGEN
+                        // Content Card
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp)
+                            ) {
+                                Text(
+                                    "Contenido",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+
+                                OutlinedTextField(
+                                    value = content,
+                                    onValueChange = { content = it },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
                         Button(
-                            onClick = { imagePicker.launch("image/*") },
+                            onClick = { showDialog = true },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Cambiar imagen")
-                        }
-
-                        selectedImageUri?.let { uri ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Image(
-                                painter = rememberAsyncImagePainter(uri),
-                                contentDescription = "Imagen seleccionada",
-                                modifier = Modifier.size(100.dp).clip(RoundedCornerShape(16.dp))
-                            )
-                            Text("Imagen seleccionada", style = MaterialTheme.typography.bodyMedium)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        OutlinedTextField(
-                            value = content,
-                            onValueChange = { content = it },
-                            label = { Text("Contenido") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            maxLines = 10
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = {
-                                coroutineScope.launch {
-                                    selectedCategory?.let { category ->
-                                        viewModel.updateContentItem(
-                                            postId = postId,
-                                            title = title,
-                                            category = category.ID_Category,
-                                            urlHeader = urlHeader,
-                                            text = content,
-                                            imageUri = selectedImageUri,
-                                            context = context
-                                        )
-                                        navController.navigateUp()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = selectedCategory != null
-                        ) {
-                            Text("Guardar cambios")
+                            Text("Guardar Cambios")
                         }
                     }
                 }
             }
         }
     }
-}
 
-@Composable
-fun EditArticuloDetailItem(navController: NavController) {
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Confirmación") },
+            text = { Text("¿Estás seguro de que deseas guardar los cambios?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            selectedCategory?.let { category ->
+                                try {
+                                    viewModel.updateContentItem(
+                                        postId = postId,
+                                        title = title,
+                                        category = category.ID_Category,
+                                        urlHeader = urlHeader,
+                                        text = content,
+                                        imageUri = selectedImageUri,
+                                        context = context
+                                    )
+                                    Toast.makeText(context, "Cambios guardados con éxito", Toast.LENGTH_LONG).show()
+                                    navController.navigateUp()
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Error al guardar los cambios", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                        showDialog = false
+                    }
+                ) {
+                    Text("Confirmar")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false },
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Placeholder para la imagen del artículo
-            Image(
-                Icons.Default.ExitToApp,
-                contentDescription = "Placeholder",
-                modifier = Modifier.size(100.dp),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Título") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                    placeholder = { Text("") }
-                    )
-            }
-        }
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text("Contenido") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                placeholder = { Text("") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(350.dp)
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { navController.navigate(Routes.articulosVw) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Publicar")
-            }
-        }
-
-
-
+                ) {
+                    Text("Cancelar")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        )
     }
 }

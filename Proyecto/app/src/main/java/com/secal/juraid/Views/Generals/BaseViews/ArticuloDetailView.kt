@@ -115,7 +115,9 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                         onClick = {
                             Log.d(TAG, "POST ID $postId")
                             navController.navigate("${Routes.editArticuloVw}/$postId")
-                        }
+                        },
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     ) {
                         Icon(Icons.Default.Edit, contentDescription = "Editar artículo")
                     }
@@ -162,14 +164,17 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                         deleteDialog = false
                         navController.popBackStack()
                     }) {
-                        Text("Confirmar")
+                        Text("Confirmar", color = MaterialTheme.colorScheme.onPrimary)
                     }
                 },
                 dismissButton = {
                     Button(onClick = { deleteDialog = false }) {
                         Text("Cancelar")
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                textContentColor = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
