@@ -255,7 +255,7 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
                                 onValueChange = { text = it },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(200.dp),
+                                    .fillMaxHeight(),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
