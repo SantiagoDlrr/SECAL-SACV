@@ -58,6 +58,7 @@ import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
+import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
@@ -319,6 +320,12 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.casosStVw) {
             CasosStudentView(
+                navController = navController,
+                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+            )
+        }
+        composable(Routes.horarioStVw) {
+            HorarioStudentView(
                 navController = navController,
                 userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
             )
