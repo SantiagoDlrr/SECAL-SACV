@@ -228,6 +228,12 @@ fun UserScreen() {
 
             HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
+        composable(Routes.bookingsVw) {
+            val bookingsViewModel = remember { BookingsViewModel() }
+            BookingsView(
+                navController = navController, bookingsViewModel = bookingsViewModel
+            )
+        }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
@@ -261,11 +267,7 @@ fun UserScreen() {
             )
         }
 
-        composable(Routes.bookingsVw) {
-            BookingsView(
-                navController = navController
-            )
-        }
+
         composable(
             route = "${Routes.alumnoDetailVw}/{studentId}",
             arguments = listOf(navArgument("studentId") { type = NavType.StringType })

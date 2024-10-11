@@ -21,6 +21,59 @@ class BookingsViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    init {
+        loadAllData()
+    }
+
+    fun loadAllData() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                loadBookings()
+            } catch (e: Exception) {
+                Log.e("BookingsViewModel", "Error loading data: ${e.message}", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    private suspend fun loadBookings() {
+        if (_bookings.value.isEmpty()) {
+            try {
+                val fetchedBookings = getBookingsFromDatabase()
+                _bookings.value = fetchedBookings
+            } catch (e: Exception) {
+                Log.e("BookingsViewModel", "Error loading bookings: ${e.message}", e)
+            }
+        }
+    }
+
+    private suspend fun getBookingsFromDatabase(): List<Booking> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val bookingsList = supabase
+                    .from("Citas")
+                    .select()
+                    .decodeList<Booking>()
+                bookingsList
+            } catch (e: Exception) {
+                Log.e("BookingsViewModel", "Error getting bookings from database", e)
+                when (e) {
+                    is kotlinx.serialization.SerializationException -> {
+                        Log.e("BookingsViewModel", "Serialization error. Check if the Booking data class matches the database schema", e)
+                    }
+                    is io.github.jan.supabase.exceptions.RestException -> {
+                        Log.e("BookingsViewModel", "Supabase REST API error", e)
+                    }
+                    else -> {
+                        Log.e("BookingsViewModel", "Unknown error occurred", e)
+                    }
+                }
+                emptyList()
+            }
+        }
+    }
 
     suspend fun addBooking(
         nombre: String,
@@ -57,6 +110,32 @@ class BookingsViewModel : ViewModel() {
             }
         }
     }
+
+    suspend fun updateBookingStatus(bookingId: Int, newStatus: Boolean) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("Citas")
+                        .update(
+                            { set("estado_cita", newStatus) }
+                        ) {
+                            filter { eq("id", bookingId) }
+                        }
+                }
+
+                // Update the local state
+                _bookings.value = _bookings.value.map { booking ->
+                    if (booking.id == bookingId) {
+                        booking.copy(estado_cita = newStatus)
+                    } else {
+                        booking
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error updating booking status", e)
+            }
+        }
+    }
 }
 
 @Serializable
@@ -79,7 +158,7 @@ data class Booking(
     val fecha: String,
     val hora: String,
     val id_region: Int,
-    val estado_cita: Boolean,
+    val estado_cita: Boolean?,
     val id_situacion: Int,
-    val id_usuario: String?
+    val id_usuario: String
 )
