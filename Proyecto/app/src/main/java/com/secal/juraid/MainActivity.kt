@@ -14,7 +14,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -207,7 +206,6 @@ class MainActivity : FragmentActivity() {
                         else -> AuthenticationType.UNKNOWN
                     }
                     runOnUiThread {
-                        Toast.makeText(this@MainActivity, "Autenticación exitosa: ${authenticationType.name}", Toast.LENGTH_LONG).show()
                         onAuthSuccess()
                     }
                 }
@@ -220,7 +218,6 @@ class MainActivity : FragmentActivity() {
 
                 override fun onAuthenticationFailed() {
                     super.onAuthenticationFailed()
-                    Toast.makeText(this@MainActivity, "Autenticación fallida", Toast.LENGTH_LONG).show()
                 }
             })
 
@@ -307,12 +304,23 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
 
             HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
+        composable(Routes.bookingsVw) {
+            val bookingsViewModel = remember { BookingsViewModel() }
+            BookingsView(
+                navController = navController, bookingsViewModel = bookingsViewModel
+            )
+        }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
-            CasosView(navController = navController, viewModel = casesViewModel)
+            val citasViewModel: CitasViewModel = viewModel()
+            CasosView(
+                navController = navController,
+                viewModel = casesViewModel,
+                citasViewModel = citasViewModel
+            )
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
@@ -346,11 +354,7 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
         }
 
-        composable(Routes.bookingsVw) {
-            BookingsView(
-                navController = navController
-            )
-        }
+
         composable(
             route = "${Routes.alumnoDetailVw}/{studentId}",
             arguments = listOf(navArgument("studentId") { type = NavType.StringType })

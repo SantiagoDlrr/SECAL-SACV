@@ -1,5 +1,6 @@
 package com.secal.juraid.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -168,12 +169,13 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
                 verificationMessage.value = "Se ha enviado un correo de verificación a tu cuenta."
                 emailNotConfirmed.value = true
             } catch (e: Exception) {
-                val errorMsg = e.message?.lowercase()
-                if (errorMsg != null && (errorMsg.contains("user already registered") || errorMsg.contains("correo ya está registrado"))) {
-                    accountExistsMessage.value = "Este correo ya está registrado. Por favor, inicia sesión."
-                    emailNotConfirmed.value = false
-                } else {
-                    errorMessage.value = e.message ?: "Error desconocido"
+                when {
+                    e.message?.contains("ya está registrado", ignoreCase = true) == true -> {
+                        accountExistsMessage.value = "Este correo ya está registrado. Por favor, inicia sesión."
+                    }
+                    else -> {
+                        errorMessage.value = e.message ?: "Error desconocido"
+                    }
                 }
             } finally {
                 isLoading.value = false

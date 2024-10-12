@@ -53,7 +53,7 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         phone: String
     ) {
         try {
-            supabase.auth.signUpWith(Email) {
+            val signUpResult = supabase.auth.signUpWith(Email) {
                 email = userEmail
                 password = userPassword
                 data = buildJsonObject {
@@ -66,9 +66,27 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
                     put("biometric_enabled", false)  // Inicialmente desactivar biometría
                 }
             }
-            updateFCMToken()
+
+            // Verificar si el registro fue exitoso
+            if (signUpResult != null) {
+                // Registro exitoso
+                updateFCMToken()
+            } else {
+                // Si signUpResult es null, probablemente la cuenta ya existe
+                throw Exception("La cuenta ya existe o hubo un error en el registro")
+            }
         } catch (e: Exception) {
-            throw Exception("Error al registrarse: ${e.message}")
+            when {
+                e.message?.contains("User already registered", ignoreCase = true) == true -> {
+                    throw Exception("Este correo ya está registrado")
+                }
+                e.message?.contains("La cuenta ya existe", ignoreCase = true) == true -> {
+                    throw Exception("Este correo ya está registrado")
+                }
+                else -> {
+                    throw Exception("Error al registrarse: ${e.message}")
+                }
+            }
         }
     }
 

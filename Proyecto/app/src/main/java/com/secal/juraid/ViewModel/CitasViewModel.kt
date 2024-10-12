@@ -13,8 +13,15 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import java.time.LocalDateTime
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class CitasViewModel : ViewModel() {
+    private val _citasPasadas = MutableStateFlow<List<Cita>>(emptyList())
+    val citasPasadas: StateFlow<List<Cita>> = _citasPasadas.asStateFlow()
     sealed class UiState {
         object Loading : UiState()
         data class Success(val citas: List<Cita>) : UiState()
@@ -37,6 +44,56 @@ class CitasViewModel : ViewModel() {
                 println("Citas cargadas exitosamente: ${fetchedCitas.size}")
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Error al cargar las citas: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun loadCitasPasadas() {
+        viewModelScope.launch {
+            try {
+                val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                val citasPasadas = supabase.from("Citas")
+                    .select() {
+                        filter {
+                            lt("fecha", currentDate)
+                        }
+                    }
+                    .decodeList<Cita>()
+
+                _citasPasadas.value = citasPasadas.sortedByDescending { it.fecha }
+            } catch (e: Exception) {
+                println("Error al cargar citas pasadas: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun representarCita(id: Int) {
+        viewModelScope.launch {
+            try {
+                supabase.from("Citas")
+                    .update(mapOf("representada" to true)) {
+                        filter { eq("id", id) }
+                    }
+                loadCitasPasadas() // Recargar las citas después de la actualización
+            } catch (e: Exception) {
+                println("Error al representar cita: ${e.message}")
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun noRepresentarCita(id: Int) {
+        viewModelScope.launch {
+            try {
+                supabase.from("Citas")
+                    .update(mapOf("representada" to false)) {
+                        filter { eq("id", id) }
+                    }
+                loadCitasPasadas() // Recargar las citas después de la actualización
+            } catch (e: Exception) {
+                println("Error al no representar cita: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -93,14 +150,14 @@ class CitasViewModel : ViewModel() {
     @Serializable
     data class Cita(
         val id: Int,
-        val nombre: String,
-        val apellido: String,
-        val fecha: String,
-        val hora: String,
-        val id_region: Int,
-        val estado_cita: Boolean,
-        val id_situacion: Int,
-        val id_usuario: String,
+        val nombre: String? = null,
+        val apellido: String? = null,
+        val fecha: String? = null,
+        val hora: String? = null,
+        val id_region: Int? = null,
+        val estado_cita: Boolean? = null,
+        val id_situacion: Int? = null,
+        val id_usuario: String? = null,
         val motivo_cancelacion: String? = null
     ) {
         companion object {
