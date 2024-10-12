@@ -262,13 +262,14 @@ fun TitlesView(title: String){
         horizontalAlignment = Alignment.CenterHorizontally,
 
     ) {
-
         Text(
             text = title,
             fontSize = 35.sp,
             modifier = Modifier.padding(8.dp),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge.copy(
+                lineHeight = 44.sp  // Aumentado el espaciado entre líneas
+            )
         )
     }
 }

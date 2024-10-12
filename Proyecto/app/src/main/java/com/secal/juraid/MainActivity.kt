@@ -62,7 +62,10 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Generals.BaseViews.AcercaDeView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.BaseViews.FAQView
+import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
@@ -278,6 +281,15 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
+        }
+        composable(Routes.faqVw) {
+            FAQView(navController = navController)
+        }
+        composable(Routes.acercaDeVw) {
+            AcercaDeView(navController = navController)
+        }
+        composable(Routes.nuestrosServiciosVw) {
+            NuestrosServiciosView(navController = navController)
         }
         composable(Routes.userVw) {
             UserView(navController = navController)
