@@ -21,7 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.InsertEmoticon
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.QuestionAnswer
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -51,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.secal.juraid.ButtonUserCard
 import com.secal.juraid.Routes
 
 
@@ -72,11 +78,11 @@ fun ServiciosView(navController : NavController) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()) // Habilitar scroll vertical
             ) {
-                MapCardView()
-                ServiceDistribution(item1 = "Preguntas Frecuentes", route1 = "", item2 = "Nuestros Servicios", route2 = "", navController = navController)
-                ServiceDistribution(item1 = "Preguntas Frecuentes", route1 = "", item2 = "Vista Abogado", route2 = Routes.suitVw, navController = navController)
-                ServiceDistribution(item1 = "Vista Estudiante", route1 = Routes.studentHomeVw, item2 = "Vista Usuario", route2 = Routes.userHomeVw, navController = navController)
 
+                MapCardView()
+                ButtonUserCard(navController = navController, "Servicios", Icons.Outlined.Search, route = Routes.nuestrosServiciosVw)
+                ButtonUserCard(navController = navController, "     FAQ", Icons.Outlined.QuestionAnswer, route = Routes.faqVw)
+                ButtonUserCard(navController = navController, "Acerca de", Icons.Outlined.Info, route = Routes.acercaDeVw)
 
             }
 

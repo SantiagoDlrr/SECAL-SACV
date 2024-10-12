@@ -1,6 +1,6 @@
 [versions]
 accompanistNavigationAnimation = "<latest-version>"
-agp = "8.5.2"
+agp = "8.6.0"
 bom = "3.0.0"
 coilCompose = "2.4.0"
 kotlin = "2.0.0"

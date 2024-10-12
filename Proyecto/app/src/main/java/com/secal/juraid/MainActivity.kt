@@ -65,7 +65,10 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Generals.BaseViews.AcercaDeView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.BaseViews.FAQView
+import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
@@ -280,6 +283,15 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
         }
+        composable(Routes.faqVw) {
+            FAQView(navController = navController)
+        }
+        composable(Routes.acercaDeVw) {
+            AcercaDeView(navController = navController)
+        }
+        composable(Routes.nuestrosServiciosVw) {
+            NuestrosServiciosView(navController = navController)
+        }
         composable(Routes.userVw) {
             UserView(navController = navController)
         }
@@ -296,12 +308,23 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
 
             HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
+        composable(Routes.bookingsVw) {
+            val bookingsViewModel = remember { BookingsViewModel() }
+            BookingsView(
+                navController = navController, bookingsViewModel = bookingsViewModel
+            )
+        }
         composable(Routes.suitVw) {
             SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
-            CasosView(navController = navController, viewModel = casesViewModel)
+            val citasViewModel: CitasViewModel = viewModel()
+            CasosView(
+                navController = navController,
+                viewModel = casesViewModel,
+                citasViewModel = citasViewModel
+            )
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
@@ -335,11 +358,7 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
         }
 
-        composable(Routes.bookingsVw) {
-            BookingsView(
-                navController = navController
-            )
-        }
+
         composable(
             route = "${Routes.alumnoDetailVw}/{studentId}",
             arguments = listOf(navArgument("studentId") { type = NavType.StringType })

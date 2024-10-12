@@ -6,6 +6,9 @@ object Routes {
     var bienvenidaVw = "bienvenida_view"
     var homeVw = "home_view"
     var serviciosVw = "servicios_view"
+    var faqVw = "faq_view"
+    var acercaDeVw = "acerca_de_view"
+    var nuestrosServiciosVw = "nuestros_servicios_view"
     var userVw = "user_view"
 
     var loginVw = "login_view"
