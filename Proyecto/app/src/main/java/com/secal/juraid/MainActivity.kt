@@ -6,7 +6,10 @@ import ArticulosView
 import CaseDetailViewModel
 import CasosView
 import DetalleView
+import ProfileEditView
+import ProfileViewModelFactory
 import ScheduleViewModel
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -57,6 +60,7 @@ import com.secal.juraid.ViewModel.*
 import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
+import com.secal.juraid.Views.Admin.ProfileView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
@@ -417,6 +421,26 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                     Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
                 }
             )
+        }
+
+        composable(Routes.profileView) {
+            val context = LocalContext.current
+            val application = context.applicationContext as Application
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val viewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(application, userRepository)
+            )
+            ProfileView(navController = navController, viewModel = viewModel)
+        }
+
+        composable(Routes.editProfileView) {
+            val context = LocalContext.current
+            val application = context.applicationContext as Application
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val viewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(application, userRepository)
+            )
+            ProfileEditView(navController = navController, viewModel = viewModel)
         }
     }
 }

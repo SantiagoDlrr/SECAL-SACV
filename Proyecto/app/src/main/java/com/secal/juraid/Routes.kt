@@ -39,4 +39,7 @@ object Routes {
     var settingView = "setting_view"
 
     var bookingsVw = "bookings_view"
+
+    var profileView = "profile_view"
+    var editProfileView = "edit_profile_view"
 }
