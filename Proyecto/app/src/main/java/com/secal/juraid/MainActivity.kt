@@ -297,7 +297,12 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
-            CasosView(navController = navController, viewModel = casesViewModel)
+            val citasViewModel: CitasViewModel = viewModel()
+            CasosView(
+                navController = navController,
+                viewModel = casesViewModel,
+                citasViewModel = citasViewModel
+            )
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
