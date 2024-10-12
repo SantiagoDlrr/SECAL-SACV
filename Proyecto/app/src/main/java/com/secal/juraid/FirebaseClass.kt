@@ -1,9 +1,9 @@
 package com.secal.juraid
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
@@ -48,7 +48,7 @@ class FirebaseClass : FirebaseMessagingService() {
         // Check if message contains a data payload
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
-            handleNow(remoteMessage.data)
+            handleNow()
         }
 
         // Check if message contains a notification payload
@@ -58,11 +58,12 @@ class FirebaseClass : FirebaseMessagingService() {
         }
     }
 
-    private fun handleNow(data: Map<String, String>) {
+    private fun handleNow() {
         // Handle data payload here
         Log.d(TAG, "Short lived task is done.")
     }
 
+    @SuppressLint("ObsoleteSdkInt")
     private fun sendNotification(messageBody: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -70,13 +71,13 @@ class FirebaseClass : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE)
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.gavel_icon)
-            .setContentTitle("FCM Message")
+            .setSmallIcon(R.drawable.martillo)
+            .setContentTitle("Juraid")
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

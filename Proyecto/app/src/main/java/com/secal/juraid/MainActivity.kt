@@ -1,5 +1,6 @@
 package com.secal.juraid
 
+import AcercaDeView
 import AddPostView
 import AlumnosView
 import ArticulosView
@@ -65,7 +66,6 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
-import com.secal.juraid.Views.Generals.BaseViews.AcercaDeView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.BaseViews.FAQView
 import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
