@@ -56,7 +56,9 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
         topBar = { TopBar() },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.addCaseVw) }
+                onClick = { navController.navigate(Routes.addCaseVw) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar caso")
             }
@@ -97,7 +99,6 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
     val viewModel: CasesViewModel = viewModel()
     var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
     var showDeleteCaseDialog by remember { mutableStateOf(false) }
-    var selectedCitaIndex by remember { mutableStateOf<Int?>(null) }
     var deletingCaseId by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
 
@@ -113,9 +114,6 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                     .clip(RoundedCornerShape(8.dp)),
                 onClick = { navController.navigate("${Routes.detalleVw}/${case.id}") },
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
-                )
             ) {
                 Column(
                     modifier = Modifier
@@ -132,7 +130,6 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        StatusChip(status = case.status ?: 0)
                         if (userRole == 1) { // 1 = Abogado
                             Box {
                                 IconButton(onClick = { expandedMenuIndex = case.id }) {
@@ -140,7 +137,8 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                                 }
                                 DropdownMenu(
                                     expanded = expandedMenuIndex == case.id,
-                                    onDismissRequest = { expandedMenuIndex = null }
+                                    onDismissRequest = { expandedMenuIndex = null },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
                                     DropdownMenuItem(
                                         text = { Text("Editar") },
@@ -163,8 +161,6 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -173,11 +169,11 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                             imageVector = Icons.Default.Person,
                             contentDescription = "Cliente",
                             modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Cliente:" + case.nombre_cliente,
+                            text = "Cliente: " + case.nombre_cliente,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -196,42 +192,10 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Abogado:" + case.nombre_abogado,
+                            text = "Abogado: " + case.nombre_abogado,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Carpeta Judicial",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = case.carpeta_judicial,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Fiscal Titular",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = case.fiscal_titular,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-
                 }
             }
         }
@@ -242,6 +206,9 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
             onDismissRequest = { showDeleteCaseDialog = false },
             title = { Text("Eliminar caso") },
             text = { Text("¿Estás seguro de que deseas eliminar este caso?") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             confirmButton = {
                 Button(onClick = {
                     scope.launch {

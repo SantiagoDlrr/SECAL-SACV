@@ -7,6 +7,8 @@ import android.content.ContentValues.TAG
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
@@ -80,12 +83,6 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
         coroutineScope.launch {
             isLoading = true
             contentItem = viewModel.getFullContentItem(postId)
-            /*contentItem?.let { item ->
-                viewModel.readFile("postImage", item.url_header)
-                delay(500) // Ajusta este valor según sea necesario
-                imageUrl = item.getImageUrl(viewModel)
-                Log.d("ArticuloDetailView", "Loaded imageUrl: $imageUrl")
-            }*/
             isLoading = false
         }
     }
@@ -98,11 +95,7 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                 Column {
                     FloatingActionButton(
                         onClick = {
-                            // Aquí va la lógica para eliminar el artículo
-                            // Por ejemplo, puedes llamar a una función del ViewModel
-
                             deleteDialog = true
-                            //navController.popBackStack() // Volver atrás después de eliminar
                         },
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -196,21 +189,11 @@ fun String.formatDate(): String {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
-    val viewModel = viewModel<HomeViewModel>()
-
-    /*val imageUrl by remember(item) {
-        derivedStateOf {
-            val url = item.getImageUrl(viewModel)
-            Log.d("ArticuloDetailView", "Image URL: $url")
-        }
-    }*/
-
-    /*val imageUrl by remember(item) {
-        derivedStateOf { item.getImageUrl(viewModel) }
-    }*/
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
+            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {

@@ -357,8 +357,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                 userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
             )
         }
-
-
         composable(
             route = "${Routes.alumnoDetailVw}/{studentId}",
             arguments = listOf(navArgument("studentId") { type = NavType.StringType })
@@ -414,7 +412,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.settingView) {
             SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
-
         composable(
             "${Routes.editDetalleVw}/{caseId}",
             arguments = listOf(navArgument("caseId") { type = NavType.IntType })
@@ -427,7 +424,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                 caseId = caseId
             )
         }
-
         composable(Routes.biometricAuthVw) {
             val context = LocalContext.current
 
@@ -441,7 +437,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                 }
             )
         }
-
         composable(Routes.profileView) {
             val context = LocalContext.current
             val application = context.applicationContext as Application
@@ -451,7 +446,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
             ProfileView(navController = navController, viewModel = viewModel)
         }
-
         composable(Routes.editProfileView) {
             val context = LocalContext.current
             val application = context.applicationContext as Application

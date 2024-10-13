@@ -2,6 +2,8 @@ package com.secal.juraid.Views.Admin
 
 import ProfileViewModelFactory
 import android.app.Application
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,8 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -73,7 +78,9 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
+                            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(16.dp)),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
@@ -87,7 +94,10 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                             // Profile Image
                             Card(
                                 shape = RoundedCornerShape(50),
-                                modifier = Modifier.size(120.dp)
+                                modifier = Modifier.size(160.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                                ),
                             ) {
                                 AsyncImage(
                                     model = profileData.url_image,
@@ -103,8 +113,9 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
+                                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
                             ) {
                                 Column(
                                     modifier = Modifier.padding(16.dp)
@@ -112,10 +123,10 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                                     ProfileInfoRow(
                                         icon = Icons.Default.Person,
                                         label = "Nombre",
-                                        value = profileData.name
+                                        value = profileData.name,
                                     )
 
-                                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                    Divider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
 
                                     ProfileInfoRow(
                                         icon = Icons.Default.Email,
@@ -123,7 +134,7 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                                         value = profileData.email
                                     )
 
-                                    Divider(modifier = Modifier.padding(vertical = 8.dp))
+                                    Divider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
 
                                     ProfileInfoRow(
                                         icon = Icons.Default.Phone,
@@ -138,7 +149,7 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
+                                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
                                 )
                             ) {
                                 Column (
@@ -146,14 +157,13 @@ fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
                                 ){
                                     Text(
                                         text = "Biografía",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                        style = MaterialTheme.typography.titleMedium
                                     )
 
                                     Text(
                                         text = profileData.desc,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.primary
+                                        textAlign = TextAlign.Justify,
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
                             }
@@ -192,14 +202,14 @@ private fun ProfileInfoRow(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.onSecondary
         )
         Spacer(modifier = Modifier.width(8.dp))
         Column {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSecondary
             )
             Text(
                 text = value,
