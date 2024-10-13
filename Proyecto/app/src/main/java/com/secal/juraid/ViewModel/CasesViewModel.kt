@@ -199,11 +199,13 @@ class CasesViewModel : ViewModel() {
     }
 
     private suspend fun loadUnitInvestigations() {
-        try {
-            val items = getUnitInvestigationsFromDatabase()
-            _unitInvestigations.value = items
-        } catch (e: Exception) {
-            Log.e("CasesViewModel", "Error loading unit investigations: ${e.message}", e)
+        viewModelScope.launch {
+            try {
+                val items = getUnitInvestigationsFromDatabase()
+                _unitInvestigations.value = items
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error loading unit investigations: ${e.message}", e)
+            }
         }
     }
 
@@ -253,6 +255,53 @@ class CasesViewModel : ViewModel() {
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error getting unit investigations from database: ${e.message}", e)
                 emptyList()
+            }
+        }
+    }
+
+    suspend fun addUnitInvestigation(nombre: String, direccion: String) {
+        viewModelScope.launch {
+            try {
+                val newUnit = UnitInvestigationInsert(nombre = nombre, direccion = direccion)
+                withContext(Dispatchers.IO) {
+                    supabase.from("Units")
+                        .insert(newUnit)
+                }
+                // Recargar todas las unidades de investigación después de la inserción
+                loadUnitInvestigations()
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error adding unit investigation", e)
+            }
+        }
+    }
+
+    suspend fun updateUnitInvestigation(id: Int, nombre: String, direccion: String) {
+        viewModelScope.launch {
+            try {
+                val updatedUnit = UnitInvestigationUpdate(nombre = nombre, direccion = direccion)
+                withContext(Dispatchers.IO) {
+                    supabase.from("Units")
+                        .update(updatedUnit) { filter { eq("id", id) } }
+                }
+                _unitInvestigations.value = _unitInvestigations.value.map {
+                    if (it.id == id) it.copy(nombre = nombre, direccion = direccion) else it
+                }
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error updating unit investigation", e)
+            }
+        }
+    }
+
+    suspend fun deleteUnitInvestigation(id: Int) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("Units")
+                        .delete { filter { eq("id", id) } }
+                }
+                _unitInvestigations.value = _unitInvestigations.value.filter { it.id != id }
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error deleting unit investigation", e)
             }
         }
     }
@@ -383,6 +432,18 @@ data class Case(
 @Serializable
 data class unitInvestigation(
     val id: Int,
+    val nombre: String,
+    val direccion: String
+)
+
+@Serializable
+data class UnitInvestigationInsert(
+    val nombre: String,
+    val direccion: String
+)
+
+@Serializable
+data class UnitInvestigationUpdate(
     val nombre: String,
     val direccion: String
 )

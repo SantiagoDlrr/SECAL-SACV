@@ -8,6 +8,7 @@ import CaseDetailViewModel
 import CasosView
 import DetalleView
 import ProfileEditView
+import ProfileViewModel
 import ProfileViewModelFactory
 import ScheduleViewModel
 import android.app.Application
@@ -66,6 +67,7 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Admin.SuitViews.InvUnitView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.BaseViews.FAQView
 import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
@@ -325,6 +327,10 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                 viewModel = casesViewModel,
                 citasViewModel = citasViewModel
             )
+        }
+        composable(Routes.invUnitVw) {
+            val casesViewModel: CasesViewModel = viewModel()
+            InvUnitView(navController = navController, viewModel = casesViewModel)
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)

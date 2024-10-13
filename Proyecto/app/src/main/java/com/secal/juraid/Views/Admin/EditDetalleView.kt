@@ -1,6 +1,8 @@
 package com.secal.juraid.Views.Admin
 
+import AlumnosViewModel
 import CaseDetailViewModel
+import Student
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.clickable

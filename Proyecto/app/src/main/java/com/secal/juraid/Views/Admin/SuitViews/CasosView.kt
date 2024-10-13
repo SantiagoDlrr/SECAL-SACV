@@ -81,7 +81,16 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else {
+                        Button(
+                            onClick = { navController.navigate(Routes.invUnitVw) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Unidades de investigación")
+                        }
                         CasosCardView(navController = navController, cases = cases)
+
                     }
                 }
                 1 -> CitasPasadasView(viewModel = citasViewModel)
@@ -105,6 +114,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 
     LazyColumn {
         items(cases) { case ->
+
             val caseId = case.id
             Card(
                 modifier = Modifier
@@ -349,7 +359,9 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onNoRepresent
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxSize().padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
             Column {
                 Text("${cita.nombre} ${cita.apellido}", fontWeight = FontWeight.Bold)
