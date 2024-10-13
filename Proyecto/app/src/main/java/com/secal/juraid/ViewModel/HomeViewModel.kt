@@ -39,6 +39,10 @@ class HomeViewModel : ViewModel() {
         loadAllData()
     }
 
+    fun reloadData() {
+        loadAllData()
+    }
+
     private fun loadAllData() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -219,6 +223,7 @@ class HomeViewModel : ViewModel() {
                     .insert(newItem)
                     .decodeSingle<ContentItem>()
 
+                loadContentPreviews()
                 loadAllData()
 
             } catch (e: Exception) {
@@ -256,6 +261,8 @@ class HomeViewModel : ViewModel() {
                     eq("ID_Post", postId)
                 }
             }
+
+            loadContentPreviews()
             Log.d("DatabaseDebug", "Item updated: $postId")
         } catch (e: Exception) {
             Log.e("DatabaseDebug", "Error updating item: ${e.message}", e)
@@ -323,6 +330,7 @@ class HomeViewModel : ViewModel() {
                 }*/
 
                 // Recargamos los datos para actualizar la lista de artículos
+                loadContentPreviews()
                 loadAllData()
 
                 Log.d("HomeViewModel", "Article with ID $postId deleted successfully")

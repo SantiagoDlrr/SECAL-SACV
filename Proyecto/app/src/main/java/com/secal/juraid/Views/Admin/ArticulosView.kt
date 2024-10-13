@@ -42,6 +42,10 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.reloadData() // Asegura que los datos se carguen al entrar en la vista
+    }
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
