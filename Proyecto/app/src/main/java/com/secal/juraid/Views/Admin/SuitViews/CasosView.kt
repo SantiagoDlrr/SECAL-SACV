@@ -27,6 +27,7 @@ import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.Case
 import com.secal.juraid.ViewModel.CasesViewModel
+import com.secal.juraid.ViewModel.CitasViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Admin.SuitViews.StatusChip
 import com.secal.juraid.supabase
@@ -36,19 +37,18 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CasosView(navController: NavController, viewModel: CasesViewModel) {
-    //para ver qué función llamamos
+fun CasosView(navController: NavController, viewModel: CasesViewModel, citasViewModel: CitasViewModel) {
     Log.d(TAG, "CasosView() called")
 
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Casos", "Asesorías")
 
     val cases by viewModel.activeCases.collectAsState()
-
     val isLoading by viewModel.isLoading.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadAllData()
+        citasViewModel.loadCitasPasadas()  // Cargar citas pasadas
     }
 
     Scaffold(
@@ -56,7 +56,7 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
         topBar = { TopBar() },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Routes.addCaseVw) }  //Se va a AddPostView.kt
+                onClick = { navController.navigate(Routes.addCaseVw) }
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar caso")
             }
@@ -81,10 +81,19 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel) {
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     } else {
+                        Button(
+                            onClick = { navController.navigate(Routes.invUnitVw) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Unidades de investigación")
+                        }
                         CasosCardView(navController = navController, cases = cases)
+
                     }
                 }
-                1 -> CitasPasadasView() // Implementa esta vista según sea necesario
+                1 -> CitasPasadasView(viewModel = citasViewModel)
             }
         }
     }
@@ -105,6 +114,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 
     LazyColumn {
         items(cases) { case ->
+
             val caseId = case.id
             Card(
                 modifier = Modifier
@@ -267,101 +277,105 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 }
 
 @Composable
-fun CitasPasadasView() {
-    var showAcceptDialog by remember { mutableStateOf(false) }
-    var showRejectDialog by remember { mutableStateOf(false) }
+fun CitasPasadasView(viewModel: CitasViewModel) {
+    val citasPasadas by viewModel.citasPasadas.collectAsState()
+    var showRepresentarDialog by remember { mutableStateOf(false) }
+    var showRechazarDialog by remember { mutableStateOf(false) }
+    var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
-
-    var currentCitaIndex by remember { mutableStateOf(-1) }
+    LaunchedEffect(Unit) {
+        viewModel.loadCitasPasadas()
+    }
 
     LazyColumn {
-        items(7) { index ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .height(100.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Cita $index", fontWeight = FontWeight.Bold)
-                        Text("Nombre")
-                        Text("Fecha: 02/10/2024")
-                    }
-                    Row (
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Button(onClick = {
-                            currentCitaIndex = index
-                            showAcceptDialog = true
-                        }) {
-                            Text("Representar")
-                            //Icon(imageVector = Icons.Default.Check, contentDescription = "Aceptar")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = {
-                            currentCitaIndex = index
-                            showRejectDialog = true
-                        }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Rechazar")
-                        }
-                    }
+        items(citasPasadas) { cita ->
+            CitaCard(
+                cita = cita,
+                onRepresentar = {
+                    selectedCita = cita
+                    showRepresentarDialog = true
+                },
+                onRechazar = {
+                    selectedCita = cita
+                    showRechazarDialog = true
                 }
-            }
+            )
         }
     }
 
-    if (showAcceptDialog) {
+    if (showRepresentarDialog) {
         AlertDialog(
-            onDismissRequest = { showAcceptDialog = false },
+            onDismissRequest = { showRepresentarDialog = false },
             title = { Text("Representar") },
-            text = { Text("¿Deseas aceptar esta caso?") },
+            text = { Text("¿Deseas aceptar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    // Lógica para aceptar la cita
-                    println("Caso $currentCitaIndex aceptado")
-                    showAcceptDialog = false
+                    selectedCita?.let { viewModel.representarCita(it) }
+                    showRepresentarDialog = false
                 }) {
                     Text("Aceptar")
                 }
             },
             dismissButton = {
-                Button(onClick = { showAcceptDialog = false }) {
+                Button(onClick = { showRepresentarDialog = false }) {
                     Text("Cancelar")
                 }
             }
         )
     }
 
-    if (showRejectDialog) {
+    if (showRechazarDialog) {
         AlertDialog(
-            onDismissRequest = { showRejectDialog = false },
-            title = { Text("No representar") },
-            text = { Text("¿Deseas no representar este caso?") },
+            onDismissRequest = { showRechazarDialog = false },
+            title = { Text("Rechazar") },
+            text = { Text("¿Deseas rechazar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    // Lógica para rechazar la cita
-                    println("Caso $currentCitaIndex rechazado")
-                    showRejectDialog = false
+                    selectedCita?.let { viewModel.rechazarCita(it.id) }
+                    showRechazarDialog = false
                 }) {
                     Text("Rechazar")
                 }
             },
             dismissButton = {
-                Button(onClick = { showRejectDialog = false }) {
+                Button(onClick = { showRechazarDialog = false }) {
                     Text("Cancelar")
                 }
             }
         )
+    }
+}
+
+@Composable
+fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(8.dp)),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Column {
+                Text("${cita.nombre ?: ""} ${cita.apellido ?: ""}", fontWeight = FontWeight.Bold)
+                Text("Fecha: ${cita.fecha ?: "No disponible"}")
+                Text("Situación: ${CitasViewModel.Cita.getNombreSituacion(cita.id_situacion)}")
+            }
+            Row {
+                Button(onClick = onRepresentar) {
+                    Text("Representar")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(onClick = onRechazar) {
+                    Icon(Icons.Default.Close, contentDescription = "Rechazar")
+                }
+            }
+        }
     }
 }
 

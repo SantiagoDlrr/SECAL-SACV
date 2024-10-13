@@ -134,6 +134,25 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
         }
     }
 
+    suspend fun getUserEmail(): String? {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            user.email
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    suspend fun getUserPhone(): String? {
+        return try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
+            val metadata = user.userMetadata
+            metadata?.get("phone")?.toString()?.trim()?.replace("\"", "") ?: ""
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun getUserRole(): Int {
         return try {
             val user = supabase.auth.retrieveUserForCurrentSession()

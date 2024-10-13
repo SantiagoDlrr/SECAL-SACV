@@ -1,12 +1,17 @@
 package com.secal.juraid
 
+import AcercaDeView
 import AddPostView
 import AlumnosView
 import ArticulosView
 import CaseDetailViewModel
 import CasosView
 import DetalleView
+import ProfileEditView
+import ProfileViewModel
+import ProfileViewModelFactory
 import ScheduleViewModel
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -57,11 +62,15 @@ import com.secal.juraid.ViewModel.*
 import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
+import com.secal.juraid.Views.Admin.ProfileView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Admin.SuitViews.InvUnitView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
+import com.secal.juraid.Views.Generals.BaseViews.FAQView
+import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
@@ -276,6 +285,15 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
         }
+        composable(Routes.faqVw) {
+            FAQView(navController = navController)
+        }
+        composable(Routes.acercaDeVw) {
+            AcercaDeView(navController = navController)
+        }
+        composable(Routes.nuestrosServiciosVw) {
+            NuestrosServiciosView(navController = navController)
+        }
         composable(Routes.userVw) {
             UserView(navController = navController)
         }
@@ -303,7 +321,16 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
-            CasosView(navController = navController, viewModel = casesViewModel)
+            val citasViewModel: CitasViewModel = viewModel()
+            CasosView(
+                navController = navController,
+                viewModel = casesViewModel,
+                citasViewModel = citasViewModel
+            )
+        }
+        composable(Routes.invUnitVw) {
+            val casesViewModel: CasesViewModel = viewModel()
+            InvUnitView(navController = navController, viewModel = casesViewModel)
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
@@ -419,6 +446,26 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
                     Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
                 }
             )
+        }
+
+        composable(Routes.profileView) {
+            val context = LocalContext.current
+            val application = context.applicationContext as Application
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val viewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(application, userRepository)
+            )
+            ProfileView(navController = navController, viewModel = viewModel)
+        }
+
+        composable(Routes.editProfileView) {
+            val context = LocalContext.current
+            val application = context.applicationContext as Application
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val viewModel: ProfileViewModel = viewModel(
+                factory = ProfileViewModelFactory(application, userRepository)
+            )
+            ProfileEditView(navController = navController, viewModel = viewModel)
         }
     }
 }

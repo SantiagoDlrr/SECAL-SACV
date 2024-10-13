@@ -42,6 +42,7 @@ import com.secal.juraid.ViewModel.HomeViewModel
 import kotlinx.coroutines.delay
 import androidx.compose.material3.*
 import androidx.compose.ui.platform.LocalConfiguration
+import com.secal.juraid.AnimatedHelpButton
 import com.secal.juraid.CategoryItem
 import com.secal.juraid.Routes
 import kotlinx.serialization.encodeToString
@@ -72,7 +73,10 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel) {
                     onSearchQueryChange = { searchQuery = it }
                 )
             }
-            HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
+            AnimatedHelpButton(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                navController = navController
+            )
         }
     }
 }

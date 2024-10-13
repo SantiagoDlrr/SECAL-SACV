@@ -6,6 +6,9 @@ object Routes {
     var bienvenidaVw = "bienvenida_view"
     var homeVw = "home_view"
     var serviciosVw = "servicios_view"
+    var faqVw = "faq_view"
+    var acercaDeVw = "acerca_de_view"
+    var nuestrosServiciosVw = "nuestros_servicios_view"
     var userVw = "user_view"
 
     var loginVw = "login_view"
@@ -15,6 +18,7 @@ object Routes {
 
     var suitVw = "suit_view"
     var casosVw = "casos_view"
+    var invUnitVw = "inv_unit_view"
     var espaciosVw = "espacios_view"
     var alumnosVw = "alumnos_view"
 
@@ -38,4 +42,7 @@ object Routes {
     var settingView = "setting_view"
 
     var bookingsVw = "bookings_view"
+
+    var profileView = "profile_view"
+    var editProfileView = "edit_profile_view"
 }
