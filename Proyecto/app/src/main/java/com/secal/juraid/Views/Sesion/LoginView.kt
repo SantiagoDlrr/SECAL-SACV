@@ -112,7 +112,6 @@ fun LoginCardView(navController: NavController, viewModel: UserViewModel) {
             .padding(16.dp)
             .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(

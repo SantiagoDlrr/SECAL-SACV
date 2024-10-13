@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.CitasViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.secal.juraid.TitlesView
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -37,14 +40,6 @@ fun EspaciosView(
     }
 }
 
-@Composable
-fun CitasHeader() {
-    Text(
-        text = "Citas Confirmadas",
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = Modifier.padding(16.dp)
-    )
-}
 
 @Composable
 fun CitasConfirmadasView(viewModel: CitasViewModel) {
@@ -55,7 +50,7 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        CitasHeader()
+        TitlesView(title = "Citas Confirmadas")
 
         when (val state = uiState) {
             is CitasViewModel.UiState.Loading -> {
@@ -96,6 +91,9 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
                 showCancelDialog = false
                 cancelReason = ""
             },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             title = { Text("Cancelar Cita") },
             text = {
                 Column {
@@ -105,7 +103,15 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
                         value = cancelReason,
                         onValueChange = { cancelReason = it },
                         label = { Text("Motivo de cancelación") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     )
                 }
             },
@@ -147,7 +153,7 @@ fun CitaCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .clip(MaterialTheme.shapes.medium),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column(
             modifier = Modifier
@@ -186,7 +192,7 @@ fun CitaCard(
 
                 IconButton(onClick = onCancelCita) {
                     Icon(
-                        Icons.Default.MoreVert,
+                        Icons.Outlined.Delete,
                         contentDescription = "Cancelar cita"
                     )
                 }

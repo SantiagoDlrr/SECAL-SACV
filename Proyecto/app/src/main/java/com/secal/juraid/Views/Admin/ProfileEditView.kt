@@ -2,6 +2,8 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -67,7 +71,9 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp)),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
@@ -81,7 +87,10 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
                     // Profile Image
                     Card(
                         shape = RoundedCornerShape(50),
-                        modifier = Modifier.size(120.dp)
+                        modifier = Modifier.size(160.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
                     ) {
                         Box {
                             AsyncImage(
@@ -99,7 +108,8 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
                             ) {
                                 Icon(
                                     imageVector = if (selectedImageUri != null) Icons.Default.Edit else Icons.Default.Add,
-                                    contentDescription = "Cambiar foto"
+                                    contentDescription = "Cambiar foto",
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
@@ -122,9 +132,13 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
                         onValueChange = { desc = it },
                         label = { Text("Biografía") },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.primary
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     )
 
@@ -146,6 +160,9 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
             onDismissRequest = { showDialog = false },
             title = { Text("Confirmación") },
             text = { Text("¿Estás seguro de que deseas guardar los cambios?") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             confirmButton = {
                 Button(
                     onClick = {
