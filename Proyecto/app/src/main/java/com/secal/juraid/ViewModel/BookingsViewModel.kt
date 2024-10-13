@@ -145,7 +145,7 @@ data class BookingInsert(
     val fecha: String,
     val hora: String,
     val id_region: Int,
-    val estado_cita: Boolean? = null,
+    val estado_cita: Boolean? = true,
     val id_situacion: Int,
     val id_usuario: String
 )
