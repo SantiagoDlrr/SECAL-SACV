@@ -21,7 +21,10 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AccessAlarms
 import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +48,7 @@ import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.Booking
 import com.secal.juraid.ViewModel.BookingsViewModel
+import com.secal.juraid.ViewModel.NumberedBooking
 import com.secal.juraid.ViewModel.UserViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -52,13 +56,12 @@ import java.util.Date
 import java.util.Locale
 
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun BookingsView(
     navController: NavController,
-    bookingsViewModel : BookingsViewModel
+    bookingsViewModel: BookingsViewModel
 ) {
-    val bookings by bookingsViewModel.bookings.collectAsState()
+    val filteredBookings by bookingsViewModel.filteredBookings.collectAsState()
     val isLoading by bookingsViewModel.isLoading.collectAsState()
 
     Scaffold(
@@ -73,18 +76,26 @@ fun BookingsView(
                 CircularProgressIndicator()
             }
         } else {
-            AppointmentList(
-                bookings = bookings,
-                modifier = Modifier.padding(paddingValues)
-            )
+            if (filteredBookings.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No tienes citas programadas.")
+                }
+            } else {
+                AppointmentList(
+                    numberedBookings = filteredBookings,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
         }
     }
 }
 
-
 @Composable
 fun AppointmentList(
-    bookings: List<Booking>,
+    numberedBookings: List<NumberedBooking>,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -92,17 +103,18 @@ fun AppointmentList(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(16.dp)
     ) {
-        items(bookings) { booking ->
-            AppointmentCard(booking = booking)
+        items(numberedBookings) { numberedBooking ->
+            AppointmentCard(numberedBooking = numberedBooking)
         }
     }
 }
 
 @Composable
 fun AppointmentCard(
-    booking: Booking,
+    numberedBooking: NumberedBooking,
     modifier: Modifier = Modifier
 ) {
+    val booking = numberedBooking.booking
     val isExpired = isAppointmentExpired(booking.fecha)
 
     val (backgroundColor, statusText, statusColor) = when {
@@ -128,11 +140,6 @@ fun AppointmentCard(
         )
     }
 
-    // Format the date to Spanish format
-    val formattedDate = formatToSpanishDate(booking.fecha)
-    // Format the time to show duration
-    val timeRange = formatTimeRange(booking.hora)
-
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -146,14 +153,14 @@ fun AppointmentCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header row with ID and Status
+            // Header row with booking number and Status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Detalles de la Cita #${booking.id}",
+                    text = "Cita #${numberedBooking.number}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -195,74 +202,96 @@ fun AppointmentCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Situation type
-            val situacionText = when (booking.id_situacion) {
-                1 -> "Víctima"
-                2 -> "Investigado"
-                else -> "No especificado"
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = situacionText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            if (booking.estado_cita == false) {
+                // Display cancellation reason
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Motivo de cancelación: ${booking.motivo_cancelacion ?: "No especificado"}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                // Situation type
+                val situacionText = when (booking.id_situacion) {
+                    1 -> "Víctima"
+                    2 -> "Investigado"
+                    else -> "No especificado"
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = situacionText,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Date row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                // Date row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.DateRange,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formatToSpanishDate(booking.fecha),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // Time range row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.AccountBox, // You might want to use a different icon for time
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = timeRange,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // Time range row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.AccessAlarms,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formatTimeRange(booking.hora),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
 }
+
 
 // Add these utility functions outside the composable
 private fun formatToSpanishDate(dateStr: String): String {

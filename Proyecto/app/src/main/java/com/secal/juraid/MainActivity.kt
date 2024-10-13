@@ -304,14 +304,16 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
         }
         composable(Routes.helpVw) {
+            val uvm = remember {UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
             val scheduleViewModel = remember { ScheduleViewModel() }
-            val bookingsViewModel = remember { BookingsViewModel() }
+            val bookingsViewModel = remember { BookingsViewModel(uvm) }
             val userViewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))}
 
             HelpView(navController = navController, viewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
         composable(Routes.bookingsVw) {
-            val bookingsViewModel = remember { BookingsViewModel() }
+            val uvm = remember {UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
+            val bookingsViewModel = remember { BookingsViewModel(uvm) }
             BookingsView(
                 navController = navController, bookingsViewModel = bookingsViewModel
             )

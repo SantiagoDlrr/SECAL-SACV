@@ -10,19 +10,42 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class BookingsViewModel : ViewModel() {
+class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() {
     private val _bookings = MutableStateFlow<List<Booking>>(emptyList())
-    val bookings: StateFlow<List<Booking>> = _bookings.asStateFlow()
+    private val _filteredBookings = MutableStateFlow<List<NumberedBooking>>(emptyList())
+    val filteredBookings: StateFlow<List<NumberedBooking>> = _filteredBookings.asStateFlow()
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
         loadAllData()
+        setupFilteredBookings()
+    }
+
+    private fun setupFilteredBookings() {
+        viewModelScope.launch {
+            combine(_bookings, userViewModel.userId) { bookings, userId ->
+                bookings.filter { it.id_usuario == userId }
+                    .sortedByDescending { parseDate(it.fecha) }
+                    .mapIndexed { index, booking ->
+                        NumberedBooking(
+                            booking = booking,
+                            number = bookings.size - index
+                        )
+                    }
+            }.collect { filteredSortedBookings ->
+                _filteredBookings.value = filteredSortedBookings
+            }
+        }
     }
 
     fun loadAllData() {
@@ -39,14 +62,17 @@ class BookingsViewModel : ViewModel() {
     }
 
     private suspend fun loadBookings() {
-        if (_bookings.value.isEmpty()) {
-            try {
-                val fetchedBookings = getBookingsFromDatabase()
-                _bookings.value = fetchedBookings
-            } catch (e: Exception) {
-                Log.e("BookingsViewModel", "Error loading bookings: ${e.message}", e)
-            }
+        try {
+            val fetchedBookings = getBookingsFromDatabase()
+            _bookings.value = fetchedBookings
+        } catch (e: Exception) {
+            Log.e("BookingsViewModel", "Error loading bookings: ${e.message}", e)
         }
+    }
+
+    private fun parseDate(dateString: String): Date {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return formatter.parse(dateString) ?: Date()
     }
 
     private suspend fun getBookingsFromDatabase(): List<Booking> {
@@ -145,7 +171,7 @@ data class BookingInsert(
     val fecha: String,
     val hora: String,
     val id_region: Int,
-    val estado_cita: Boolean? = true,
+    val estado_cita: Boolean = true,
     val id_situacion: Int,
     val id_usuario: String
 )
@@ -160,5 +186,11 @@ data class Booking(
     val id_region: Int,
     val estado_cita: Boolean?,
     val id_situacion: Int,
-    val id_usuario: String
+    val id_usuario: String,
+    val motivo_cancelacion: String? = null
+)
+
+data class NumberedBooking(
+    val booking: Booking,
+    val number: Int
 )

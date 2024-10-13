@@ -45,7 +45,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.secal.juraid.ui.theme.Primary
 
-
 // Schedule Components
 @Composable
 fun DateCard(
