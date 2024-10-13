@@ -80,7 +80,6 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
 
         // Card para activar/desactivar la autenticación biométrica
         Card(
-            onClick = {},
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clip(RoundedCornerShape(16.dp)),
@@ -110,12 +109,17 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
                             putBoolean("biometric_enabled", isChecked)
                             apply()
                         }
-                    }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.primary,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        uncheckedTrackColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f)
+                    ),
                 )
             }
         }
 
-        Spacer(modifier = Modifier.padding(16.dp))
 
         // Card para cerrar sesión
         Card(
