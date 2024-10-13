@@ -20,7 +20,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -39,19 +38,17 @@ import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
-import com.secal.juraid.ViewModel.CasesViewModel
-import com.secal.juraid.ViewModel.unitInvestigation
-import kotlinx.coroutines.launch
+import com.secal.juraid.ViewModel.HomeViewModel
 
 @Composable
-fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesViewModel()) {
-    val unitInvestigations by viewModel.unitInvestigations.collectAsState()
+fun CategoriasView(navController: NavController, viewModel: HomeViewModel = HomeViewModel()) {
+    val categories by viewModel.categories.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var editingUnit by remember { mutableStateOf<unitInvestigation?>(null) }
-    var deletingUnit by remember { mutableStateOf<unitInvestigation?>(null) }
+    var editingCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
+    var deletingCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -59,7 +56,7 @@ fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesV
         topBar = { TopBar() },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir unidad")
+                Icon(Icons.Default.Add, contentDescription = "Añadir categoría")
             }
         }
     ) { innerPadding ->
@@ -68,23 +65,22 @@ fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesV
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
-            TitlesView(title = "Edita las unidades de investigación")
+            TitlesView(title = "Gestión de Categorías")
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = 8.dp)
-
             ) {
-                items(unitInvestigations) { unit ->
-                    UnitInvestigationItem(
-                        unit = unit,
+                items(categories) { category ->
+                    CategoryItem(
+                        category = category,
                         onEditClick = {
-                            editingUnit = unit
+                            editingCategory = category
                             showEditDialog = true
                         },
                         onDeleteClick = {
-                            deletingUnit = unit
+                            deletingCategory = category
                             showDeleteDialog = true
                         }
                     )
@@ -92,53 +88,45 @@ fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesV
                 }
             }
             if (showAddDialog) {
-                UnitInvestigationDialog(
-                    title = "Añadir Unidad de Investigación",
+                CategoryDialog(
+                    title = "Añadir Categoría",
                     onDismiss = { showAddDialog = false },
-                    onConfirm = { nombre, direccion ->
-                        scope.launch {
-                            viewModel.addUnitInvestigation(nombre, direccion)
-                            showAddDialog = false
-                        }
+                    onConfirm = { name ->
+                        viewModel.addCategory(name)
+                        showAddDialog = false
                     }
                 )
             }
-            if (showEditDialog && editingUnit != null) {
-                UnitInvestigationDialog(
-                    title = "Editar Unidad de Investigación",
-                    initialNombre = editingUnit!!.nombre,
-                    initialDireccion = editingUnit!!.direccion,
+            if (showEditDialog && editingCategory != null) {
+                CategoryDialog(
+                    title = "Editar Categoría",
+                    initialName = editingCategory!!.name_category,
                     onDismiss = {
                         showEditDialog = false
-                        editingUnit = null
+                        editingCategory = null
                     },
-                    onConfirm = { nombre, direccion ->
-                        scope.launch {
-                            viewModel.updateUnitInvestigation(editingUnit!!.id, nombre, direccion)
-                            showEditDialog = false
-                            editingUnit = null
-                        }
+                    onConfirm = { name ->
+                        viewModel.updateCategory(editingCategory!!.ID_Category, name)
+                        showEditDialog = false
+                        editingCategory = null
                     }
                 )
             }
-            if (showDeleteDialog && deletingUnit != null) {
-                DeleteConfirmationDialog(
-                    unitName = deletingUnit!!.nombre,
+            if (showDeleteDialog && deletingCategory != null) {
+                DeleteConDialog(
+                    categoryName = deletingCategory!!.name_category,
                     onConfirm = {
-                        scope.launch {
-                            viewModel.deleteUnitInvestigation(deletingUnit!!.id)
-                            showDeleteDialog = false
-                            deletingUnit = null
-                        }
+                        viewModel.deleteCategory(deletingCategory!!.ID_Category)
+                        showDeleteDialog = false
+                        deletingCategory = null
                     },
                     onDismiss = {
                         showDeleteDialog = false
-                        deletingUnit = null
+                        deletingCategory = null
                     }
                 )
             }
 
-            // Nuevo diálogo para mostrar mensajes de error
             errorMessage?.let { message ->
                 AlertDialog(
                     onDismissRequest = { viewModel.clearErrorMessage() },
@@ -156,31 +144,8 @@ fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesV
 }
 
 @Composable
-fun DeleteConfirmationDialog(
-    unitName: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Confirmar eliminación") },
-        text = { Text("¿Estás seguro de que quieres eliminar la unidad '$unitName'?") },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Eliminar")
-            }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        }
-    )
-}
-
-@Composable
-fun UnitInvestigationItem(
-    unit: unitInvestigation,
+fun CategoryItem(
+    category: HomeViewModel.Category,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
@@ -194,10 +159,11 @@ fun UnitInvestigationItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = unit.nombre, style = MaterialTheme.typography.titleMedium)
-                Text(text = unit.direccion, style = MaterialTheme.typography.bodyMedium)
-            }
+            Text(
+                text = category.name_category,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
             IconButton(onClick = onEditClick) {
                 Icon(Icons.Default.Edit, contentDescription = "Editar")
             }
@@ -209,53 +175,54 @@ fun UnitInvestigationItem(
 }
 
 @Composable
-fun UnitInvestigationDialog(
+fun CategoryDialog(
     title: String,
-    initialNombre: String = "",
-    initialDireccion: String = "",
+    initialName: String = "",
     onDismiss: () -> Unit,
-    onConfirm: (nombre: String, direccion: String) -> Unit
+    onConfirm: (name: String) -> Unit
 ) {
-    var nombre by remember { mutableStateOf(initialNombre) }
-    var direccion by remember { mutableStateOf(initialDireccion) }
-    var isLoading by remember { mutableStateOf(false) }
+    var name by remember { mutableStateOf(initialName) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
-                    label = { Text("Nombre") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = direccion,
-                    onValueChange = { direccion = it },
-                    label = { Text("Dirección") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                if (isLoading) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp)
-                    )
-                }
-            }
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre de la categoría") },
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         confirmButton = {
             Button(
-                onClick = {
-                    isLoading = true
-                    onConfirm(nombre, direccion)
-                },
-                enabled = !isLoading
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank()
             ) {
                 Text("Guardar")
+            }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun DeleteConDialog(
+    categoryName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar eliminación") },
+        text = { Text("¿Estás seguro de que quieres eliminar la categoría '$categoryName'?") },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text("Eliminar")
             }
         },
         dismissButton = {

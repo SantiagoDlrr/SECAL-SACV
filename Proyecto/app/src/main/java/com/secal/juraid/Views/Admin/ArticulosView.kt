@@ -42,6 +42,10 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.reloadData() // Asegura que los datos se carguen al entrar en la vista
+    }
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { BottomBar(navController = navController) },
@@ -68,7 +72,17 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
                         .padding(16.dp)
                 ) {
                     TitlesView(title = "Artículos Publicados")
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { navController.navigate(Routes.categoriasVw) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Text("Categorías")
+                    }
+                    //Spacer(modifier = Modifier.width(16.dp))
+
                     ArticulosLista(navController = navController, items = contentItems)
                 }
             }
