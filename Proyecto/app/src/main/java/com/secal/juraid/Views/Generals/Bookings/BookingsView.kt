@@ -19,7 +19,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.sharp.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +47,7 @@ import com.secal.juraid.ViewModel.Booking
 import com.secal.juraid.ViewModel.BookingsViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -103,26 +107,31 @@ fun AppointmentCard(
 
     val (backgroundColor, statusText, statusColor) = when {
         isExpired -> Triple(
-            Color(0xFFE8E8E8), // Light grey for expired
+            Color(0xFFE8E8E8),
             "Expirada",
-            Color(0xFF6E6E6E) // Darker grey for text
+            Color(0xFF6E6E6E)
         )
         booking.estado_cita == true -> Triple(
-            Color(0xFFF5F7FA), // Light blue-grey like in the image
+            Color(0xFFF5F7FA),
             "Confirmado",
-            Color(0xFF4CAF50) // Green
+            Color(0xFF4CAF50)
         )
         booking.estado_cita == false -> Triple(
-            Color(0xFFF5F7FA), // Light blue-grey like in the image
+            Color(0xFFF5F7FA),
             "Cancelado",
-            Color(0xFFE53935) // Red
+            Color(0xFFE53935)
         )
         else -> Triple(
-            Color(0xFFF5F7FA), // Light blue-grey like in the image
+            Color(0xFFF5F7FA),
             "Pendiente",
-            Color(0xFF42A5F5) // Blue
+            Color(0xFF42A5F5)
         )
     }
+
+    // Format the date to Spanish format
+    val formattedDate = formatToSpanishDate(booking.fecha)
+    // Format the time to show duration
+    val timeRange = formatTimeRange(booking.hora)
 
     Card(
         modifier = modifier
@@ -144,7 +153,7 @@ fun AppointmentCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Cita #${booking.id}",
+                    text = "Detalles de la Cita #${booking.id}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -212,46 +221,84 @@ fun AppointmentCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Date and time row
+            // Date row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = booking.fecha,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = booking.hora,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Time range row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AccountBox, // You might want to use a different icon for time
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = timeRange,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
+}
+
+// Add these utility functions outside the composable
+private fun formatToSpanishDate(dateStr: String): String {
+    val inputFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val date = inputFormatter.parse(dateStr) ?: return dateStr
+
+    val dayOfWeekFormatter = SimpleDateFormat("EEEE", Locale("es", "ES"))
+    val dayFormatter = SimpleDateFormat("d", Locale.getDefault())
+    val monthFormatter = SimpleDateFormat("MMMM", Locale("es", "ES"))
+
+    val dayOfWeek = dayOfWeekFormatter.format(date).capitalize()
+    val day = dayFormatter.format(date)
+    val month = monthFormatter.format(date).capitalize()
+
+    return "$dayOfWeek $day de $month"
+}
+
+private fun formatTimeRange(startTime: String): String {
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val startDate = timeFormatter.parse(startTime) ?: return startTime
+
+    // Add one hour to get end time
+    val calendar = Calendar.getInstance()
+    calendar.time = startDate
+    calendar.add(Calendar.HOUR_OF_DAY, 1)
+    val endDate = calendar.time
+
+    val startTimeStr = timeFormatter.format(startDate)
+    val endTimeStr = timeFormatter.format(endDate)
+
+    return "$startTimeStr - $endTimeStr"
+}
+
+// Extension function to capitalize first letter
+private fun String.capitalize(): String {
+    return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 }
 
 private fun isAppointmentExpired(fecha: String): Boolean {
