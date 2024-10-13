@@ -1,8 +1,6 @@
 package com.secal.juraid.Views.Admin
 
 import CaseDetailViewModel
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

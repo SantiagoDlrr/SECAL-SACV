@@ -87,7 +87,10 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
                     // Profile Image
                     Card(
                         shape = RoundedCornerShape(50),
-                        modifier = Modifier.size(160.dp)
+                        modifier = Modifier.size(160.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )
                     ) {
                         Box {
                             AsyncImage(
@@ -105,7 +108,8 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
                             ) {
                                 Icon(
                                     imageVector = if (selectedImageUri != null) Icons.Default.Edit else Icons.Default.Add,
-                                    contentDescription = "Cambiar foto"
+                                    contentDescription = "Cambiar foto",
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
@@ -156,6 +160,9 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
             onDismissRequest = { showDialog = false },
             title = { Text("Confirmación") },
             text = { Text("¿Estás seguro de que deseas guardar los cambios?") },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            titleContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            textContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             confirmButton = {
                 Button(
                     onClick = {

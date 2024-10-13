@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
@@ -17,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -29,7 +27,6 @@ import com.secal.juraid.ViewModel.Case
 import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.CitasViewModel
 import com.secal.juraid.ViewModel.UserViewModel
-import com.secal.juraid.Views.Admin.SuitViews.StatusChip
 import com.secal.juraid.supabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
