@@ -107,6 +107,7 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
         fecha: String,
         hora: String,
         idRegion: Int,
+        estado_cita: Boolean,
         idSituacion: Int,
         id_usuario: String
     ) {
@@ -118,6 +119,7 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
                     fecha = fecha,
                     hora = hora,
                     id_region = idRegion,
+                    estado_cita = estado_cita,
                     id_situacion = idSituacion,
                     id_usuario = id_usuario
                 )
@@ -171,7 +173,7 @@ data class BookingInsert(
     val fecha: String,
     val hora: String,
     val id_region: Int,
-    val estado_cita: Boolean = true,
+    val estado_cita: Boolean,
     val id_situacion: Int,
     val id_usuario: String
 )

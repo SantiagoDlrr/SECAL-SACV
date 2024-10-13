@@ -336,6 +336,7 @@ fun CasoFormView(
                                         fecha = appointmentDate,
                                         hora = appointmentTime,
                                         idRegion = getRegionId(selectedOption),
+                                        estado_cita = true,
                                         idSituacion = getSituationId(selectedSituation),
                                         id_usuario = userId
                                     )
