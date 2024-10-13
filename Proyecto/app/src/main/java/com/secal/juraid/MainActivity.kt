@@ -67,6 +67,7 @@ import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
 import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
+import com.secal.juraid.Views.Admin.SuitViews.CategoriasView
 import com.secal.juraid.Views.Admin.SuitViews.InvUnitView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.BaseViews.FAQView
@@ -376,7 +377,10 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             val homeViewModel = viewModel<HomeViewModel>()
             ArticulosView(navController = navController, homeViewModel)
         }
-
+        composable(Routes.categoriasVw) {
+            val homeViewModel = viewModel<HomeViewModel>()
+            CategoriasView(navController = navController, homeViewModel)
+        }
         composable(
             "articulo_detail_view/{itemJson}",
             arguments = listOf(navArgument("itemJson") { type = NavType.StringType })

@@ -32,6 +32,9 @@ class HomeViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
     init {
         loadAllData()
     }
@@ -51,14 +54,73 @@ class HomeViewModel : ViewModel() {
     }
 
     suspend fun loadCategories() {
-        if (_categories.value.isEmpty()) {
+        try {
+            val fetchedCategories = getCategoriesFromDatabase()
+            _categories.value = fetchedCategories
+        } catch (e: Exception) {
+            Log.e("HomeViewModel", "Error loading categories: ${e.message}", e)
+        }
+    }
+
+    fun addCategory(name: String) {
+        viewModelScope.launch {
             try {
-                val fetchedCategories = getCategoriesFromDatabase()
-                _categories.value = fetchedCategories
+                val newCategory = CategoryInsert(name_category = name)
+                withContext(Dispatchers.IO) {
+                    supabase.from("Categories")
+                        .insert(newCategory)
+                }
+
+                loadCategories()
             } catch (e: Exception) {
-                Log.e("HomeViewModel", "Error loading categories: ${e.message}", e)
+                Log.e("HomeViewModel", "Error adding category: ${e.message}", e)
+                _errorMessage.value = "Error al añadir categoría: ${e.message}"
             }
         }
+    }
+
+    fun updateCategory(id: Int, name: String) {
+        viewModelScope.launch {
+            try {
+                val updatedCategory = CategoryInsert(name_category = name)
+                withContext(Dispatchers.IO) {
+                    supabase.from("Categories")
+                        .update(updatedCategory) { filter { eq("ID_Category", id) } }
+                }
+
+                loadCategories()
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error updating category: ${e.message}", e)
+                _errorMessage.value = "Error al actualizar categoría: ${e.message}"
+            }
+        }
+    }
+
+    fun deleteCategory(id: Int) {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    supabase.from("Categories")
+                        .delete { filter { eq("ID_Category", id) } }
+                }
+
+                loadCategories()
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error deleting category: ${e.message}", e)
+                when {
+                    e.message?.contains("violates foreign key constraint") == true -> {
+                        _errorMessage.value = "No se puede eliminar esta categoría porque está siendo utilizada por uno o más artículos."
+                    }
+                    else -> {
+                        _errorMessage.value = "Error al eliminar la categoría: ${e.message}"
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     private suspend fun loadContentPreviews() {
@@ -302,6 +364,11 @@ class HomeViewModel : ViewModel() {
     @Serializable
     data class Category(
         val ID_Category: Int,
+        val name_category: String
+    )
+
+    @Serializable
+    data class CategoryInsert(
         val name_category: String
     )
 }

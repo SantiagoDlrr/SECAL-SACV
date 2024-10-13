@@ -68,7 +68,17 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
                         .padding(16.dp)
                 ) {
                     TitlesView(title = "Artículos Publicados")
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { navController.navigate(Routes.categoriasVw) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        Text("Categorías")
+                    }
+                    //Spacer(modifier = Modifier.width(16.dp))
+
                     ArticulosLista(navController = navController, items = contentItems)
                 }
             }
