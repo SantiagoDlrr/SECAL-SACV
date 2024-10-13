@@ -19,6 +19,7 @@ object Routes {
 
     var suitVw = "suit_view"
     var casosVw = "casos_view"
+    var invUnitVw = "inv_unit_view"
     var espaciosVw = "espacios_view"
     var alumnosVw = "alumnos_view"
 
