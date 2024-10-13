@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesViewModel()) {
     val unitInvestigations by viewModel.unitInvestigations.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -133,6 +134,20 @@ fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesV
                     onDismiss = {
                         showDeleteDialog = false
                         deletingUnit = null
+                    }
+                )
+            }
+
+            // Nuevo diálogo para mostrar mensajes de error
+            errorMessage?.let { message ->
+                AlertDialog(
+                    onDismissRequest = { viewModel.clearErrorMessage() },
+                    title = { Text("Error") },
+                    text = { Text(message) },
+                    confirmButton = {
+                        Button(onClick = { viewModel.clearErrorMessage() }) {
+                            Text("Aceptar")
+                        }
                     }
                 )
             }

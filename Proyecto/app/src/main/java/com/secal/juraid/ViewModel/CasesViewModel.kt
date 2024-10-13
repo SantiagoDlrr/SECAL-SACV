@@ -44,6 +44,9 @@ class CasesViewModel : ViewModel() {
     private val _assignedCasesForStudent = MutableStateFlow<Map<String, List<Case>>>(emptyMap())
     val assignedCasesForStudent: StateFlow<Map<String, List<Case>>> = _assignedCasesForStudent.asStateFlow()
 
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
 
     init {
         loadAllData()
@@ -300,10 +303,23 @@ class CasesViewModel : ViewModel() {
                         .delete { filter { eq("id", id) } }
                 }
                 _unitInvestigations.value = _unitInvestigations.value.filter { it.id != id }
+                _errorMessage.value = null
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error deleting unit investigation", e)
+                when {
+                    e.message?.contains("violates foreign key constraint") == true -> {
+                        _errorMessage.value = "No se puede eliminar esta unidad porque está siendo utilizada por uno o más casos."
+                    }
+                    else -> {
+                        _errorMessage.value = "Error al eliminar la unidad de investigación: ${e.message}"
+                    }
+                }
             }
         }
+    }
+
+    fun clearErrorMessage() {
+        _errorMessage.value = null
     }
 
     private suspend fun getHiperlinksFromDatabase(): List<Hiperlink> {
