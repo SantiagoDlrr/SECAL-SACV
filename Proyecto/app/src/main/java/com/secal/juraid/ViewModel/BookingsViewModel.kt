@@ -184,7 +184,7 @@ data class Booking(
     val fecha: String,
     val hora: String,
     val id_region: Int,
-    val estado_cita: Boolean?,
+    val estado_cita: Boolean,
     val id_situacion: Int,
     val id_usuario: String,
     val motivo_cancelacion: String? = null
