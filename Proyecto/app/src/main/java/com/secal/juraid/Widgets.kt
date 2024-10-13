@@ -1,6 +1,10 @@
 package com.secal.juraid
 
 import android.net.Uri
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -15,12 +19,15 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +48,7 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.storage.Storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -80,6 +88,66 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
         }
     }
 }
+
+@Composable
+fun AnimatedHelpButton(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
+    val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
+    val isLogged = sessionState is SessionStatus.Authenticated
+    val isExpanded = remember { mutableStateOf(false) }
+    val animatedWidth by animateDpAsState(
+        targetValue = if (isExpanded.value) 160.dp else 56.dp,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+    )
+    val textAlpha by animateFloatAsState(
+        targetValue = if (isExpanded.value) 1f else 0f,
+        animationSpec = tween(durationMillis = 300)
+    )
+
+    LaunchedEffect(Unit) {
+        delay(500) // Pequeña pausa antes de iniciar la animación
+        isExpanded.value = true
+        delay(2000)
+        isExpanded.value = false
+    }
+
+    FloatingActionButton(
+        onClick = {
+            if (isLogged) {
+                navController.navigate(Routes.helpVw)
+            } else {
+                navController.navigate(Routes.userVw)
+            }
+        },
+        modifier = modifier
+            .padding(16.dp)
+            .width(animatedWidth)
+            .height(56.dp),
+        containerColor = MaterialTheme.colorScheme.primary,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = "Necesito Ayuda",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Solicitar cita",
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.alpha(textAlpha),
+                maxLines = 1
+            )
+        }
+    }
+}
+
 
 @Composable
 fun BottomBar(navController: NavController) {
@@ -262,13 +330,14 @@ fun TitlesView(title: String){
         horizontalAlignment = Alignment.CenterHorizontally,
 
     ) {
-
         Text(
             text = title,
             fontSize = 35.sp,
             modifier = Modifier.padding(8.dp),
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge
+            style = MaterialTheme.typography.titleLarge.copy(
+                lineHeight = 44.sp  // Aumentado el espaciado entre líneas
+            )
         )
     }
 }

@@ -1,3 +1,4 @@
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.foundation.Image
@@ -14,15 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
+import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.R
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
+import com.secal.juraid.supabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 
 @Composable
@@ -33,6 +40,17 @@ fun AlumnosView(
     val students by viewModel.students.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var showAddStudentDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
+    val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+
+    val profViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(application, userRepository)
+    )
+
+
+    val profileData by profViewModel.profileData.collectAsState()
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
