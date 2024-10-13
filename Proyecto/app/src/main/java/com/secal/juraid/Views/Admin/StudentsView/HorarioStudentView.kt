@@ -4,6 +4,7 @@ import AlumnosViewModel
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,6 +35,7 @@ import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.UserViewModel
+import com.secal.juraid.Views.Admin.SuitViews.FullScreenHorario
 
 @Composable
 fun HorarioStudentView(
@@ -48,6 +50,7 @@ fun HorarioStudentView(
 
     val horarioUrl by alumnosViewModel.horarioUrl.collectAsState()
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var isFullScreen by remember { mutableStateOf(false) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -90,7 +93,8 @@ fun HorarioStudentView(
                             contentDescription = "Horario del estudiante",
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(400.dp),
+                                .height(400.dp)
+                                .clickable { isFullScreen = true },
                             contentScale = ContentScale.Fit
                         )
                         Button(
@@ -127,6 +131,12 @@ fun HorarioStudentView(
                     }
                 }
             }
+        }
+        if (isFullScreen) {
+            FullScreenHorario(
+                horarioUrl = selectedImageUri?.toString() ?: horarioUrl,
+                onDismiss = { isFullScreen = false }
+            )
         }
     }
 }

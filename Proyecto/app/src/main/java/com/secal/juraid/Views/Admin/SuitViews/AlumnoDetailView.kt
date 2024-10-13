@@ -2,13 +2,18 @@ package com.secal.juraid.Views.Admin.SuitViews
 
 import AlumnosViewModel
 import Student
+import android.content.res.Configuration
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -16,7 +21,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,9 +66,10 @@ fun AlumnoDetailView(
                 casesViewModel = casesViewModel,
                 modifier = Modifier.padding(innerPadding)
             )
-        } ?: Text(
-            "Cargando detalles del estudiante...",
-            modifier = Modifier.padding(innerPadding)
+        } ?: CircularProgressIndicator(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
         )
     }
 }
@@ -83,6 +91,7 @@ private fun AlumnoDetailContent(
 
     val alumnosViewModel: AlumnosViewModel = viewModel()
     var horarioDialog by remember { mutableStateOf(false) }
+    var isFullScreen by remember { mutableStateOf(false) }
     val horarioUrl by alumnosViewModel.horarioUrl.collectAsState()
 
     LaunchedEffect(student.id) {
@@ -205,45 +214,86 @@ private fun AlumnoDetailContent(
     }
 
     if (horarioDialog) {
-        AlertDialog(
-            onDismissRequest = { horarioDialog = false },
-            title = { Text("Horario de ${student.name}") },
-            text = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp) // Adjust the height as needed
-                ) {
-                    if (horarioUrl != null) {
-                        AsyncImage(
-                            model = horarioUrl,
-                            contentDescription = "Horario del estudiante",
-                            modifier = Modifier
-                                .size(400.dp)
-                                .clip(RoundedCornerShape(10.dp)),
-                            contentScale = ContentScale.Fit
-                        )
-                    } else {
-                        Text("No se pudo cargar el horario")
-                    }
-
-                    /*CircularProgressIndicator(
+        if (isFullScreen) {
+            FullScreenHorario(horarioUrl = horarioUrl, onDismiss = { isFullScreen = false })
+        } else {
+            AlertDialog(
+                onDismissRequest = { horarioDialog = false },
+                title = { Text("Horario de ${student.name}") },
+                text = {
+                    Box(
                         modifier = Modifier
-                            .size(50.dp)
-                            .align(Alignment.Center)
-                    )*/
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        horarioDialog = false
+                            .fillMaxWidth()
+                            .height(300.dp) // Adjust the height as needed
+                    ) {
+                        if (horarioUrl != null) {
+                            AsyncImage(
+                                model = horarioUrl,
+                                contentDescription = "Horario del estudiante",
+                                modifier = Modifier
+                                    .size(400.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { isFullScreen = true },
+                                contentScale = ContentScale.Fit
+                            )
+                        } else {
+                            Text("No se pudo cargar el horario")
+                        }
                     }
-                ) {
-                    Text("Cerrar")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            horarioDialog = false
+                        }
+                    ) {
+                        Text("Cerrar")
+                    }
                 }
-            }
-        )
+            )
+        }
+    }
+}
+
+@Composable
+fun FullScreenHorario(horarioUrl: String?, onDismiss: () -> Unit) {
+    val configuration = LocalConfiguration.current
+    DisposableEffect(configuration) {
+        val originalOrientation = configuration.orientation
+        configuration.orientation = Configuration.ORIENTATION_LANDSCAPE
+        onDispose {
+            configuration.orientation = originalOrientation
+        }
+    }
+
+    BackHandler {
+        onDismiss()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        if (horarioUrl != null) {
+            AsyncImage(
+                model = horarioUrl,
+                contentDescription = "Horario del estudiante en pantalla completa",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            Text("No se pudo cargar el horario", modifier = Modifier.align(Alignment.Center), color = Color.White)
+        }
+
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Cerrar pantalla completa", tint = Color.White)
+        }
     }
 }
 
