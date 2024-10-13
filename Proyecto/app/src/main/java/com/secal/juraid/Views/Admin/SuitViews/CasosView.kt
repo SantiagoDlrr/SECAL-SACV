@@ -270,7 +270,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 fun CitasPasadasView(viewModel: CitasViewModel) {
     val citasPasadas by viewModel.citasPasadas.collectAsState()
     var showRepresentarDialog by remember { mutableStateOf(false) }
-    var showNoRepresentarDialog by remember { mutableStateOf(false) }
+    var showRechazarDialog by remember { mutableStateOf(false) }
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
     LaunchedEffect(Unit) {
@@ -285,9 +285,9 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
                     selectedCita = cita
                     showRepresentarDialog = true
                 },
-                onNoRepresentar = {
+                onRechazar = {
                     selectedCita = cita
-                    showNoRepresentarDialog = true
+                    showRechazarDialog = true
                 }
             )
         }
@@ -300,8 +300,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
             text = { Text("¿Deseas aceptar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    // Lógica para aceptar la cita
-                    selectedCita?.let { viewModel.representarCita(it.id) }
+                    selectedCita?.let { viewModel.representarCita(it) }
                     showRepresentarDialog = false
                 }) {
                     Text("Aceptar")
@@ -315,22 +314,21 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
         )
     }
 
-    if (showNoRepresentarDialog) {
+    if (showRechazarDialog) {
         AlertDialog(
-            onDismissRequest = { showNoRepresentarDialog = false },
-            title = { Text("No representar") },
-            text = { Text("¿Deseas no representar este caso?") },
+            onDismissRequest = { showRechazarDialog = false },
+            title = { Text("Rechazar") },
+            text = { Text("¿Deseas rechazar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    // Lógica para rechazar la cita
-                    selectedCita?.let { viewModel.noRepresentarCita(it.id) }
-                    showNoRepresentarDialog = false
+                    selectedCita?.let { viewModel.rechazarCita(it.id) }
+                    showRechazarDialog = false
                 }) {
                     Text("Rechazar")
                 }
             },
             dismissButton = {
-                Button(onClick = { showNoRepresentarDialog = false }) {
+                Button(onClick = { showRechazarDialog = false }) {
                     Text("Cancelar")
                 }
             }
@@ -339,7 +337,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
 }
 
 @Composable
-fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onNoRepresentar: () -> Unit) {
+fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -352,7 +350,7 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onNoRepresent
             modifier = Modifier.fillMaxSize().padding(16.dp)
         ) {
             Column {
-                Text("${cita.nombre} ${cita.apellido}", fontWeight = FontWeight.Bold)
+                Text("${cita.nombre ?: ""} ${cita.apellido ?: ""}", fontWeight = FontWeight.Bold)
                 Text("Fecha: ${cita.fecha ?: "No disponible"}")
                 Text("Situación: ${CitasViewModel.Cita.getNombreSituacion(cita.id_situacion)}")
             }
@@ -361,8 +359,8 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onNoRepresent
                     Text("Representar")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onNoRepresentar) {
-                    Icon(Icons.Default.Close, contentDescription = "No representar")
+                IconButton(onClick = onRechazar) {
+                    Icon(Icons.Default.Close, contentDescription = "Rechazar")
                 }
             }
         }
