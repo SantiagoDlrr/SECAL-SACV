@@ -1,8 +1,12 @@
 package com.secal.juraid.ViewModel
 
+import NotificationService
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,6 +14,7 @@ import kotlinx.serialization.Serializable
 import com.secal.juraid.supabase
 import androidx.lifecycle.viewModelScope
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -18,7 +23,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class CasesViewModel : ViewModel() {
+class CasesViewModel(application: Application) : AndroidViewModel(application) {
     private val _cases = MutableStateFlow<List<Case>>(emptyList())
     val cases: StateFlow<List<Case>> = _cases.asStateFlow()
 
@@ -47,10 +52,50 @@ class CasesViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private val notificationService = NotificationService(application)
+
 
     init {
         loadAllData()
     }
+
+    private suspend fun sendNotificationToStudent(studentId: String, caseNUC: String) {
+        try {
+            val token = getStudentToken(studentId)
+            if (token != null) {
+                val title = "Nuevo caso asignado"
+                val message = "Se te ha asignado el caso con NUC: $caseNUC"
+                notificationService.sendNotification(token, title, message)
+                Log.d("CasesViewModel", "Notification sent successfully to student $studentId")
+            } else {
+                Log.w("CasesViewModel", "No se pudo enviar la notificación. Token no encontrado para el estudiante $studentId")
+            }
+        } catch (e: Exception) {
+            Log.e("CasesViewModel", "Error sending notification to student $studentId", e)
+        }
+    }
+
+    private suspend fun getStudentToken(studentId: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("id", studentId)
+                        }
+                    }
+                    .decodeSingle<FCMToken>()
+                result.fcm_token
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error getting student token", e)
+                null
+            }
+        }
+    }
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
 
     private suspend fun loadAssignedCases() {
         try {
@@ -93,6 +138,7 @@ class CasesViewModel : ViewModel() {
 
                     _assignedCases.value = _assignedCases.value + relation
                     updateAssignedCasesForStudent(studentId)
+                    sendNotificationToStudent(studentId, it.NUC)
                 }
             } catch (e: Exception) {
                 Log.e("CasesViewModel", "Error assigning case to student: ${e.message}", e)
@@ -403,8 +449,44 @@ class CasesViewModel : ViewModel() {
                         .decodeSingle<Case>()
                 }
 
+                notifyAllLawyers(insertedCase)
+
             } catch (e: Exception) {
                 Log.e(TAG, "Error adding case", e)
+            }
+        }
+    }
+
+    private suspend fun notifyAllLawyers(newCase: Case) {
+        val lawyerTokens = getAllLawyerTokens()
+        val title = "Nuevo caso creado"
+        val message = "Se ha creado un nuevo caso con NUC: ${newCase.NUC}"
+
+        lawyerTokens.forEach { token ->
+            try {
+                notificationService.sendNotification(token, title, message)
+                Log.d("CasesViewModel", "Notification sent successfully to lawyer")
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error sending notification to lawyer", e)
+            }
+        }
+    }
+
+    private suspend fun getAllLawyerTokens(): List<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("role", 1) // Asumiendo que el rol 1 corresponde a los abogados
+                        }
+                    }
+                    .decodeList<FCMToken>()
+                result.mapNotNull { it.fcm_token }
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error getting lawyer tokens", e)
+                emptyList()
             }
         }
     }
@@ -471,3 +553,13 @@ data class Hiperlink(
     val texto: String,
     val link: String
 )
+
+class CasesViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(CasesViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return CasesViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}

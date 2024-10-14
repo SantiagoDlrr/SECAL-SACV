@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Admin.SuitViews
 
+import android.app.Application
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,17 +35,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.CasesViewModel
+import com.secal.juraid.ViewModel.CasesViewModelFactory
 import com.secal.juraid.ViewModel.unitInvestigation
 import kotlinx.coroutines.launch
 
 @Composable
-fun InvUnitView(navController: NavController, viewModel: CasesViewModel = CasesViewModel()) {
+fun InvUnitView(
+    navController: NavController,
+    viewModelFactory: ViewModelProvider.Factory = CasesViewModelFactory(LocalContext.current.applicationContext as Application)
+) {
+    val viewModel: CasesViewModel = viewModel(factory = viewModelFactory)
     val unitInvestigations by viewModel.unitInvestigations.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }

@@ -41,7 +41,8 @@ fun CasosStudentView(
         Column(modifier = Modifier.padding(innerPadding)) {
             TabRow(
                 selectedTabIndex = selectedTabIndex,
-                modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp)
+                modifier = Modifier.padding(horizontal = 56.dp, vertical = 8.dp),
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 tabs.forEachIndexed { index, title ->
                     Tab(
