@@ -334,8 +334,8 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
         }
         composable(Routes.invUnitVw) {
-            val casesViewModel: CasesViewModel = viewModel()
-            InvUnitView(navController = navController, viewModel = casesViewModel)
+            val casesViewModelFactory = CasesViewModelFactory(LocalContext.current.applicationContext as Application)
+            InvUnitView(navController = navController, viewModelFactory = casesViewModelFactory)
         }
         composable(Routes.espaciosVw) {
             EspaciosView(navController = navController)
