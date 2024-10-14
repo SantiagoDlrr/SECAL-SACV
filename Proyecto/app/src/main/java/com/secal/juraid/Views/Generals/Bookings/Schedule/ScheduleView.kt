@@ -100,9 +100,13 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ScheduleDialog(viewModel: ScheduleViewModel) {
-    var selectedDate by remember { mutableStateOf<String?>(null) }
+    var selectedDate by remember { mutableStateOf(viewModel.availableDates.firstOrNull()) }
     var selectedTimeSlot by remember { mutableStateOf<TimeSlot?>(null) }
     val availableTimeSlots by viewModel.availableTimeSlots.collectAsState()
+
+    LaunchedEffect(Unit) {
+        selectedDate?.let { viewModel.updateAvailableTimeSlots(it) }
+    }
 
     LaunchedEffect(selectedDate) {
         selectedDate?.let { viewModel.updateAvailableTimeSlots(it) }
