@@ -55,7 +55,7 @@ fun CategoriasView(navController: NavController, viewModel: HomeViewModel = Home
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(onClick = { showAddDialog = true }, containerColor = MaterialTheme.colorScheme.primary) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir categoría")
             }
         }
@@ -206,7 +206,8 @@ fun CategoryDialog(
             Button(onClick = onDismiss) {
                 Text("Cancelar")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer
     )
 }
 
@@ -229,6 +230,7 @@ fun DeleteConDialog(
             Button(onClick = onDismiss) {
                 Text("Cancelar")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer
     )
 }

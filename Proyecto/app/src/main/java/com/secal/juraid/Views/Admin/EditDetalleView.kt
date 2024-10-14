@@ -216,7 +216,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
 
                         ExposedDropdownMenu(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            onDismissRequest = { expanded = false },
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             unitInvestigations.forEach { unidad ->
                                 DropdownMenuItem(
@@ -259,7 +260,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
 
                         ExposedDropdownMenu(
                             expanded = statusExpanded,
-                            onDismissRequest = { statusExpanded = false }
+                            onDismissRequest = { statusExpanded = false },
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
                         ) {
                             statusOptions.forEach { option ->
                                 DropdownMenuItem(
