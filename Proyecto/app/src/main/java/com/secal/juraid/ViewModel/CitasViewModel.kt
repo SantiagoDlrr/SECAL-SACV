@@ -76,13 +76,15 @@ class CitasViewModel : ViewModel() {
         }
     }
 
-    fun representarCita(cita: Cita, abogado: String) {
+    fun representarCita(cita: Cita, abogado: String?) {
         viewModelScope.launch {
             try {
 
+                val nombreAbogado = abogado ?: "Sin asignar"
+
                 // Crear nuevo caso en la tabla Cases
                 val newCase = CasesViewModel.CaseInsert(
-                    nombre_abogado = abogado,
+                    nombre_abogado = nombreAbogado,
                     nombre_cliente = "${cita.nombre} ${cita.apellido}",
                     NUC = "Sin información",
                     carpeta_judicial = "Sin información",

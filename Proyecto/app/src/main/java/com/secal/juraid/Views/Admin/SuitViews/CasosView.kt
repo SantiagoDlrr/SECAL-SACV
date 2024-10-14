@@ -26,6 +26,7 @@ import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.Case
 import com.secal.juraid.ViewModel.CasesViewModel
 import com.secal.juraid.ViewModel.CitasViewModel
+import com.secal.juraid.ViewModel.HomeViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.supabase
 import kotlinx.coroutines.CoroutineScope
@@ -247,12 +248,9 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
     var showRechazarDialog by remember { mutableStateOf(false) }
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
-    /*
-    val userViewModel: UserViewModel = viewModel()
+    val userViewModel = viewModel<UserViewModel>()
     val abogado by userViewModel.userName.collectAsState()
-    */
 
-    val abogado = "Abogado"
 
     LaunchedEffect(Unit) {
         viewModel.loadCitasPasadas()

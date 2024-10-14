@@ -324,6 +324,9 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
             val citasViewModel: CitasViewModel = viewModel()
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val userViewModelFactory = UserViewModelFactory(userRepository)
+            val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
             CasosView(
                 navController = navController,
                 viewModel = casesViewModel,
