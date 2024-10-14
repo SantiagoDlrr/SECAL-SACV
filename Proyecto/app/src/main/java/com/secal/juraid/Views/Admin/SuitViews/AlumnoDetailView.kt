@@ -48,9 +48,11 @@ fun AlumnoDetailView(
     val student by alumnosViewModel.getStudentById(studentId).collectAsState(initial = null)
     val assignedCases by casesViewModel.getAssignedCasesForStudent(studentId).collectAsState(initial = emptyList())
     val allCases by casesViewModel.cases.collectAsState()
+    val profilePictureUrl by alumnosViewModel.profilePictureUrl.collectAsState()
 
     LaunchedEffect(Unit) {
         casesViewModel.loadAllData()
+        alumnosViewModel.loadProfilePictureUrl(studentId)
     }
 
     Scaffold(
@@ -61,6 +63,7 @@ fun AlumnoDetailView(
             AlumnoDetailContent(
                 navController = navController,
                 student = studentData,
+                profilePictureUrl = profilePictureUrl,
                 assignedCases = assignedCases,
                 allCases = allCases,
                 casesViewModel = casesViewModel,
@@ -78,6 +81,7 @@ fun AlumnoDetailView(
 private fun AlumnoDetailContent(
     navController: NavController,
     student: Student,
+    profilePictureUrl: String?,
     assignedCases: List<Case>,
     allCases: List<Case>,
     casesViewModel: CasesViewModel,
@@ -110,7 +114,7 @@ private fun AlumnoDetailContent(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    StudentInfoSection(student)
+                    StudentInfoSection(student, profilePictureUrl)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -144,8 +148,7 @@ private fun AlumnoDetailContent(
                     if (assignedCases.isEmpty()) {
                         Text(
                             "No hay casos asignados",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     } else {
                         assignedCases.forEach { case ->
@@ -209,7 +212,8 @@ private fun AlumnoDetailContent(
                 Button(onClick = { showUnassignConfirmation = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
         )
     }
 
@@ -249,7 +253,8 @@ private fun AlumnoDetailContent(
                     ) {
                         Text("Cerrar")
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
             )
         }
     }
@@ -298,10 +303,10 @@ fun FullScreenHorario(horarioUrl: String?, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun StudentInfoSection(student: Student) {
+private fun StudentInfoSection(student: Student, profilePictureUrl: String?) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
+        AsyncImage(
+            model = profilePictureUrl ?: R.drawable.ic_launcher_background,
             contentDescription = "Foto del estudiante",
             modifier = Modifier
                 .size(100.dp)
@@ -362,7 +367,7 @@ fun AssignedCaseCard(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Cliente",
                     modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -390,36 +395,6 @@ fun AssignedCaseCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Carpeta Judicial",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = case.carpeta_judicial,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Fiscal Titular",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = case.fiscal_titular,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -504,7 +479,8 @@ private fun AssignCaseDialog(
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
-                        onDismissRequest = { expanded = false }
+                        onDismissRequest = { expanded = false },
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         nucList.forEach { nuc ->
                             DropdownMenuItem(
@@ -512,7 +488,7 @@ private fun AssignCaseDialog(
                                 onClick = {
                                     selectedNuc = nuc
                                     expanded = false
-                                }
+                                },
                             )
                         }
                     }

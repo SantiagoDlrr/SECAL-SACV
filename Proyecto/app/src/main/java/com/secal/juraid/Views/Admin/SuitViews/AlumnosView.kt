@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.R
@@ -39,18 +41,13 @@ fun AlumnosView(
 ) {
     val students by viewModel.students.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val profilePictures by viewModel.profilePictures.collectAsState()
     var showAddStudentDialog by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current
-    val application = context.applicationContext as Application
-    val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+    LaunchedEffect(students) {
+        viewModel.loadProfilePictures(students.map { it.id })
+    }
 
-    val profViewModel: ProfileViewModel = viewModel(
-        factory = ProfileViewModelFactory(application, userRepository)
-    )
-
-
-    val profileData by profViewModel.profileData.collectAsState()
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -84,7 +81,9 @@ fun AlumnosView(
                 else -> {
                     LazyColumn {
                         items(students) { student ->
-                            AlumnosCardView(student = student, navController = navController)
+                            AlumnosCardView(student = student,
+                                profilePictureUrl = profilePictures[student.id] ?: "",
+                                navController = navController)
                         }
                     }
                 }
@@ -119,13 +118,15 @@ fun AlumnosView(
 @Composable
 fun AlumnosCardView(
     student: Student,
+    profilePictureUrl: String,
     navController: NavController,
-    viewModel: AlumnosViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: AlumnosViewModel = viewModel()
 ) {
     var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
+
 
     Card(
         modifier = Modifier
@@ -143,9 +144,9 @@ fun AlumnosCardView(
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription = "Placeholder",
+            AsyncImage(
+                model = profilePictureUrl.ifEmpty { R.drawable.ic_launcher_background },
+                contentDescription = "Foto de perfil",
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(10.dp)),

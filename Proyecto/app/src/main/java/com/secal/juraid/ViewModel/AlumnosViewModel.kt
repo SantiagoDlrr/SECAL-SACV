@@ -132,6 +132,48 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
         return studentFlow
     }
 
+    private val _profilePictures = MutableStateFlow<Map<String, String>>(emptyMap())
+    val profilePictures: StateFlow<Map<String, String>> = _profilePictures.asStateFlow()
+    private val _profilePictureUrl = MutableStateFlow<String?>(null)
+    val profilePictureUrl: StateFlow<String?> = _profilePictureUrl.asStateFlow()
+
+    fun loadProfilePictures(studentIds: List<String>) {
+        viewModelScope.launch {
+            val pictures = studentIds.associateWith { studentId ->
+                getPFPUrl(studentId)
+            }
+            _profilePictures.value = pictures
+        }
+    }
+
+    fun loadProfilePictureUrl(studentId: String) {
+        viewModelScope.launch {
+            _profilePictureUrl.value = getPFPUrl(studentId)
+        }
+    }
+
+    private suspend fun getPFPUrl(studentId: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("profile")
+                    .select(columns = Columns.list("url_image")) {
+                        filter {
+                            eq("user_id", studentId)
+                        }
+                    }
+                    .decodeSingle<ProfilePicture>()
+                result.url_image ?: ""
+            } catch (e: Exception) {
+                e.printStackTrace()
+                ""
+            }
+        }
+    }
+
+    @Serializable
+    data class ProfilePicture(val url_image: String?)
+
 
 
     fun deactivateStudent(studentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {

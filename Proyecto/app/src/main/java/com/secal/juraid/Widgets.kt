@@ -11,6 +11,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -155,6 +157,8 @@ fun BottomBar(navController: NavController) {
     val isLogged = sessionState is SessionStatus.Authenticated
     val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,12 +175,23 @@ fun BottomBar(navController: NavController) {
                 .weight(1f)
                 .fillMaxHeight()
         ) {
-            Icon(
-                Icons.Outlined.Home,
-                contentDescription = "Inicio",
-                Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            Box(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(40.dp)
+                    .background(
+                        if (currentRoute == Routes.homeVw) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.Home,
+                    contentDescription = "Inicio",
+                    Modifier.size(25.dp),
+                    tint = if (currentRoute == Routes.homeVw) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
 
         // Botón de servicios
@@ -186,12 +201,23 @@ fun BottomBar(navController: NavController) {
                 .weight(1f)
                 .fillMaxHeight()
         ) {
-            Icon(
-                Icons.Outlined.LocationOn,
-                contentDescription = "Servicios",
-                Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            Box(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(40.dp)
+                    .background(
+                        if (currentRoute == Routes.serviciosVw) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.LocationOn,
+                    contentDescription = "Servicios",
+                    Modifier.size(25.dp),
+                    tint = if (currentRoute == Routes.serviciosVw) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
 
         // Botón de perfil (lógica de redirección según el estado de sesión y rol)
@@ -212,15 +238,41 @@ fun BottomBar(navController: NavController) {
                 .weight(1f)
                 .fillMaxHeight()
         ) {
-            Icon(
-                Icons.Outlined.AccountCircle,
-                contentDescription = "Perfil",
-                Modifier.size(30.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            Box(
+                modifier = Modifier
+                    .width(70.dp)
+                    .height(40.dp)
+                    .background(
+                        if (currentRoute == Routes.userVw ||
+                            currentRoute == Routes.userHomeVw ||
+                            currentRoute == Routes.suitVw ||
+                            currentRoute == Routes.studentHomeVw)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            Color.Transparent,
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.AccountCircle,
+                    contentDescription = "Perfil",
+                    Modifier.size(25.dp),
+                    tint = if (currentRoute == Routes.userVw ||
+                        currentRoute == Routes.userHomeVw ||
+                        currentRoute == Routes.suitVw ||
+                        currentRoute == Routes.studentHomeVw)
+                        MaterialTheme.colorScheme.onPrimary
+                    else
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
     }
 }
+
+
+
 
 
 @Composable
