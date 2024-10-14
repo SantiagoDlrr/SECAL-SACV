@@ -2,8 +2,11 @@ package com.secal.juraid.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.supabase
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,37 +76,35 @@ class CitasViewModel : ViewModel() {
         }
     }
 
-    fun representarCita(cita: Cita) {
+    fun representarCita(cita: Cita, abogado: String) {
         viewModelScope.launch {
             try {
+
                 // Crear nuevo caso en la tabla Cases
-                val newCase = mapOf(
-                    "nombre_cliente" to "${cita.nombre} ${cita.apellido}",
-                    "fecha" to (cita.fecha ?: "Sin información"),
-                    "hora" to (cita.hora ?: "Sin información"),
-                    "id_region" to (cita.id_region ?: 1),
-                    "id_situacion" to (cita.id_situacion ?: 1),
-                    "id_unidad_investigacion" to 1,
-                    "status" to 1,
-                    "drive" to "https://drive.google.com",
-                    "NUC" to "Sin información",
-                    "carpeta_judicial" to "Sin información",
-                    "carpeta_investigacion" to "Sin información",
-                    "acceso_fv" to "Sin información",
-                    "pass_fv" to "Sin información",
-                    "fiscal_titular" to "Sin información"
+                val newCase = CasesViewModel.CaseInsert(
+                    nombre_abogado = abogado,
+                    nombre_cliente = "${cita.nombre} ${cita.apellido}",
+                    NUC = "Sin información",
+                    carpeta_judicial = "Sin información",
+                    carpeta_investigacion = "Sin información",
+                    acceso_fv = "Sin información",
+                    pass_fv = "Sin información",
+                    fiscal_titular = "Sin información",
+                    id_unidad_investigacion = null,
+                    drive = "https://drive.google.com",
+                    status = 1,
+
                 )
 
-                val response = supabase.from("Cases").insert(newCase)
+                supabase.from("Cases")
+                    .insert(newCase)
+                    .decodeSingle<Case>()
 
-                if (response != null) {
-                    updateCitaEstado(cita.id, 1) // 1 para representada
-                    println("Caso creado y cita actualizada exitosamente")
-                } else {
-                    throw Exception("Error al crear el caso: respuesta nula")
-                }
+                updateCitaEstado(cita.id, 1) // 1 para representada
+
             } catch (e: Exception) {
                 println("Error al representar cita: ${e.message}")
+                updateCitaEstado(cita.id, 1)
             }
         }
     }
@@ -203,5 +204,24 @@ class CitasViewModel : ViewModel() {
             fun getNombreRegion(id: Int?): String = regionesMap[id] ?: "Desconocido"
             fun getNombreSituacion(id: Int?): String = situacionesMap[id] ?: "Desconocido"
         }
+    }
+}
+
+object ServiceLocator {
+    private var supabaseClient: SupabaseClient? = null
+    private var userRepository: UserRepository? = null
+
+    fun provideSupabaseClient(): SupabaseClient {
+        return supabaseClient ?: throw IllegalStateException("SupabaseClient not initialized")
+    }
+
+    fun provideUserRepository(scope: CoroutineScope): UserRepository {
+        return userRepository ?: UserRepository(provideSupabaseClient(), scope).also {
+            userRepository = it
+        }
+    }
+
+    fun initialize(supabaseClient: SupabaseClient) {
+        this.supabaseClient = supabaseClient
     }
 }

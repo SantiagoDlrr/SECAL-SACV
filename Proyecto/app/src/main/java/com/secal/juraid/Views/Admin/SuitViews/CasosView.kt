@@ -247,6 +247,13 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
     var showRechazarDialog by remember { mutableStateOf(false) }
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
+    /*
+    val userViewModel: UserViewModel = viewModel()
+    val abogado by userViewModel.userName.collectAsState()
+    */
+
+    val abogado = "Abogado"
+
     LaunchedEffect(Unit) {
         viewModel.loadCitasPasadas()
     }
@@ -274,7 +281,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
             text = { Text("¿Deseas aceptar este caso?") },
             confirmButton = {
                 Button(onClick = {
-                    selectedCita?.let { viewModel.representarCita(it) }
+                    selectedCita?.let { viewModel.representarCita(it, abogado) }
                     showRepresentarDialog = false
                 }) {
                     Text("Aceptar")
@@ -312,6 +319,8 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
 
 @Composable
 fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: () -> Unit) {
+    val citasViewModel: CitasViewModel = viewModel()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -319,24 +328,50 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: (
             .clip(RoundedCornerShape(8.dp)),
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text("${cita.nombre ?: ""} ${cita.apellido ?: ""}", fontWeight = FontWeight.Bold)
-                Text("Fecha: ${cita.fecha ?: "No disponible"}")
-                Text("Situación: ${CitasViewModel.Cita.getNombreSituacion(cita.id_situacion)}")
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "${cita.nombre ?: ""} ${cita.apellido ?: ""}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Fecha: ${cita.fecha ?: "No disponible"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Hora: ${cita.hora ?: "No disponible"}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Situación: ${CitasViewModel.Cita.getNombreSituacion(cita.id_situacion)}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
-            Row {
-                Button(onClick = onRepresentar) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                Button(
+                    onClick = { onRepresentar() },
+                    modifier = Modifier.width(120.dp)
+                ) {
                     Text("Representar")
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = onRechazar) {
-                    Icon(Icons.Default.Close, contentDescription = "Rechazar")
+                Button(
+                    onClick = { onRechazar() },
+                    modifier = Modifier.width(120.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Rechazar")
                 }
             }
         }
