@@ -1,5 +1,7 @@
 package com.secal.juraid.Views.Generals.BaseViews
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,8 +30,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
@@ -54,36 +62,25 @@ fun FAQView(navController: NavController) {
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) { innerPadding ->
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp)
         ) {
-            Column {
-                FAQBody(faqList)
+            item {
+                TitlesView(title = "Preguntas Frecuentes")
+                Spacer(modifier = Modifier.height(16.dp))
             }
-        }
-    }
-}
-
-@Composable
-fun FAQBody(faqList: List<FAQItem>) {
-    Column (
-        modifier = Modifier
-            .fillMaxWidth()
-    ) {
-        TitlesView(title = "Preguntas Frecuentes")
-
-        Spacer(modifier = Modifier.padding(16.dp))
-
-        LazyColumn {
             items(faqList) { faq ->
                 FAQItem(faq)
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
 }
+
+
 
 
 @Composable
@@ -93,7 +90,10 @@ fun FAQItem(faq: FAQItem) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         onClick = { expanded = !expanded }
     ) {
         Column(
@@ -101,29 +101,41 @@ fun FAQItem(faq: FAQItem) {
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Row (
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-
-            ){
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = faq.question,
-                    fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(if (!expanded) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward, contentDescription = "Expandir")
+                Icon(
+                    if (!expanded) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                    contentDescription = "Expandir"
+                )
             }
 
             if (expanded) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = faq.answer,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ){Column(
+                    modifier = Modifier.padding(16.dp)
+                ){
+                        Text(
+                            text = faq.answer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Justify
+                        )
+                    }
+                }
             }
         }
     }
