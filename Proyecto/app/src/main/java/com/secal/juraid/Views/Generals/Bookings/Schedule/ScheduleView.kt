@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -101,6 +102,11 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
 fun ScheduleDialog(viewModel: ScheduleViewModel) {
     var selectedDate by remember { mutableStateOf<String?>(null) }
     var selectedTimeSlot by remember { mutableStateOf<TimeSlot?>(null) }
+    val availableTimeSlots by viewModel.availableTimeSlots.collectAsState()
+
+    LaunchedEffect(selectedDate) {
+        selectedDate?.let { viewModel.updateAvailableTimeSlots(it) }
+    }
 
     Dialog(
         onDismissRequest = viewModel::closeDialog,
@@ -131,17 +137,16 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(
-                        count = viewModel.availableDates.size,
-                        itemContent = { index ->
-                            val date = viewModel.availableDates[index]
-                            DateCard(
-                                date = date,
-                                isSelected = date == selectedDate,
-                                onSelect = { selectedDate = date }
-                            )
-                        }
-                    )
+                    items(viewModel.availableDates) { date ->
+                        DateCard(
+                            date = date,
+                            isSelected = date == selectedDate,
+                            onSelect = {
+                                selectedDate = date
+                                selectedTimeSlot = null
+                            }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -151,21 +156,17 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(
-                        count = viewModel.availableTimeSlots.size,
-                        itemContent = { index ->
-                            val timeSlot = viewModel.availableTimeSlots[index]
-                            TimeSlotItem(
-                                timeSlot = timeSlot,
-                                isSelected = timeSlot == selectedTimeSlot,
-                                onSelect = {
-                                    if (timeSlot.isAvailable) {
-                                        selectedTimeSlot = timeSlot
-                                    }
+                    items(availableTimeSlots) { timeSlot ->
+                        TimeSlotItem(
+                            timeSlot = timeSlot,
+                            isSelected = timeSlot == selectedTimeSlot,
+                            onSelect = {
+                                if (timeSlot.isAvailable) {
+                                    selectedTimeSlot = timeSlot
                                 }
-                            )
-                        }
-                    )
+                            }
+                        )
+                    }
                 }
 
                 // Confirm Button
@@ -184,6 +185,7 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
         }
     }
 }
+
 
 /*Button(
             onClick = viewModel::openDialog,
