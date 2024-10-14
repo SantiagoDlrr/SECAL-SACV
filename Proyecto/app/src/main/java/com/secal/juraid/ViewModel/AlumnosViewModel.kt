@@ -200,7 +200,7 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
                                 }
                         }
 
-                        val token = getStudentToken(user.id) // Necesitas implementar esta función
+                        val token = getStudentToken(user.id)
                         if (token != null) {
                             sendNotification(token, "Bienvenido", "Has sido añadido como alumno")
                         }

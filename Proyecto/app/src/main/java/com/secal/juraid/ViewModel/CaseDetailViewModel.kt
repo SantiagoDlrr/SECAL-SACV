@@ -3,7 +3,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.ViewModel.Case
-import com.secal.juraid.ViewModel.Hiperlink
 import com.secal.juraid.ViewModel.unitInvestigation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -65,24 +64,30 @@ class CaseDetailViewModel : ViewModel() {
 
     suspend fun updateCase(
         caseId: Int,
-        nombreCliente: String,
         nuc: String,
         carpetaJudicial: String,
         carpetaInvestigacion: String,
+        acceso_fv: String,
+        pass_fv: String,
         fiscalTitular: String,
-        drive: String
+        id_unidad_investigacion: Int?,
+        drive: String,
+        status: String
     ) {
         viewModelScope.launch {
             try {
                 supabase.from("Cases")
                     .update(
                         {
-                            set("nombre_cliente", nombreCliente)
                             set("NUC", nuc)
                             set("carpeta_judicial", carpetaJudicial)
                             set("carpeta_investigacion", carpetaInvestigacion)
+                            set("acceso_fv", acceso_fv)
+                            set("pass_fv", pass_fv)
                             set("fiscal_titular", fiscalTitular)
+                            set("id_unidad_investigacion", id_unidad_investigacion)
                             set("drive", drive)
+                            set("status", status)
                         }
                     ) {
                         filter { eq("id", caseId) }

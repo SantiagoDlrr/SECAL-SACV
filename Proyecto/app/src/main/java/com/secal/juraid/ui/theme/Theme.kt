@@ -13,6 +13,7 @@ val Secondary = Color(0xFF909395)  // Gris medio
 val Tertiary = Color(0xFFABB5B5)  // Gris claro
 val Error = Color(0xFFB00020)
 
+
 // Colores para el tema claro
 val LightBackground = Color(0xFFFFFFFF)
 val LightSurface = Color(0xFFFFFFFF)
@@ -26,6 +27,8 @@ val LightSecondaryContainer = Color(0xFFE1E3E3)
 val LightOnSecondaryContainer = Color(0xFF303030)
 val LightPrimaryContainer = Color(0xFFD6E3F0)
 val LightOnPrimaryContainer = Color(0xFF1F3349)
+val LightGreen = Color(0xFF3B833E)
+val LightRed = Color(0xFFE53935)
 
 // Colores específicos para el tema oscuro
 val DarkBackground = Color(0xFF121212)
@@ -40,6 +43,8 @@ val DarkSecondaryContainer = Color(0xFF424242)
 val DarkOnSecondaryContainer = Color(0xFFE1E3E3)
 val DarkPrimaryContainer = Color(0xFF2C4A6B)
 val DarkOnPrimaryContainer = Color(0xFFD6E3F0)
+val DarkGreen = Color(0xFF4CAF50)
+val DarkRed = Color(0xFFE53935)
 
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
@@ -57,7 +62,7 @@ private val DarkColorScheme = darkColorScheme(
     secondaryContainer = DarkSecondaryContainer,
     onSecondaryContainer = DarkOnSecondaryContainer,
     primaryContainer = DarkPrimaryContainer,
-    onPrimaryContainer = DarkOnPrimaryContainer
+    onPrimaryContainer = DarkOnPrimaryContainer,
 )
 
 private val LightColorScheme = lightColorScheme(

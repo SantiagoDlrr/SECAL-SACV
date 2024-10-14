@@ -3,8 +3,8 @@ package com.secal.juraid.Views.Admin
 import AlumnosViewModel
 import CaseDetailViewModel
 import Student
-import android.content.ContentValues.TAG
-import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,8 +18,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -28,6 +31,7 @@ import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.CasesViewModel
+import com.secal.juraid.ViewModel.unitInvestigation
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,6 +44,7 @@ fun EditDetalleView(navController: NavController, viewModel: CaseDetailViewModel
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
             TitlesView(title = "Edita la Información de Caso")
             Spacer(modifier = Modifier.height(16.dp))
@@ -48,6 +53,7 @@ fun EditDetalleView(navController: NavController, viewModel: CaseDetailViewModel
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseId: Int) {
     val casesViewModel: CasesViewModel = viewModel()
@@ -62,12 +68,18 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
     val allStudents by alumnosViewModel.students.collectAsState()
 
     // Estados para el caso
-    var nombreCliente by remember { mutableStateOf("") }
     var nuc by remember { mutableStateOf("") }
     var carpetaJudicial by remember { mutableStateOf("") }
     var carpetaInvestigacion by remember { mutableStateOf("") }
+    var acceso_fv by remember { mutableStateOf("") }
+    var pass_fv by remember { mutableStateOf("") }
+    var id_unidad by remember { mutableStateOf("") }
     var fiscalTitular by remember { mutableStateOf("") }
     var drive by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("") }
+
+    var selectedUnidadInvestigacion by remember { mutableStateOf<unitInvestigation?>(null) }
+    var expanded by remember { mutableStateOf(false) }
 
     // Estados para diálogos de hipervínculos
     var showAddHyperlinkDialog by remember { mutableStateOf(false) }
@@ -86,6 +98,12 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
     var selectedStudent by remember { mutableStateOf<Student?>(null) }
     var studentToDelete by remember { mutableStateOf<Student?>(null) }
 
+    val unitInvestigations by casesViewModel.unitInvestigations.collectAsState()
+
+    var statusExpanded by remember { mutableStateOf(false) }
+    val statusOptions = listOf("Activo", "Inactivo")
+
+
     // Cargar datos iniciales
     LaunchedEffect(Unit) {
         alumnosViewModel.loadAllData()
@@ -97,168 +115,396 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
 
     LaunchedEffect(caseDetail) {
         caseDetail?.let { case ->
-            nombreCliente = case.nombre_cliente
             nuc = case.NUC
             carpetaJudicial = case.carpeta_judicial
             carpetaInvestigacion = case.carpeta_investigacion
             fiscalTitular = case.fiscal_titular
             drive = case.drive
+            acceso_fv = case.acceso_fv
+            pass_fv = case.pass_fv
+            id_unidad = case.id_unidad_investigacion.toString()
+            status = case.status.toString()
         }
     }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
         ) {
-            // Campos del caso
-            OutlinedTextField(
-                value = nombreCliente,
-                onValueChange = { nombreCliente = it },
-                label = { Text("Nombre del Cliente") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = nuc,
-                onValueChange = { nuc = it },
-                label = { Text("NUC") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = carpetaJudicial,
-                onValueChange = { carpetaJudicial = it },
-                label = { Text("Carpeta Judicial") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = carpetaInvestigacion,
-                onValueChange = { carpetaInvestigacion = it },
-                label = { Text("Carpeta de Investigación") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = fiscalTitular,
-                onValueChange = { fiscalTitular = it },
-                label = { Text("Fiscal Titular") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = drive,
-                onValueChange = { drive = it },
-                label = { Text("Drive URL") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Sección de Hipervínculos
+            Text(
+                "General",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column (modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = nuc,
+                        onValueChange = { nuc = it },
+                        label = { Text("NUC") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = fiscalTitular,
+                        onValueChange = { fiscalTitular = it },
+                        label = { Text("Fiscal Titular") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedUnidadInvestigacion?.nombre ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Unidad de Investigación") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                            },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            unitInvestigations.forEach { unidad ->
+                                DropdownMenuItem(
+                                    text = { Text(unidad.nombre) },
+                                    onClick = {
+                                        selectedUnidadInvestigacion = unidad
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    ExposedDropdownMenuBox(
+                        expanded = statusExpanded,
+                        onExpandedChange = { statusExpanded = it }
+                    ) {
+                        OutlinedTextField(
+                            value = if (status == "1") "Activo" else "Inactivo",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Status") },
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
+                            },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = statusExpanded,
+                            onDismissRequest = { statusExpanded = false }
+                        ) {
+                            statusOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    onClick = {
+                                        status = option
+                                        statusExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = carpetaJudicial,
+                        onValueChange = { carpetaJudicial = it },
+                        label = { Text("Carpeta Judicial") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = carpetaInvestigacion,
+                        onValueChange = { carpetaInvestigacion = it },
+                        label = { Text("Carpeta de Investigación") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = acceso_fv,
+                        onValueChange = { acceso_fv = it },
+                        label = { Text("Acceso Fiscalía Virtual") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = pass_fv,
+                        onValueChange = { pass_fv = it },
+                        label = { Text("Contraseña Fiscalía Virtual") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
             Text(
                 "Hipervínculos",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            hyperlinks.forEach { hyperlink ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(hyperlink.texto, modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        editingHyperlink = hyperlink
-                        editHyperlinkText = hyperlink.texto
-                        editHyperlinkLink = hyperlink.link
-                        showEditHyperlinkDialog = true
-                    }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Editar hipervínculo")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    OutlinedTextField(
+                        value = drive,
+                        onValueChange = { drive = it },
+                        label = { Text("Drive URL") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    hyperlinks.forEach { hyperlink ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(hyperlink.texto, modifier = Modifier.weight(1f))
+                            IconButton(onClick = {
+                                editingHyperlink = hyperlink
+                                editHyperlinkText = hyperlink.texto
+                                editHyperlinkLink = hyperlink.link
+                                showEditHyperlinkDialog = true
+                            }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar hipervínculo")
+                            }
+                            IconButton(onClick = {
+                                deletingHyperlink = hyperlink
+                                showDeleteHyperlinkDialog = true
+                            }) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "Eliminar hipervínculo"
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
-                    IconButton(onClick = {
-                        deletingHyperlink = hyperlink
-                        showDeleteHyperlinkDialog = true
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Eliminar hipervínculo")
+
+                    Button(
+                        onClick = { showAddHyperlinkDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Añadir Hipervínculo")
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
             }
+        }
+    }
 
-            Button(
-                onClick = { showAddHyperlinkDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Añadir Hipervínculo")
-            }
+    Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+        ) {
 
-            // Sección de Estudiantes Asignados
             Text(
                 "Estudiantes Asignados",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            assignedStudents.filter { it.id_Caso == caseId }.forEach { relation ->
-                val student = allStudents.find { it.id == relation.id_alumno }
-                student?.let { currentStudent ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${currentStudent.name} ${currentStudent.first_last_name} ${currentStudent.second_last_name}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = currentStudent.email,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        IconButton(onClick = {
-                            studentToDelete = currentStudent
-                            showDeleteStudentDialog = true
-                        }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Eliminar estudiante")
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    assignedStudents.filter { it.id_Caso == caseId }.forEach { relation ->
+                        val student = allStudents.find { it.id == relation.id_alumno }
+                        student?.let { currentStudent ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "${currentStudent.name} ${currentStudent.first_last_name} ${currentStudent.second_last_name}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = currentStudent.email,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    studentToDelete = currentStudent
+                                    showDeleteStudentDialog = true
+                                }) {
+                                    Icon(
+                                        Icons.Default.Delete,
+                                        contentDescription = "Eliminar estudiante"
+                                    )
+                                }
+                            }
                         }
                     }
-                    Divider(modifier = Modifier.padding(vertical = 4.dp))
-                }
-            }
 
-            Button(
-                onClick = { showAddStudentDialog = true },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Añadir Estudiante")
+                    Button(
+                        onClick = { showAddStudentDialog = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Añadir Estudiante")
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -269,12 +515,15 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                     scope.launch {
                         viewModel.updateCase(
                             caseId,
-                            nombreCliente,
                             nuc,
                             carpetaJudicial,
                             carpetaInvestigacion,
+                            acceso_fv,
+                            pass_fv,
                             fiscalTitular,
-                            drive
+                            selectedUnidadInvestigacion?.id,
+                            drive,
+                            if (status == "Activo") "1" else "0"  // Convertir el status a "1" o "0"
                         )
                         navController.navigate("${Routes.detalleVw}/$caseId") {
                             popUpTo("${Routes.editDetalleVw}/$caseId") { inclusive = true }
@@ -305,6 +554,7 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
             onConfirm = {
                 scope.launch {
                     viewModel.addHyperlink(caseId, newHyperlinkText, newHyperlinkLink)
+                    viewModel.loadCaseDetail(caseId) // Recargar los detalles del caso
                     showAddHyperlinkDialog = false
                     newHyperlinkText = ""
                     newHyperlinkLink = ""
@@ -334,6 +584,7 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             editHyperlinkText,
                             editHyperlinkLink
                         )
+                        viewModel.loadCaseDetail(caseId) // Recargar los detalles del caso
                     }
                     showEditHyperlinkDialog = false
                     editingHyperlink = null
@@ -347,11 +598,14 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
         AlertDialog(
             onDismissRequest = { showDeleteHyperlinkDialog = false },
             title = { Text("Eliminar hipervínculo") },
-            text = { Text("¿Estás seguro de que deseas eliminar este hipervínculo?") },
+            text = { Text("¿Estás seguro de que deseas eliminar este hipervínculo?", color = MaterialTheme.colorScheme.onSecondaryContainer) },
             confirmButton = {
                 Button(onClick = {
                     deletingHyperlink?.let { hyperlink ->
-                        viewModel.deleteHyperlink(hyperlink.id)
+                        scope.launch {
+                            viewModel.deleteHyperlink(hyperlink.id)
+                            viewModel.loadCaseDetail(caseId) // Recargar los detalles del caso
+                        }
                     }
                     showDeleteHyperlinkDialog = false
                     deletingHyperlink = null
@@ -363,7 +617,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                 Button(onClick = { showDeleteHyperlinkDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 
@@ -393,7 +648,18 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                                         .padding(vertical = 4.dp)
                                         .clickable {
                                             selectedStudent = student
-                                        },
+                                        }
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .border(
+                                            BorderStroke(
+                                                1.dp,
+                                                if (selectedStudent?.id == student.id)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    Color.Transparent
+                                            ),
+                                            shape = RoundedCornerShape(16.dp)
+                                        ),
                                     colors = CardDefaults.cardColors(
                                         containerColor = if (selectedStudent?.id == student.id)
                                             MaterialTheme.colorScheme.primaryContainer
@@ -445,7 +711,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                 }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 
@@ -465,8 +732,7 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                         )
                         Text(
                             student.email,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
@@ -491,7 +757,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                 }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
     }
 }
@@ -516,14 +783,30 @@ fun HyperlinkDialog(
                     value = text,
                     onValueChange = onTextChange,
                     label = { Text("Texto") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = link,
                     onValueChange = onLinkChange,
                     label = { Text("URL") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 )
                 if (isLoading) {
                     LinearProgressIndicator(
@@ -543,6 +826,7 @@ fun HyperlinkDialog(
             Button(onClick = onDismiss) {
                 Text("Cancelar")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
     )
 }

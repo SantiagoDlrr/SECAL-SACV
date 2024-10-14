@@ -99,13 +99,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-analytics")
-
-    // Nuevas dependencias para FCM con autenticación de cuenta de servicio
-    //
     implementation("com.google.auth:google-auth-library-oauth2-http:1.19.0")
     implementation("com.google.auth:google-auth-library-credentials:1.19.0")
-
-    // OkHttp y Gson (ya los tienes, pero los dejo aquí para referencia)
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.transport.api)

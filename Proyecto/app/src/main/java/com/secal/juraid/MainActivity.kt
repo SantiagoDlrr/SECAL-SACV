@@ -1,6 +1,7 @@
 package com.secal.juraid
 
 import AcercaDeView
+import AddCaseView
 import AddPostView
 import AlumnosView
 import ArticulosView
@@ -52,7 +53,6 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.remember
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.tasks.OnCompleteListener
@@ -65,7 +65,6 @@ import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.ProfileView
 import com.secal.juraid.Views.Admin.StudentsView.CasosStudentView
 import com.secal.juraid.Views.Admin.StudentsView.HorarioStudentView
-import com.secal.juraid.Views.Admin.SuitViews.AddCaseView
 import com.secal.juraid.Views.Admin.SuitViews.AlumnoDetailView
 import com.secal.juraid.Views.Admin.SuitViews.CategoriasView
 import com.secal.juraid.Views.Admin.SuitViews.InvUnitView
@@ -418,8 +417,12 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             AddPostView(navController = navController, homeViewModel)
         }
         composable(Routes.addCaseVw) {
-            val viewModel = viewModel<CasesViewModel>()
-            AddCaseView(navController = navController, viewModel)
+            val casesViewModel = viewModel<CasesViewModel>()
+            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+            val userViewModelFactory = UserViewModelFactory(userRepository)
+            val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+
+            AddCaseView(navController = navController, casesViewModel, userViewModel)
         }
         composable(Routes.settingView) {
             SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
