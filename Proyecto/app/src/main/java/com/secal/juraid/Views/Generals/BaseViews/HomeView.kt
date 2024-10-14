@@ -252,7 +252,10 @@ fun LargeCardItem(item: HomeViewModel.ContentItemPreview, navController: NavCont
         modifier = Modifier
             .width(350.dp)
             .height(200.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
     ) {
         Box(
             modifier = Modifier.fillMaxSize()

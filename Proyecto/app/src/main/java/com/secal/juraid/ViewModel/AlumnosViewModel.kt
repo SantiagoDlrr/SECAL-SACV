@@ -132,6 +132,48 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
         return studentFlow
     }
 
+    private val _profilePictures = MutableStateFlow<Map<String, String>>(emptyMap())
+    val profilePictures: StateFlow<Map<String, String>> = _profilePictures.asStateFlow()
+    private val _profilePictureUrl = MutableStateFlow<String?>(null)
+    val profilePictureUrl: StateFlow<String?> = _profilePictureUrl.asStateFlow()
+
+    fun loadProfilePictures(studentIds: List<String>) {
+        viewModelScope.launch {
+            val pictures = studentIds.associateWith { studentId ->
+                getPFPUrl(studentId)
+            }
+            _profilePictures.value = pictures
+        }
+    }
+
+    fun loadProfilePictureUrl(studentId: String) {
+        viewModelScope.launch {
+            _profilePictureUrl.value = getPFPUrl(studentId)
+        }
+    }
+
+    private suspend fun getPFPUrl(studentId: String): String {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("profile")
+                    .select(columns = Columns.list("url_image")) {
+                        filter {
+                            eq("user_id", studentId)
+                        }
+                    }
+                    .decodeSingle<ProfilePicture>()
+                result.url_image ?: ""
+            } catch (e: Exception) {
+                e.printStackTrace()
+                ""
+            }
+        }
+    }
+
+    @Serializable
+    data class ProfilePicture(val url_image: String?)
+
 
 
     fun deactivateStudent(studentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
@@ -200,6 +242,17 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
                                 }
                         }
 
+                        val newItem = ProfileInsert(
+                            url_image = "https://st2.depositphotos.com/2559749/11304/v/450/depositphotos_113040644-stock-illustration-flat-icon-isolate-on-white.jpg",
+                            desc = "Mi biografia",
+                            user_id = user.id
+                        )
+
+                        withContext(Dispatchers.IO) {
+                            supabase.from("profile")
+                                .insert(newItem)
+                        }
+
                         val token = getStudentToken(user.id)
                         if (token != null) {
                             sendNotification(token, "Bienvenido", "Has sido añadido como alumno")
@@ -216,7 +269,12 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-
+    @Serializable
+    data class ProfileInsert(
+        val url_image: String?,
+        val desc: String?,
+        val user_id: String
+    )
 
     fun resetAddStudentResult() {
         _addStudentResult.value = null

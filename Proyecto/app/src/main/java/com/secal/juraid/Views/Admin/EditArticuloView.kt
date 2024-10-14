@@ -275,7 +275,8 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
 
                                     ExposedDropdownMenu(
                                         expanded = expanded,
-                                        onDismissRequest = { expanded = false }
+                                        onDismissRequest = { expanded = false },
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
                                     ) {
                                         categories.forEach { category ->
                                             DropdownMenuItem(

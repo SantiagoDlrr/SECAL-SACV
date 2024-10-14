@@ -73,7 +73,7 @@
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
             ){
-                ButtonUserCard(navController = navController, "Perfil", Icons.Outlined.AccountCircle, route = Routes.profileView)
+                ButtonUserCard(navController = navController, "Mi Perfil", Icons.Outlined.AccountCircle, route = Routes.profileView)
                 ButtonUserCard(navController = navController, "Mis Casos", Icons.Outlined.Menu, route = Routes.casosStVw)
                 ButtonUserCard(navController = navController, "Mi horario", Icons.Outlined.CalendarMonth, route = Routes.horarioStVw)
                 ButtonUserCard(navController = navController, "Configuración", Icons.Outlined.Settings, route = Routes.settingView)

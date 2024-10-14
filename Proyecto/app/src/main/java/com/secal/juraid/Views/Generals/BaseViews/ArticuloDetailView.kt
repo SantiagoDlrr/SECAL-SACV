@@ -157,7 +157,7 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
                         deleteDialog = false
                         navController.popBackStack()
                     }) {
-                        Text("Confirmar", color = MaterialTheme.colorScheme.onPrimary)
+                        Text("Confirmar", color = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
                 },
                 dismissButton = {

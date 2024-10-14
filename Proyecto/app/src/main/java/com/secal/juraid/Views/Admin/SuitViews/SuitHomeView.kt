@@ -69,7 +69,7 @@ fun SuitHomeCardView(navController: NavController, viewModel: UserViewModel) {
             modifier = Modifier
                 .verticalScroll(rememberScrollState())
         ) {
-            ButtonUserCard(navController = navController, "Perfil", Icons.Outlined.AccountCircle, route = Routes.profileView)
+            ButtonUserCard(navController = navController, "Mi Perfil", Icons.Outlined.AccountCircle, route = Routes.profileView)
             ButtonUserCard(navController = navController, "Casos", Icons.Outlined.Menu, route = Routes.casosVw)
             ButtonUserCard(navController = navController, "Citas", Icons.Outlined.DateRange, route = Routes.espaciosVw)
             ButtonUserCard(navController = navController, "Artículos", Icons.Outlined.Search, route = Routes.articulosVw)

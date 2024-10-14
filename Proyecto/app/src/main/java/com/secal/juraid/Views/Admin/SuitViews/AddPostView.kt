@@ -215,7 +215,8 @@ fun AddPostView(navController: NavController, viewModel: HomeViewModel) {
 
                                 ExposedDropdownMenu(
                                     expanded = expanded,
-                                    onDismissRequest = { expanded = false }
+                                    onDismissRequest = { expanded = false },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
                                     categories.forEach { category ->
                                         DropdownMenuItem(

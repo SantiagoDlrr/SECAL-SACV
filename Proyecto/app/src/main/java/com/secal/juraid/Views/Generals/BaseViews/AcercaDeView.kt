@@ -3,6 +3,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,14 +12,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.secal.juraid.R
+import com.secal.juraid.TopBar
+import com.secal.juraid.BottomBar
 import kotlin.math.max
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,48 +47,33 @@ fun AcercaDeView(navController: NavController) {
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(30000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
+            animation = tween(10000, easing = LinearEasing), // Reduced from 30000 to 10000
+            repeatMode = RepeatMode.Restart // Changed from Reverse to Restart for a more noticeable effect
         ),
         label = "gradientProgress"
     )
 
     val overlayOpacity by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1f,
+        initialValue = 0.3f,
+        targetValue = 0.7f, // Increased range for more noticeable change
         animationSpec = infiniteRepeatable(
-            animation = tween(15000, easing = LinearEasing),
+            animation = tween(5000, easing = LinearEasing), // Reduced from 15000 to 5000
             repeatMode = RepeatMode.Reverse
         ),
         label = "overlayOpacity"
     )
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Acerca de") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
-                            contentDescription = "Volver"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
-        }
+        topBar = { TopBar() },
+        bottomBar = { BottomBar(navController = navController) }
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
                 .onSizeChanged { size = it }
         ) {
-            // Fondo animado
+            // Animated background
             if (size != IntSize.Zero) {
                 Box(
                     modifier = Modifier
@@ -93,14 +81,8 @@ fun AcercaDeView(navController: NavController) {
                         .background(
                             Brush.linearGradient(
                                 colors = colors,
-                                start = Offset(
-                                    size.width.toFloat() * animatedProgress,
-                                    0f
-                                ),
-                                end = Offset(
-                                    size.width.toFloat() * (1 + animatedProgress),
-                                    size.height.toFloat()
-                                )
+                                start = Offset(size.width.toFloat() * animatedProgress, 0f),
+                                end = Offset(size.width.toFloat() * (1 + animatedProgress), size.height.toFloat())
                             )
                         )
                 )
@@ -111,7 +93,7 @@ fun AcercaDeView(navController: NavController) {
                         .fillMaxSize()
                         .background(
                             Brush.radialGradient(
-                                colors = listOf(Color.White.copy(alpha = 0.05f * overlayOpacity), Color.Transparent),
+                                colors = listOf(Color.White.copy(alpha = 0.1f * overlayOpacity), Color.Transparent),
                                 center = Offset(size.width * 0.8f, size.height * 0.2f),
                                 radius = max(size.width, size.height).toFloat() * 0.5f
                             )
@@ -122,7 +104,7 @@ fun AcercaDeView(navController: NavController) {
                         .fillMaxSize()
                         .background(
                             Brush.radialGradient(
-                                colors = listOf(Color(0xFF020734).copy(alpha = 0.05f * overlayOpacity), Color.Transparent),
+                                colors = listOf(Color(0xFF020734).copy(alpha = 0.1f * overlayOpacity), Color.Transparent),
                                 center = Offset(size.width * 0.2f, size.height * 0.8f),
                                 radius = max(size.width, size.height).toFloat() * 0.5f
                             )
@@ -134,48 +116,68 @@ fun AcercaDeView(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Logo de la aplicación
-                Image(
-                    painter = painterResource(R.drawable.martillo),
-                    contentDescription = "Logo de la app",
+                Card(
                     modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color.White)
-                        .padding(16.dp)
-                )
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // App logo
+                        Image(
+                            painter = painterResource(R.drawable.martillo),
+                            contentDescription = "Logo de la app",
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .padding(16.dp),
+                            contentScale = ContentScale.Fit
+                        )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                // Nombre de la aplicación
-                Text(
-                    text = "JurAid",
-                    color = Color.White,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                        // App name
+                        Text(
+                            text = "JurAid",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                // Versión de la aplicación
-                Text(
-                    text = "Versión 1.0.0",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp
-                )
+                        // App version
+                        Text(
+                            text = "Versión 1.0.0",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                // Información de copyright
-                Text(
-                    text = "© 2024 SECAL Tech.",
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 14.sp
-                )
+                        // Copyright information
+                        Text(
+                            text = "© 2024 SECAL Tech.",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        )
+                    }
+                }
             }
         }
     }
