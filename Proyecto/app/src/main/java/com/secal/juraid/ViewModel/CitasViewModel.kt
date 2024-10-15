@@ -124,22 +124,18 @@ class CitasViewModel : ViewModel() {
     fun cancelarCita(cita: Cita, motivo: String) {
         viewModelScope.launch {
             try {
-                val updates = mapOf(
-                    "estado_cita" to false,
-                    "motivo_cancelacion" to motivo
-                )
-
-                val response = supabase.from("Citas")
-                    .update(updates) {
-                        filter { eq("id", cita.id) }
+                supabase.from("Citas").update(
+                    {
+                        set("motivo_cancelacion", motivo ?: "Sin motivo")
+                        set("estado_cita", false)
                     }
-
-                if (response != null) {
-                    println("Cita cancelada exitosamente")
-                    loadCitas() // Recargar las citas después de la cancelación
-                } else {
-                    throw Exception("Error al cancelar la cita: respuesta nula")
+                ) {
+                    filter {
+                        eq("id", cita.id)
+                    }
                 }
+
+                loadCitas()
             } catch (e: Exception) {
                 println("Error al cancelar cita: ${e.message}")
                 _uiState.value = UiState.Error("Error al cancelar la cita: ${e.message}")
@@ -227,3 +223,9 @@ object ServiceLocator {
         this.supabaseClient = supabaseClient
     }
 }
+
+@Serializable
+data class CitaCancel(
+    val motivo_cancelacion: String? = null,
+    val estado_cita: Boolean? = false
+)
