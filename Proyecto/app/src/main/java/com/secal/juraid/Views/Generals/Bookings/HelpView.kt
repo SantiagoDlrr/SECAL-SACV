@@ -3,6 +3,7 @@ package com.secal.juraid.Views.Generals.Bookings
 import ScheduleViewModel
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -35,6 +36,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,20 +73,43 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HelpView(navController: NavController, viewModel: ScheduleViewModel, bookingsViewModel: BookingsViewModel, userViewModel: UserViewModel) {
+fun HelpView(
+    navController: NavController,
+    scheduleViewModel: ScheduleViewModel,
+    bookingsViewModel: BookingsViewModel,
+    userViewModel: UserViewModel
+) {
+    val showHelpForm by bookingsViewModel.showHelpForm.collectAsState()
+    val userBookings by bookingsViewModel.filteredBookings.collectAsState()
+
+    LaunchedEffect(userBookings) {
+        bookingsViewModel.onEnterHelpView()
+    }
+
+    LaunchedEffect(showHelpForm) {
+        Log.d("HelpView", "showHelpForm: $showHelpForm")
+    }
+
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) {
-            Column (
-                modifier = Modifier
-                    .fillMaxSize(),
+        if (showHelpForm) {
+            Log.d("HelpView", "Showing CasoFormView")
+            Column(
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
+                CasoFormView(navController, scheduleViewModel, bookingsViewModel, userViewModel)
+            }
+        } else {
+            Log.d("HelpView", "Navigating to BookingsVw")
+            LaunchedEffect(Unit) {
+                navController.navigate(Routes.bookingsVw)
             }
         }
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -102,7 +127,7 @@ fun CasoFormView(
     var termsAccepted by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("Selecciona tu opción") }
+    var selectedOption by remember { mutableStateOf("") }
     val options = listOf("Apodaca", "Escobedo", "Guadalupe", "Monterrey", "San Nicolás", "San Pedro")
 
     val scope = rememberCoroutineScope()
@@ -114,6 +139,10 @@ fun CasoFormView(
 
     val userName by userViewModel.userName.collectAsState()
     val userId by userViewModel.userId.collectAsState()
+
+    // Check if all required fields are filled
+    val isFormValid = selectedOption.isNotEmpty() && selectedSituation.isNotEmpty() &&
+            scheduleState.selectedDate != null && termsAccepted
 
 
     fun getRegionId(regionName: String): Int {
@@ -193,7 +222,7 @@ fun CasoFormView(
                             onExpandedChange = { expanded = !expanded }
                         ) {
                             OutlinedTextField(
-                                value = selectedOption, //id región
+                                value = if (selectedOption.isEmpty()) "Selecciona tu región" else selectedOption,
                                 onValueChange = {},
                                 label = { Text("Selecciona tu región") },
                                 readOnly = true,
@@ -340,12 +369,11 @@ fun CasoFormView(
                                         idSituacion = getSituationId(selectedSituation),
                                         id_usuario = userId
                                     )
-                                    // Navigate back or show success message
-                                    navController.popBackStack()
+                                    navController.navigate(Routes.bookingsVw)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = termsAccepted
+                            enabled = isFormValid
                         ) {
                             Text("Confirmar")
                         }

@@ -53,6 +53,9 @@ fun DateCard(
     onSelect: () -> Unit
 ) {
     val (dayName, dateText) = date.split("\n")
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.White
+    val textColor = if (isSelected) Color.White else Color.Black
+
 
     Card(
         modifier = Modifier
@@ -60,7 +63,7 @@ fun DateCard(
             .height(60.dp)
             .clickable(onClick = onSelect),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else Color.White
+            containerColor = if (isSelected) Primary else Color.White
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -72,12 +75,12 @@ fun DateCard(
             Text(
                 text = dayName,
                 style = MaterialTheme.typography.labelMedium,
-                color = if (isSelected) Primary else Color.Black
+                color = textColor
             )
             Text(
                 text = dateText,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) Primary else Color.Gray
+                color = textColor
             )
         }
     }

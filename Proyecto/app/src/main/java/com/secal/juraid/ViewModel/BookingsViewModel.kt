@@ -4,6 +4,7 @@ import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.secal.juraid.Routes
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +100,7 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
                 emptyList()
             }
         }
+
     }
 
     suspend fun addBooking(
@@ -164,6 +166,47 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
             }
         }
     }
+
+    private val _showHelpForm = MutableStateFlow(true)
+    val showHelpForm: StateFlow<Boolean> = _showHelpForm.asStateFlow()
+
+    fun onEnterHelpView() {
+        viewModelScope.launch {
+            val userId = userViewModel.userId.value
+            Log.d("BookingsViewModel", "Current User ID: $userId")
+
+            val userBookings = filteredBookings.value.filter { it.booking.id_usuario == userId }
+            Log.d("BookingsViewModel", "User Bookings: ${userBookings.size}")
+
+            userBookings.forEachIndexed { index, numberedBooking ->
+                val booking = numberedBooking.booking
+                Log.d("BookingsViewModel", "Booking $index: ID=${booking.id}, Date=${booking.fecha}, Time=${booking.hora}")
+            }
+
+            val hasFutureBooking = userBookings.any { numberedBooking ->
+                val booking = numberedBooking.booking
+                val isFuture = isBookingInFuture(booking.fecha, booking.hora)
+                Log.d("BookingsViewModel", "Booking ${booking.id}: isFuture = $isFuture")
+                isFuture
+            }
+
+            Log.d("BookingsViewModel", "Has Future Booking: $hasFutureBooking")
+
+            _showHelpForm.value = !hasFutureBooking
+            Log.d("BookingsViewModel", "Show Help Form: ${_showHelpForm.value}")
+        }
+    }
+
+    private fun isBookingInFuture(dateString: String, timeString: String): Boolean {
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        val bookingDateTime = formatter.parse("$dateString $timeString")
+        val currentDateTime = Date()
+        val isFuture = bookingDateTime?.after(currentDateTime) ?: false
+        Log.d("BookingsViewModel", "Booking DateTime: $bookingDateTime, Current DateTime: $currentDateTime, Is Future: $isFuture")
+        return isFuture
+    }
+
+
 }
 
 @Serializable

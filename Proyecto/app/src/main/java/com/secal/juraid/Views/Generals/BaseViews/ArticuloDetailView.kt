@@ -194,7 +194,6 @@ fun ArticuloDetailItem(item: HomeViewModel.ContentItem) {
         modifier = Modifier.fillMaxWidth()
             .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
     ) {
         Column(
