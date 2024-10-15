@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
@@ -335,6 +336,7 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: (
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "${cita.nombre ?: ""} ${cita.apellido ?: ""}",
+                    maxLines = 2,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -356,17 +358,18 @@ fun CitaCard(cita: CitasViewModel.Cita, onRepresentar: () -> Unit, onRechazar: (
             }
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.width(140.dp)
             ) {
                 Button(
                     onClick = { onRepresentar() },
-                    modifier = Modifier.width(120.dp)
+                    modifier = Modifier.width(140.dp)
                 ) {
                     Text("Representar")
                 }
                 Button(
                     onClick = { onRechazar() },
-                    modifier = Modifier.width(120.dp),
+                    modifier = Modifier.width(140.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
                     Text("Rechazar")

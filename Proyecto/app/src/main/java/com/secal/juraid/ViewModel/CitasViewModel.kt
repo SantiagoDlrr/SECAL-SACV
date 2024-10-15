@@ -45,12 +45,21 @@ class CitasViewModel : ViewModel() {
             try {
                 _uiState.value = UiState.Loading
                 val fetchedCitas = getCitasFromDatabase()
-                _uiState.value = UiState.Success(fetchedCitas)
+                val futureCitas = filterFutureCitas(fetchedCitas)
+                _uiState.value = UiState.Success(futureCitas)
                 println("Citas cargadas exitosamente: ${fetchedCitas.size}")
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Error al cargar las citas: ${e.message}")
                 e.printStackTrace()
             }
+        }
+    }
+
+    private fun filterFutureCitas(citas: List<Cita>): List<Cita> {
+        val currentDate = LocalDate.now()
+        return citas.filter { cita ->
+            val citaDate = LocalDate.parse(cita.fecha, DateTimeFormatter.ISO_LOCAL_DATE)
+            citaDate.isAfter(currentDate) || citaDate.isEqual(currentDate)
         }
     }
 
