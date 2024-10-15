@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,7 +65,6 @@ import com.secal.juraid.ViewModel.BookingsViewModel
 import com.secal.juraid.ViewModel.UserViewModel
 import com.secal.juraid.Views.Generals.Bookings.Schedule.ScheduleScreen
 import com.secal.juraid.ui.theme.Purple40
-import kotlinx.atomicfu.TraceBase.None.append
 import kotlinx.coroutines.launch
 
 
@@ -76,15 +76,9 @@ fun HelpView(navController: NavController, viewModel: ScheduleViewModel, booking
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) {
-            Column (
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
-            }
-        }
+        TitlesView("Agendar Asesoría Legal")
+        CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -137,40 +131,20 @@ fun CasoFormView(
         }
     }
 
-    Scaffold(
-    ) {
-
-        TitlesView(title = "Escribe la información de tu caso")
-
         Column (
             modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
+
         ) {
             Card(
                 modifier = Modifier
                     .padding(16.dp)
                     .border(BorderStroke(1.dp, Color.Black), shape = RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp)),
-                elevation = CardDefaults.cardElevation(4.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Agendar Asesoría Legal",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    ScheduleScreen(scheduleViewModel)
-                }
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -178,116 +152,166 @@ fun CasoFormView(
                     modifier = Modifier.padding(16.dp)
                 ) {
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                    ScheduleScreen(scheduleViewModel)
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Card (
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Selecciona tu región:", style = MaterialTheme.typography.labelLarge)
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-
-                        ExposedDropdownMenuBox(
-                            expanded = expanded,
-                            onExpandedChange = { expanded = !expanded }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            OutlinedTextField(
-                                value = selectedOption, //id región
-                                onValueChange = {},
-                                label = { Text("Selecciona tu región") },
-                                readOnly = true,
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                                },
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .fillMaxWidth()
-                            )
-                            ExposedDropdownMenu(
+                            Text("Selecciona tu región:", style = MaterialTheme.typography.labelLarge)
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+
+                            ExposedDropdownMenuBox(
                                 expanded = expanded,
-                                onDismissRequest = { expanded = false }
+                                onExpandedChange = { expanded = !expanded }
                             ) {
-                                options.forEach { option ->
-                                    DropdownMenuItem(
-                                        text = { Text(option) },
-                                        onClick = {
-                                            selectedOption = option
-                                            expanded = false
-                                        }
+                                OutlinedTextField(
+                                    value = selectedOption, //id región
+                                    onValueChange = {},
+                                    label = { Text("Selecciona tu región") },
+                                    readOnly = true,
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                    },
+                                    modifier = Modifier
+                                        .menuAnchor()
+                                        .fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
                                     )
+                                )
+                                ExposedDropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                                ) {
+                                    options.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                selectedOption = option
+                                                expanded = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+                    Card (
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Selecciona tu situación:", style = MaterialTheme.typography.labelLarge)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        situationOptions.forEach { option ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Selecciona tu situación:", style = MaterialTheme.typography.labelLarge)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            situationOptions.forEach { option ->
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .selectable(
+                                            selected = (option == selectedSituation), //id_situacion
+                                            onClick = { selectedSituation = option }
+                                        )
+                                        .padding(vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = (option == selectedSituation),
+                                        onClick = { selectedSituation = option },
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(CircleShape)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = option)
+                                }
+                            }
+                        }
+                    }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                        Card( modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(16.dp))
+                        {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                            // AVISO PRIVACIDAD
+                            Text("Términos y Condiciones", style = MaterialTheme.typography.labelLarge)
+
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .selectable(
-                                        selected = (option == selectedSituation), //id_situacion
-                                        onClick = { selectedSituation = option }
-                                    )
-                                    .padding(vertical = 8.dp),
+                                    .padding(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                RadioButton(
-                                    selected = (option == selectedSituation),
-                                    onClick = { selectedSituation = option },
+                                Checkbox(
+                                    checked = termsAccepted,
+                                    onCheckedChange = { termsAccepted = it },
                                     modifier = Modifier
+                                        .padding(0.dp)
                                         .size(20.dp)
-                                        .clip(CircleShape)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = option)
-                            }
-                        }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // AVISO PRIVACIDAD
-                        Text("Términos y Condiciones", style = MaterialTheme.typography.labelLarge)
-
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = termsAccepted,
-                                onCheckedChange = { termsAccepted = it },
-                                modifier = Modifier
-                                    .padding(0.dp)
-                                    .size(20.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            val annotatedText = buildAnnotatedString {
-                                append("Acepto que un ")
-                                pushStringAnnotation(tag = "alumno", annotation = "")
-                                withStyle(style = SpanStyle(color = Purple40, textDecoration = TextDecoration.Underline)) {
-                                    append("alumno")
+                                val annotatedText = buildAnnotatedString {
+                                    append("Acepto que un ")
+                                    pushStringAnnotation(tag = "alumno", annotation = "")
+                                    withStyle(style = SpanStyle(color = Purple40, textDecoration = TextDecoration.Underline)) {
+                                        append("alumno")
+                                    }
+                                    pop()
+                                    append(" esté presente durante la reunión")
                                 }
-                                pop()
-                                append(" esté presente durante la reunión")
+
+                                Text(
+                                    annotatedText,
+                                    modifier = Modifier.clickable(onClick = { showDialog = true }),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
                             }
 
-                            ClickableText(
-                                text = annotatedText,
-                                onClick = {showDialog = true}
-                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+
+
+
                             if (showDialog) {
                                 AlertDialog(
                                     onDismissRequest = { showDialog = false },
@@ -316,8 +340,9 @@ fun CasoFormView(
                                         }
                                     },
                                     text = {
-                                        Text("Dado que la Clínica Penal del Instituto Tecnológico y de Estudios Superiores de Monterrey es un organismo interno, los casos atendidos por esta serán de conocimiento exclusivo de los alumnos involucrados. Esto tiene como objetivo mejorar la calidad de aprendizaje de los estudiantes. En ningún caso la persona representada será defendida por un alumno, sino por el o los abogados en turno. Al aceptar este aviso, usted acepta las condiciones para agendar una cita con nosotros, así como las estipulaciones en caso de que decidamos tomar su caso.")
-                                    }
+                                        Text("Dado que la Clínica Penal del Instituto Tecnológico y de Estudios Superiores de Monterrey es un organismo interno, los casos atendidos por esta serán de conocimiento exclusivo de los alumnos y abogados involucrados. Esto tiene como objetivo mejorar la calidad de aprendizaje de los estudiantes. En ningún caso la persona representada será defendida por un alumno, sino por el o los abogados en turno. Al aceptar este aviso, usted acepta las condiciones para agendar una cita con nosotros, así como las estipulaciones en caso de que decidamos tomar su caso.")
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 )
                             }
 
@@ -326,6 +351,8 @@ fun CasoFormView(
                         // AVISO PRIVACIDAD
 
                         val parts = userName.split(" ")
+
+                        Spacer(modifier = Modifier.height(16.dp))
 
                         Button(
                             onClick = {
@@ -353,6 +380,3 @@ fun CasoFormView(
                 }
             }
         }
-    }
-
-}
