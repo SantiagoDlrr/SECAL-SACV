@@ -50,7 +50,7 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
     val uiState by viewModel.uiState.collectAsState()
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TitlesView(title = "Citas Confirmadas")
+        TitlesView(title = "Citas")
 
         when (val state = uiState) {
             is CitasViewModel.UiState.Loading -> {

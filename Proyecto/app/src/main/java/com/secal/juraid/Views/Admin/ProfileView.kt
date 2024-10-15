@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Admin
 
+import ProfileViewModel
 import ProfileViewModelFactory
 import android.app.Application
 import androidx.compose.foundation.BorderStroke
