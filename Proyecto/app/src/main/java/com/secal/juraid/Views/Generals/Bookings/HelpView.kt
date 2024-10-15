@@ -3,6 +3,7 @@ package com.secal.juraid.Views.Generals.Bookings
 import ScheduleViewModel
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,13 +73,44 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun HelpView(navController: NavController, viewModel: ScheduleViewModel, bookingsViewModel: BookingsViewModel, userViewModel: UserViewModel) {
+fun HelpView(
+    navController: NavController,
+    scheduleViewModel: ScheduleViewModel,
+    bookingsViewModel: BookingsViewModel,
+    userViewModel: UserViewModel
+) {
+    val showHelpForm by bookingsViewModel.showHelpForm.collectAsState()
+    val userBookings by bookingsViewModel.filteredBookings.collectAsState()
+
+    LaunchedEffect(userBookings) {
+        bookingsViewModel.onEnterHelpView()
+    }
+
+    LaunchedEffect(showHelpForm) {
+        Log.d("HelpView", "showHelpForm: $showHelpForm")
+    }
+
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
     ) {
         TitlesView("Agendar Asesoría Legal")
         CasoFormView(navController, viewModel, bookingsViewModel, userViewModel)
+        if (showHelpForm) {
+            Log.d("HelpView", "Showing CasoFormView")
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CasoFormView(navController, scheduleViewModel, bookingsViewModel, userViewModel)
+            }
+        } else {
+            Log.d("HelpView", "Navigating to BookingsVw")
+            LaunchedEffect(Unit) {
+                navController.navigate(Routes.bookingsVw)
+            }
+        }
     }
 }
 
@@ -96,7 +129,7 @@ fun CasoFormView(
     var termsAccepted by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf("Selecciona tu opción") }
+    var selectedOption by remember { mutableStateOf("") }
     val options = listOf("Apodaca", "Escobedo", "Guadalupe", "Monterrey", "San Nicolás", "San Pedro")
 
     val scope = rememberCoroutineScope()
@@ -108,6 +141,10 @@ fun CasoFormView(
 
     val userName by userViewModel.userName.collectAsState()
     val userId by userViewModel.userId.collectAsState()
+
+    // Check if all required fields are filled
+    val isFormValid = selectedOption.isNotEmpty() && selectedSituation.isNotEmpty() &&
+            scheduleState.selectedDate != null && termsAccepted
 
 
     fun getRegionId(regionName: String): Int {
@@ -168,12 +205,19 @@ fun CasoFormView(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text("Selecciona tu región:", style = MaterialTheme.typography.labelLarge)
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-
-                            ExposedDropdownMenuBox(
+                            OutlinedTextField(
+                                value = if (selectedOption.isEmpty()) "Selecciona tu región" else selectedOption,
+                                onValueChange = {},
+                                label = { Text("Selecciona tu región") },
+                                readOnly = true,
+                                trailingIcon = {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                                },
+                                modifier = Modifier
+                                    .menuAnchor()
+                                    .fillMaxWidth()
+                            )
+                            ExposedDropdownMenu(
                                 expanded = expanded,
                                 onExpandedChange = { expanded = !expanded }
                             ) {
@@ -295,7 +339,201 @@ fun CasoFormView(
                                         append("alumno")
                                     }
                                     pop()
-                                    append(" esté presente durante la reunión")
+                                    append(" esté presente durante la reunión")@SuppressLint("SuspiciousIndentation")
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ScheduleScreen(viewModel: ScheduleViewModel) {
+    val uiState by viewModel.uiState.collectAsState()
+
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // Current Appointment Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Cita Actual",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))@SuppressLint("SuspiciousIndentation")
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ScheduleScreen(viewModel: ScheduleViewModel) {
+    val uiState by viewModel.uiState.collectAsState()
+
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // Current Appointment Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Cita Actual",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (uiState.selectedDate != null)
+                                    "${uiState.selectedDate}, ${uiState.selectedTime}"
+                                else "Sin cita programada",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Schedule Button
+                    OutlinedButton(
+                        onClick = viewModel::openDialog,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(@SuppressLint("SuspiciousIndentation")
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ScheduleScreen(viewModel: ScheduleViewModel) {
+    val uiState by viewModel.uiState.collectAsState()
+
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    // Current Appointment Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                        ),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Cita Actual",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (uiState.selectedDate != null)
+                                    "${uiState.selectedDate}, ${uiState.selectedTime}"
+                                else "Sin cita programada",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Schedule Button
+                    OutlinedButton(
+                        onClick = viewModel::openDialog,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Agendar en otro horario")
+                    }
+
+                    // Schedule Dialog
+                    if (uiState.isDialogOpen) {
+                        ScheduleDialog(viewModel)
+                    }
+                }
+            }
+        }
+    }
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Agendar en otro horario")
+                    }
+
+                    // Schedule Dialog
+                    if (uiState.isDialogOpen) {
+                        ScheduleDialog(viewModel)
+                    }
+                }
+            }
+        }
+    }
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Agendar en otro horario")
+                    }
+
+                    // Schedule Dialog
+                    if (uiState.isDialogOpen) {
+                        ScheduleDialog(viewModel)
+                    }
+                }
+            }
+        }
+    }
                                 }
 
                                 Text(
@@ -367,12 +605,11 @@ fun CasoFormView(
                                         idSituacion = getSituationId(selectedSituation),
                                         id_usuario = userId
                                     )
-                                    // Navigate back or show success message
-                                    navController.popBackStack()
+                                    navController.navigate(Routes.bookingsVw)
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            enabled = termsAccepted
+                            enabled = isFormValid
                         ) {
                             Text("Confirmar")
                         }
