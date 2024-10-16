@@ -376,7 +376,7 @@ fun CategoryItem(item: HomeViewModel.ContentItemPreview, navController: NavContr
 
 
 @Composable
-fun TitlesView(title: String){
+fun TitlesView(title: String, size: Int = 35) {
     Spacer(modifier = Modifier.height(16.dp))
     Column(
         modifier = Modifier
@@ -388,7 +388,7 @@ fun TitlesView(title: String){
     ) {
         Text(
             text = title,
-            fontSize = 35.sp,
+            fontSize = size.sp,
             modifier = Modifier.padding(8.dp),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.titleLarge.copy(

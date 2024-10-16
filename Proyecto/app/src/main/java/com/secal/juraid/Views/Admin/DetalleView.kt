@@ -305,5 +305,9 @@ fun HyperlinksCard(hyperlinks: List<CaseDetailViewModel.Hiperlink>, context: Con
 
 fun Context.openUrl(url: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    startActivity(intent)
+    try {
+        startActivity(intent)
+    } catch (e: Exception) {
+        Toast.makeText(this, "No se pudo abrir el enlace", Toast.LENGTH_SHORT).show()
+    }
 }

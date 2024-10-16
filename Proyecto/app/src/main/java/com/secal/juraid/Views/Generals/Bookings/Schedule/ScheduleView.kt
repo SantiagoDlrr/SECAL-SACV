@@ -26,11 +26,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,11 +60,6 @@ import com.secal.juraid.TitlesView
 @Composable
 fun ScheduleScreen(viewModel: ScheduleViewModel) {
     val uiState by viewModel.uiState.collectAsState()
-
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-        ) {
 
             Card(
                 modifier = Modifier
@@ -106,15 +103,20 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
                     OutlinedButton(
                         onClick = viewModel::openDialog,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.DateRange,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Agendar en otro horario")
+                        Text("Agendar en otro horario", color = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
 
                     // Schedule Dialog
@@ -124,7 +126,7 @@ fun ScheduleScreen(viewModel: ScheduleViewModel) {
                 }
             }
         }
-    }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
