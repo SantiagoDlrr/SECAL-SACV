@@ -40,11 +40,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.secal.juraid.TitlesView
@@ -147,57 +150,82 @@ fun ScheduleDialog(viewModel: ScheduleViewModel) {
                 .width(380.dp)
                 .height(640.dp),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background
+            color = MaterialTheme.colorScheme.secondaryContainer
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Text(
-                    text = "Horarios Disponibles",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
 
-                // Date Selection
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(viewModel.availableDates) { date ->
-                        DateCard(
-                            date = date,
-                            isSelected = date == selectedDate,
-                            onSelect = {
-                                selectedDate = date
-                                selectedTimeSlot = null
-                            }
+                    ) {
+                    Text(
+                        text = "Horarios Disponibles",
+                        fontSize = 30.sp,
+                        modifier = Modifier.padding(8.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            lineHeight = 44.sp  // Aumentado el espaciado entre líneas
                         )
-                    }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Time Selection
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth().height(440.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    items(availableTimeSlots) { timeSlot ->
-                        TimeSlotItem(
-                            timeSlot = timeSlot,
-                            isSelected = timeSlot == selectedTimeSlot,
-                            onSelect = {
-                                if (timeSlot.isAvailable) {
-                                    selectedTimeSlot = timeSlot
+                    // Date Selection
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    ) {
+                        items(viewModel.availableDates) { date ->
+                            DateCard(
+                                date = date,
+                                isSelected = date == selectedDate,
+                                onSelect = {
+                                    selectedDate = date
+                                    selectedTimeSlot = null
                                 }
-                            }
-                        )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Time Selection
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f).padding(16.dp)
+                    ) {
+                        items(availableTimeSlots) { timeSlot ->
+                            TimeSlotItem(
+                                timeSlot = timeSlot,
+                                isSelected = timeSlot == selectedTimeSlot,
+                                onSelect = {
+                                    if (timeSlot.isAvailable) {
+                                        selectedTimeSlot = timeSlot
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Confirm Button
                 Button(
