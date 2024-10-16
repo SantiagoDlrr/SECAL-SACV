@@ -37,7 +37,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 
 @Composable
-fun ProfileView(navController: NavController, viewModel: ProfileViewModel) {
+fun ProfileView(navController: NavController) {
     val context = LocalContext.current
     val application = context.applicationContext as Application
     val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))

@@ -2,6 +2,7 @@ package com.secal.juraid.Views.Sesion
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -97,7 +98,13 @@ fun LoginView(navController: NavController, viewModel: UserViewModel) {
 
     // Show loading indicator
     if (isLoading) {
-        CircularProgressIndicator()
+        Box (
+            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ){
+            CircularProgressIndicator()
+        }
+
     }
 }
 

@@ -61,7 +61,6 @@ import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.messaging.FirebaseMessaging
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.ViewModel.*
-import com.secal.juraid.Views.*
 import com.secal.juraid.Views.Admin.EditArticuloView
 import com.secal.juraid.Views.Admin.EditDetalleView
 import com.secal.juraid.Views.Admin.ProfileView
@@ -76,12 +75,10 @@ import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
-import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.MissingFieldException
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
 val LocalUserViewModel = staticCompositionLocalOf<UserViewModel> {
@@ -421,7 +418,7 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.addCaseVw) {
             val casesViewModel = viewModel<CasesViewModel>()
 
-            AddCaseView(navController = navController, casesViewModel, userViewModel)
+            AddCaseView(navController = navController, casesViewModel)
         }
         composable(Routes.settingView) {
             SettingsView(navController = navController, userViewModel)
@@ -458,7 +455,7 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             val viewModel: ProfileViewModel = viewModel(
                 factory = ProfileViewModelFactory(application, userRepository)
             )
-            ProfileView(navController = navController, viewModel = viewModel)
+            ProfileView(navController = navController)
         }
         composable(Routes.editProfileView) {
             val context = LocalContext.current

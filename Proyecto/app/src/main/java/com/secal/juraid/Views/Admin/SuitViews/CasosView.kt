@@ -82,7 +82,12 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
             when (selectedTabIndex) {
                 0 -> {
                     if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     } else {
                         Button(
                             onClick = { navController.navigate(Routes.invUnitVw) },
@@ -92,7 +97,16 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
                         ) {
                             Text("Unidades de investigación")
                         }
-                        CasosCardView(navController = navController, cases = cases)
+                        if (cases.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No se encontraron casos")
+                            }
+                        } else {
+                            CasosCardView(navController = navController, cases = cases)
+                        }
 
                     }
                 }
@@ -259,6 +273,15 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
 
     LaunchedEffect(Unit) {
         viewModel.loadCitasPasadas()
+    }
+
+    if (citasPasadas.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No se encontraron asesorías por confirmar")
+        }
     }
 
     LazyColumn {

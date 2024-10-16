@@ -67,6 +67,18 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewMod
             if (isLoading) {
                 LoadingScreen()
             } else {
+                if (contentItems.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No hay contenido disponible",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+
                 HomeContent(
                     contentItems = contentItems,
                     navController = navController,

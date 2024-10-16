@@ -41,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.secal.juraid.BottomBar
+import com.secal.juraid.LocalUserViewModel
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
@@ -71,12 +72,7 @@ fun ArticuloDetailView(navController: NavController, viewModel: HomeViewModel, p
     var isLoading by remember { mutableStateOf(true) }
     var deleteDialog by remember { mutableStateOf(false) }
 
-    val userRole by UserViewModel(
-        UserRepository(
-            supabase,
-            CoroutineScope(Dispatchers.IO)
-        )
-    ).userRole.collectAsState()
+    val userRole by LocalUserViewModel.current.userRole.collectAsState()
 
 
     LaunchedEffect(postId) {

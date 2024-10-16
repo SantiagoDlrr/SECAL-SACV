@@ -62,6 +62,14 @@ fun CitasConfirmadasView(viewModel: CitasViewModel) {
                 }
             }
             is CitasViewModel.UiState.Success -> {
+                if (state.citas.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No hay citas confirmadas")
+                    }
+                }
                 LazyColumn {
                     items(state.citas) { cita ->
                         CitaCard(

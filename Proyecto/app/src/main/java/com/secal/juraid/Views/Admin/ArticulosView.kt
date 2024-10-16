@@ -83,6 +83,8 @@ fun ArticulosView(navController: NavController, viewModel: HomeViewModel) {
                     }
                     //Spacer(modifier = Modifier.width(16.dp))
 
+
+
                     ArticulosLista(navController = navController, items = contentItems)
                 }
             }
@@ -117,6 +119,15 @@ fun LoadingScreen() {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ArticulosLista(navController: NavController, items: List<HomeViewModel.ContentItemPreview>) {
+    if (items.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No hay artículos publicados")
+        }
+
+    }
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
+import com.secal.juraid.LocalUserViewModel
 import com.secal.juraid.Routes
 import com.secal.juraid.TitlesView
 import com.secal.juraid.TopBar
@@ -25,8 +26,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCaseView(navController: NavController, viewModel: CasesViewModel, UserViewModel: UserViewModel) {
-    val UserViewModel : UserViewModel = viewModel()
+fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
+    val userViewModel = LocalUserViewModel.current
     var nombreCliente by remember { mutableStateOf("") }
     var nuc by remember { mutableStateOf("") }
     var carpetaJudicial by remember { mutableStateOf("") }
@@ -43,7 +44,7 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel, UserVie
     val unitInvestigations by viewModel.unitInvestigations.collectAsState()
     val scope = rememberCoroutineScope()
 
-    val nombreAbogado by UserViewModel.userName.collectAsState()
+    val nombreAbogado by userViewModel.userName.collectAsState()
 
     Scaffold(
         topBar = {
