@@ -95,13 +95,25 @@ class UserRepository(private val supabase: SupabaseClient, scope: CoroutineScope
 
     suspend fun signOut() {
         try {
+            val user = supabase.auth.retrieveUserForCurrentSession()
             supabase.auth.signOut()
+            supabase.from("users")
+                .update(
+                    {
+                        set("fcm_token", "")
+                    }
+                ) {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
+
         } catch (e: Exception) {
             throw Exception("Error al cerrar sesión: ${e.message}")
         }
     }
 
-    public suspend fun updateFCMToken() {
+     suspend fun updateFCMToken() {
         try {
             val token = FirebaseMessaging.getInstance().token.await()
             val user = supabase.auth.retrieveUserForCurrentSession()
