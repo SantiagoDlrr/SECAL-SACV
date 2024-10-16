@@ -50,6 +50,7 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
         citasViewModel.loadCitasPasadas()  // Cargar citas pasadas
     }
 
+
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() },
@@ -112,9 +113,12 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
 
     val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
 
-    LazyColumn {
-        items(cases) { case ->
+    val cases2 by viewModel.activeCases.collectAsState()
+    //viewModel.loadAllData()
 
+
+    LazyColumn {
+        items(cases2) { case ->
             val caseId = case.id
             Card(
                 modifier = Modifier
@@ -222,9 +226,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                 Button(onClick = {
                     scope.launch {
                         deletingCaseId?.let {
-                            viewModel.deleteCase(
-                                it
-                            )
+                            viewModel.deleteCase(it)
                         }
                         showDeleteCaseDialog = false
                         deletingCaseId = null
@@ -249,6 +251,8 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
     var showRechazarDialog by remember { mutableStateOf(false) }
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
+
+    val casesViewModel = viewModel<CasesViewModel>()
     val userViewModel = viewModel<UserViewModel>()
     val abogado by userViewModel.userName.collectAsState()
 
@@ -282,6 +286,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
                 Button(onClick = {
                     selectedCita?.let { viewModel.representarCita(it, abogado) }
                     showRepresentarDialog = false
+
                 }) {
                     Text("Aceptar")
                 }

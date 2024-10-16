@@ -2,6 +2,7 @@ package com.secal.juraid.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.supabase
 import io.github.jan.supabase.SupabaseClient
@@ -21,6 +22,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 class CitasViewModel : ViewModel() {
     private val _citasPasadas = MutableStateFlow<List<Cita>>(emptyList())
@@ -66,8 +68,9 @@ class CitasViewModel : ViewModel() {
     fun loadCitasPasadas() {
         viewModelScope.launch {
             try {
-                val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                val citasPasadas = supabase.from("Citas")
+                val currentDateTime = LocalDateTime.now()
+                //val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                /*val citasPasadas = supabase.from("Citas")
                     .select() {
                         filter {
                             lt("fecha", currentDate)
@@ -76,9 +79,30 @@ class CitasViewModel : ViewModel() {
                             }
                         }
                     }
-                    .decodeList<Cita>()
+                    .decodeList<Cita>()*/
 
-                _citasPasadas.value = citasPasadas
+                val citasPasadas = withContext(Dispatchers.IO) {
+                    supabase.from("Citas")
+                        .select() {
+                            filter {
+                                lte("fecha", currentDateTime.toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE))
+                                and {
+                                    eq("estado_representacion", 0) // Solo citas pendientes
+                                }
+                            }
+                        }
+                        .decodeList<Cita>()
+                }
+
+                val citasFiltradas = citasPasadas.filter { cita ->
+                    val citaDateTime = LocalDateTime.of(
+                        LocalDate.parse(cita.fecha, DateTimeFormatter.ISO_LOCAL_DATE),
+                        LocalTime.parse(cita.hora, DateTimeFormatter.ofPattern("HH:mm:ss"))
+                    )
+                    citaDateTime.isBefore(currentDateTime) || citaDateTime.isEqual(currentDateTime)
+                }
+
+                _citasPasadas.value = citasFiltradas
             } catch (e: Exception) {
                 println("Error al cargar citas pasadas: ${e.message}")
             }
@@ -162,6 +186,7 @@ class CitasViewModel : ViewModel() {
             if (response != null) {
                 println("Estado de cita actualizado exitosamente")
                 loadCitasPasadas() // Recargar las citas pasadas para reflejar el cambio
+
             } else {
                 println("No se pudo actualizar el estado de la cita")
             }
@@ -190,7 +215,7 @@ class CitasViewModel : ViewModel() {
         val id_situacion: Int? = null,
         val id_usuario: String? = null,
         val motivo_cancelacion: String? = null,
-        var estado_representacion: Int? = null
+        var estado_representacion: Int? = 0
     ) {
         companion object {
             private val regionesMap = mapOf(
