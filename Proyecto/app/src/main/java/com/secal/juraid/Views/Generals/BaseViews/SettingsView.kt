@@ -1,5 +1,8 @@
 package com.secal.juraid.Views.Generals.BaseViews
 
+import android.widget.Toast
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -36,6 +39,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 import com.secal.juraid.TopBar
 import com.secal.juraid.ViewModel.UserViewModel
 
@@ -60,13 +65,50 @@ fun SettingsView(navController: NavController, viewModel: UserViewModel) {
 
 @Composable
 fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel) {
-
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("AppPreferences", android.content.Context.MODE_PRIVATE)
 
-    // Recoger el estado de autenticación biométrica desde SharedPreferences
     var isBiometricEnabled by remember {
         mutableStateOf(sharedPreferences.getBoolean("biometric_enabled", false))
+    }
+
+    val biometricManager = BiometricManager.from(context)
+
+    fun showBiometricPrompt(onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val canAuthenticate = biometricManager.canAuthenticate(
+            BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+        )
+
+        if (canAuthenticate == BiometricManager.BIOMETRIC_SUCCESS) {
+            val executor = ContextCompat.getMainExecutor(context)
+            val biometricPrompt = BiometricPrompt(context as FragmentActivity, executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        onSuccess()
+                    }
+
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        onError(errString.toString())
+                    }
+
+                    override fun onAuthenticationFailed() {
+                        onError("Authentication failed")
+                    }
+                })
+
+            val promptInfo = BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Confirmar autenticación")
+                .setSubtitle("Confirma tu identidad para cambiar la configuración biométrica")
+                .setNegativeButtonText("Cancelar")
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.BIOMETRIC_WEAK
+                )
+                .build()
+
+            biometricPrompt.authenticate(promptInfo)
+        } else {
+            onError("No se puede usar autenticación biométrica en este dispositivo")
+        }
     }
 
     Column(
@@ -78,7 +120,6 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
 
         Spacer(modifier = Modifier.padding(16.dp))
 
-        // Card para activar/desactivar la autenticación biométrica
         Card(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -103,12 +144,21 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
                 Switch(
                     checked = isBiometricEnabled,
                     onCheckedChange = { isChecked ->
-                        isBiometricEnabled = isChecked
-                        // Actualizar la preferencia del usuario en SharedPreferences
-                        with(sharedPreferences.edit()) {
-                            putBoolean("biometric_enabled", isChecked)
-                            apply()
-                        }
+                        // Mostrar prompt de autenticación biométrica
+                        showBiometricPrompt(
+                            onSuccess = {
+                                // Si la autenticación es exitosa, permitir el cambio
+                                isBiometricEnabled = isChecked
+                                with(sharedPreferences.edit()) {
+                                    putBoolean("biometric_enabled", isChecked)
+                                    apply()
+                                }
+                            },
+                            onError = { errorMessage ->
+                                // Mostrar error si la autenticación falla
+                                Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
+                            }
+                        )
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,
@@ -119,48 +169,46 @@ fun SettingsHomeCardView(navController: NavController, viewModel: UserViewModel)
                 )
             }
         }
+    }
 
-
-        // Card para cerrar sesión
-        Card(
-            onClick = {
-                viewModel.signOut()
-                navController.navigate(Routes.userVw)
-            },
+    Card(
+        onClick = {
+            viewModel.signOut()
+            navController.navigate(Routes.userVw)
+        },
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .clip(RoundedCornerShape(16.dp)),
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(70.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
-            Row(
+            Icon(
+                imageVector = Icons.Outlined.ExitToApp,
+                contentDescription = null,
                 modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .height(70.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ExitToApp,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .weight(0.5f),
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer
-                )
+                    .size(50.dp)
+                    .weight(0.5f),
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
 
-                Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = "Cerrar Sesión",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Start,
-                    fontSize = 25.sp,
-                    modifier = Modifier.weight(0.8f)
-                )
-            }
+            Text(
+                text = "Cerrar Sesión",
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Start,
+                fontSize = 25.sp,
+                modifier = Modifier.weight(0.8f)
+            )
         }
     }
 }

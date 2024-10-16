@@ -46,7 +46,6 @@ import com.secal.juraid.Views.Sesion.SignUpView
 import com.secal.juraid.Views.Admin.SuitViews.EspaciosView
 import com.secal.juraid.Views.Admin.SuitViews.SuitHomeView
 import com.secal.juraid.Views.Generals.BaseViews.UserView
-import com.secal.juraid.Views.Generals.BaseViews.SettingsView
 import com.secal.juraid.ui.theme.JurAidTheme
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
@@ -72,6 +71,7 @@ import com.secal.juraid.Views.Admin.SuitViews.InvUnitView
 import com.secal.juraid.Views.Generals.BaseViews.ArticuloDetailView
 import com.secal.juraid.Views.Generals.BaseViews.FAQView
 import com.secal.juraid.Views.Generals.BaseViews.NuestrosServiciosView
+import com.secal.juraid.Views.Generals.BaseViews.SettingsView
 import com.secal.juraid.Views.Generals.Bookings.BookingsView
 import com.secal.juraid.Views.Generals.Users.UserHomeView
 import com.secal.juraid.Views.Sesion.BiometricAuthView
@@ -94,7 +94,18 @@ class MainActivity : FragmentActivity() {
 
         // Carga inicial del estado de la sesión al abrir la app
 
-
+        if (isBiometricEnabled()) {
+            startBiometricAuth {
+                setContent {
+                    JurAidTheme(
+                        darkTheme = isSystemInDarkTheme(),
+                        dynamicColor = false
+                    ) {
+                        UserScreen()
+                    }
+                }
+            }
+        } else {
         setContent {
             JurAidTheme(
                 darkTheme = isSystemInDarkTheme(),
@@ -102,6 +113,7 @@ class MainActivity : FragmentActivity() {
             ) {
                 UserScreen()
             }
+        }
         }
 
         askNotificationPermission()
@@ -128,7 +140,7 @@ class MainActivity : FragmentActivity() {
                 // Log and toast
                 val msg = getString(R.string.msg_token_fmt, token)
                 Log.d(TAG, msg)
-                Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                //Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
             })
         } else {
             // TODO: Inform user that that your app will not show notifications.
@@ -241,14 +253,6 @@ class MainActivity : FragmentActivity() {
     private fun isBiometricEnabled(): Boolean {
         val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         return sharedPref.getBoolean("biometric_enabled", false)
-    }
-
-    private fun saveBiometricPreference(isEnabled: Boolean) {
-        val sharedPref = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        with(sharedPref.edit()) {
-            putBoolean("biometric_enabled", isEnabled)
-            apply()
-        }
     }
 }
 
