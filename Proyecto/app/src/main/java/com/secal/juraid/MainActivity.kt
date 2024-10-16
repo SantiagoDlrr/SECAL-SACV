@@ -52,7 +52,9 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.tasks.OnCompleteListener
@@ -82,6 +84,10 @@ import kotlinx.serialization.MissingFieldException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 
+val LocalUserViewModel = staticCompositionLocalOf<UserViewModel> {
+    error("No UserViewModel provided")
+}
+
 class MainActivity : FragmentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -89,33 +95,23 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        if (isBiometricEnabled()) {
-            startBiometricAuth {
-                setContent {
-                    JurAidTheme(
-                        darkTheme = isSystemInDarkTheme(),
-                        dynamicColor = false
-                    ) {
-                        UserScreen()
-                    }
-                }
-            }
-        } else {
-            setContent {
-                JurAidTheme(
-                    darkTheme = isSystemInDarkTheme(),
-                    dynamicColor = false
-                ) {
-                    UserScreen()
-                }
+        // Carga inicial del estado de la sesión al abrir la app
+
+
+        setContent {
+            JurAidTheme(
+                darkTheme = isSystemInDarkTheme(),
+                dynamicColor = false
+            ) {
+                UserScreen()
             }
         }
 
         askNotificationPermission()
 
         intent?.data?.let { uri ->
-            handleDeepLink(uri)
-        }
+                handleDeepLink(uri)
+            }
     }
 
     // Declare the launcher at the top of your Activity/Fragment:
@@ -267,6 +263,15 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
     val navController = rememberNavController()
     val biometricViewModel: BiometricViewModel = viewModel()
 
+    // Assuming UserViewModel needs a UserRepository in its constructor
+    val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
+    val userViewModelFactory = UserViewModelFactory(userRepository)
+    val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
+
+    userViewModel.checkSession()
+
+
+    CompositionLocalProvider(LocalUserViewModel provides userViewModel) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -280,7 +285,7 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.homeVw) {
             val viewModel = remember { HomeViewModel() }
-            HomeView(navController = navController, viewModel = viewModel)
+            HomeView(navController = navController, viewModel = viewModel, userViewModel = userViewModel)
         }
         composable(Routes.serviciosVw) {
             ServiciosView(navController = navController)
@@ -298,35 +303,29 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             UserView(navController = navController)
         }
         composable(Routes.loginVw) {
-            LoginView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            LoginView(navController = navController, userViewModel)
         }
         composable(Routes.signUpVw) {
-            SignUpView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            SignUpView(navController = navController, userViewModel)
         }
         composable(Routes.helpVw) {
-            val uvm = remember {UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
             val scheduleViewModel = remember { ScheduleViewModel() }
-            val bookingsViewModel = remember { BookingsViewModel(uvm) }
-            val userViewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))}
+            val bookingsViewModel = remember { BookingsViewModel(userViewModel) }
 
             HelpView(navController = navController, scheduleViewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
         }
         composable(Routes.bookingsVw) {
-            val uvm = remember {UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
-            val bookingsViewModel = remember { BookingsViewModel(uvm) }
+            val bookingsViewModel = remember { BookingsViewModel(userViewModel) }
             BookingsView(
                 navController = navController, bookingsViewModel = bookingsViewModel
             )
         }
         composable(Routes.suitVw) {
-            SuitHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            SuitHomeView(navController = navController, userViewModel)
         }
         composable(Routes.casosVw) {
             val casesViewModel: CasesViewModel = viewModel()
             val citasViewModel: CitasViewModel = viewModel()
-            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
-            val userViewModelFactory = UserViewModelFactory(userRepository)
-            val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
             CasosView(
                 navController = navController,
                 viewModel = casesViewModel,
@@ -341,10 +340,10 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             EspaciosView(navController = navController)
         }
         composable(Routes.studentHomeVw) {
-            StudentHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            StudentHomeView(navController = navController, userViewModel)
         }
         composable(Routes.userHomeVw) {
-            UserHomeView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            UserHomeView(navController = navController, userViewModel)
         }
         composable(
             "${Routes.detalleVw}/{caseId}",
@@ -359,13 +358,13 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         composable(Routes.casosStVw) {
             CasosStudentView(
                 navController = navController,
-                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+                userViewModel = userViewModel
             )
         }
         composable(Routes.horarioStVw) {
             HorarioStudentView(
                 navController = navController,
-                userViewModel = UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO)))
+                userViewModel = userViewModel
             )
         }
         composable(
@@ -421,14 +420,11 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
         }
         composable(Routes.addCaseVw) {
             val casesViewModel = viewModel<CasesViewModel>()
-            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
-            val userViewModelFactory = UserViewModelFactory(userRepository)
-            val userViewModel: UserViewModel = viewModel(factory = userViewModelFactory)
 
             AddCaseView(navController = navController, casesViewModel, userViewModel)
         }
         composable(Routes.settingView) {
-            SettingsView(navController = navController, UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))))
+            SettingsView(navController = navController, userViewModel)
         }
         composable(
             "${Routes.editDetalleVw}/{caseId}",
@@ -473,5 +469,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
             ProfileEditView(navController = navController, viewModel = viewModel)
         }
+    }
     }
 }

@@ -45,11 +45,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import com.secal.juraid.AnimatedHelpButton
 import com.secal.juraid.CategoryItem
 import com.secal.juraid.Routes
+import com.secal.juraid.ViewModel.UserViewModel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
-fun HomeView(navController: NavController, viewModel: HomeViewModel) {
+fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewModel: UserViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
@@ -75,7 +76,8 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel) {
             }
             AnimatedHelpButton(
                 modifier = Modifier.align(Alignment.BottomEnd),
-                navController = navController
+                navController = navController,
+                userViewModel = userViewModel
             )
         }
     }

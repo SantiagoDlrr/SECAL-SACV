@@ -64,6 +64,18 @@ class UserViewModel(private val userRepository: UserRepository) : ViewModel() {
         }
     }
 
+    fun checkSession() {
+        viewModelScope.launch {
+            userRepository.sessionState.collect { status ->
+                if (status is SessionStatus.Authenticated) {
+                    // Si la sesión ya está autenticada, cargar los datos del usuario
+                    fetchUserName()
+                    fetchUserRole()
+                }
+            }
+        }
+    }
+
     private fun fetchUserId() {
         viewModelScope.launch {
             try {

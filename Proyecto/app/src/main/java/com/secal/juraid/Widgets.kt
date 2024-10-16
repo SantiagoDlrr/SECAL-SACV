@@ -94,9 +94,10 @@ fun HelpButton(modifier: Modifier, navController: NavController) {
 @Composable
 fun AnimatedHelpButton(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    userViewModel: UserViewModel // Ahora aceptamos el UserViewModel como parámetro
 ) {
-    val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
+    val sessionState by userViewModel.sessionState.collectAsState()
     val isLogged = sessionState is SessionStatus.Authenticated
     val isExpanded = remember { mutableStateOf(false) }
     val animatedWidth by animateDpAsState(
@@ -151,11 +152,13 @@ fun AnimatedHelpButton(
 }
 
 
+
 @Composable
 fun BottomBar(navController: NavController) {
-    val sessionState by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).sessionState.collectAsState()
+    val userViewModel = LocalUserViewModel.current // Obtenemos el UserViewModel desde el CompositionLocal
+    val sessionState by userViewModel.sessionState.collectAsState()
     val isLogged = sessionState is SessionStatus.Authenticated
-    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
+    val userRole by userViewModel.userRole.collectAsState()
 
     val currentRoute = navController.currentBackStackEntry?.destination?.route
 
@@ -270,6 +273,7 @@ fun BottomBar(navController: NavController) {
         }
     }
 }
+
 
 
 
@@ -442,7 +446,7 @@ fun ButtonUserCard(navController: NavController, title: String = "", icon: Image
 
 @Composable
 fun NameUserCard(name: String, desc: String) {
-    val viewModel = remember { UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))) }
+    val viewModel = LocalUserViewModel.current
     val isTec by viewModel.isTec.collectAsState()
 
     val shouldShowTecLogo by remember {

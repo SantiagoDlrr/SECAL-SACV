@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.max
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.secal.juraid.BottomBar
+import com.secal.juraid.LocalUserViewModel
 import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.Routes
 import com.secal.juraid.TopBar
@@ -252,8 +253,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
     var selectedCita by remember { mutableStateOf<CitasViewModel.Cita?>(null) }
 
 
-    val casesViewModel = viewModel<CasesViewModel>()
-    val userViewModel = viewModel<UserViewModel>()
+    val userViewModel = LocalUserViewModel.current
     val abogado by userViewModel.userName.collectAsState()
 
 
