@@ -1,6 +1,7 @@
     package com.secal.juraid.Views.Admin.StudentsView
 
     import android.widget.Toast
+    import androidx.activity.compose.BackHandler
     import androidx.compose.foundation.layout.Box
     import androidx.compose.foundation.layout.Column
     import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,16 @@
 
     @Composable
     fun StudentHomeView(navController: NavController, userViewModel: UserViewModel) {
+        BackHandler {
+            navController.navigate(Routes.homeVw) {
+                // Limpia el back stack hasta HomeView
+                popUpTo(Routes.homeVw) {
+                    inclusive = true
+                }
+                // Evita múltiples copias de HomeView en el stack
+                launchSingleTop = true
+            }
+        }
         Scaffold (
             bottomBar = { BottomBar(navController = navController) },
             topBar = { TopBar() }

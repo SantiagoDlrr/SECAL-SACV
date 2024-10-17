@@ -1,6 +1,7 @@
 package com.secal.juraid.Views.Generals.BaseViews
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,16 @@ import com.secal.juraid.TopBar
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun UserView(navController: NavController) {
+    BackHandler {
+        navController.navigate(Routes.homeVw) {
+            // Limpia el back stack hasta HomeView
+            popUpTo(Routes.homeVw) {
+                inclusive = true
+            }
+            // Evita múltiples copias de HomeView en el stack
+            launchSingleTop = true
+        }
+    }
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }

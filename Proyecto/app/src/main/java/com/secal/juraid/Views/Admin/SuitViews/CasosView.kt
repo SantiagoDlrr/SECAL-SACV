@@ -1,6 +1,7 @@
 // aquí se muestra la lista de casos y las citas pasadas
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +39,18 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CasosView(navController: NavController, viewModel: CasesViewModel, citasViewModel: CitasViewModel) {
+
+    BackHandler {
+        navController.navigate(Routes.suitVw) {
+            // Limpia el back stack hasta HomeView
+            popUpTo(Routes.casosVw) {
+                inclusive = true
+            }
+            // Evita múltiples copias de HomeView en el stack
+            launchSingleTop = true
+        }
+    }
+
     Log.d(TAG, "CasosView() called")
 
     var selectedTabIndex by remember { mutableStateOf(0) }

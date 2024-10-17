@@ -117,7 +117,6 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Image upload status
                     when (val status = imageUploadStatus) {
                         is ImageUploadStatus.Uploading -> CircularProgressIndicator()
                         is ImageUploadStatus.Success -> Text("Imagen subida con éxito", color = MaterialTheme.colorScheme.primary)
@@ -146,7 +145,8 @@ fun ProfileEditView(navController: NavController, viewModel: ProfileViewModel) {
 
                     Button(
                         onClick = { showDialog = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = imageUploadStatus !is ImageUploadStatus.Uploading
                     ) {
                         Text("Guardar Cambios")
                     }

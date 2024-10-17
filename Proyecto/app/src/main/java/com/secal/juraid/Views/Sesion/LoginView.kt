@@ -1,6 +1,7 @@
 package com.secal.juraid.Views.Sesion
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,6 +61,18 @@ import io.github.jan.supabase.auth.SessionStatus
 
 @Composable
 fun LoginView(navController: NavController, viewModel: UserViewModel) {
+
+    BackHandler {
+        navController.navigate(Routes.homeVw) {
+            // Limpia el back stack hasta HomeView
+            popUpTo(Routes.userVw) {
+                inclusive = true
+            }
+            // Evita múltiples copias de HomeView en el stack
+            launchSingleTop = true
+        }
+    }
+
     val sessionState by viewModel.sessionState.collectAsState()
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage

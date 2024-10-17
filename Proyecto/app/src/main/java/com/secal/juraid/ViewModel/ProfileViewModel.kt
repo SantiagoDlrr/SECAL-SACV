@@ -40,6 +40,9 @@ class ProfileViewModel(
     private val _imageUploadStatus = MutableStateFlow<ImageUploadStatus>(ImageUploadStatus.Idle)
     val imageUploadStatus: StateFlow<ImageUploadStatus> = _imageUploadStatus.asStateFlow()
 
+    private var tempImageUrl: String? = null
+    private var tempImageFileName: String? = null
+
     init {
         loadProfileData()
     }
@@ -94,13 +97,14 @@ class ProfileViewModel(
                         supabase.storage["profile_pictures"].upload(fileName, imageByteArray)
                     }
                     val imageUrl = supabase.storage["profile_pictures"].publicUrl(fileName)
-                    _imageUploadStatus.value = ImageUploadStatus.Success(imageUrl)
 
-                    // Update local state with new image URL
+                    // Guardamos temporalmente la URL y el nombre del archivo
+                    tempImageUrl = imageUrl
+                    tempImageFileName = fileName
+
+                    // Actualizamos el estado local para mostrar la imagen
                     _profileData.value = _profileData.value.copy(url_image = imageUrl)
-
-                    // Update profile data in database with new image URL
-                    updateProfileImageUrl(imageUrl)
+                    _imageUploadStatus.value = ImageUploadStatus.Success(imageUrl)
                 }
             } catch (e: Exception) {
                 Log.e("ProfileViewModel", "Error uploading image", e)
@@ -128,7 +132,7 @@ class ProfileViewModel(
             Log.d("ProfileViewModel", "Profile image URL updated successfully")
         } catch (e: Exception) {
             Log.e("ProfileViewModel", "Error updating profile image URL", e)
-            throw e  // Re-throw the exception to handle it in the calling function
+            throw e
         }
     }
 
@@ -139,7 +143,12 @@ class ProfileViewModel(
             try {
                 val userId = userRepository.getUserId()
 
-                // Update profile data using the syntax from the documentation
+                // Si hay una imagen temporal, la actualizamos en la base de datos
+                tempImageUrl?.let { imageUrl ->
+                    updateProfileImageUrl(imageUrl)
+                }
+
+                // Actualizamos la descripción
                 withContext(Dispatchers.IO) {
                     supabase
                         .from("profile")
@@ -154,8 +163,15 @@ class ProfileViewModel(
                         }
                 }
 
-                // Update local state
-                _profileData.value = _profileData.value.copy(desc = desc)
+                // Actualizamos el estado local
+                _profileData.value = _profileData.value.copy(
+                    desc = desc,
+                    url_image = tempImageUrl ?: _profileData.value.url_image
+                )
+
+                // Limpiamos las variables temporales
+                tempImageUrl = null
+                tempImageFileName = null
 
                 _updateResult.value = UpdateProfileResult.Success("Perfil actualizado exitosamente")
                 _errorMessage.value = null
@@ -163,12 +179,46 @@ class ProfileViewModel(
                 Log.e("ProfileViewModel", "Error updating profile", e)
                 _updateResult.value = UpdateProfileResult.Error("Error al actualizar el perfil: ${e.message}")
                 _errorMessage.value = "Error al actualizar el perfil: ${e.message}"
+
+                // En caso de error, revertimos la imagen local al valor original
+                tempImageFileName?.let {
+                    try {
+                        // Eliminamos la imagen temporal del storage
+                        withContext(Dispatchers.IO) {
+                            supabase.storage["profile_pictures"].delete(it)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("ProfileViewModel", "Error deleting temporary image", e)
+                    }
+                }
+                loadProfileData() // Recargamos los datos originales
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    fun cancelChanges() {
+        viewModelScope.launch {
+            // Si hay una imagen temporal, la eliminamos del storage
+            tempImageFileName?.let {
+                try {
+                    withContext(Dispatchers.IO) {
+                        supabase.storage["profile_pictures"].delete(it)
+                    }
+                } catch (e: Exception) {
+                    Log.e("ProfileViewModel", "Error deleting temporary image", e)
+                }
+            }
+
+            // Limpiamos las variables temporales
+            tempImageUrl = null
+            tempImageFileName = null
+
+            // Recargamos los datos originales
+            loadProfileData()
+        }
+    }
     fun resetUpdateResult() {
         _updateResult.value = null
         _errorMessage.value = null

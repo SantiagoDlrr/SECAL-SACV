@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +66,16 @@ import com.secal.juraid.Routes
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 fun ServiciosView(navController : NavController) {
+    BackHandler {
+        navController.navigate(Routes.homeVw) {
+            // Limpia el back stack hasta HomeView
+            popUpTo(Routes.homeVw) {
+                inclusive = true
+            }
+            // Evita múltiples copias de HomeView en el stack
+            launchSingleTop = true
+        }
+    }
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
         topBar = { TopBar() }
