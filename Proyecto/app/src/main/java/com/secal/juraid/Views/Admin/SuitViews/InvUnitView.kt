@@ -157,7 +157,8 @@ fun InvUnitView(
                         Button(onClick = { viewModel.clearErrorMessage() }) {
                             Text("Aceptar")
                         }
-                    }
+                    },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             }
         }

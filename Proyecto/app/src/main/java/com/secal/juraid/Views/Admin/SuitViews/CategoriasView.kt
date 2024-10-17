@@ -42,7 +42,9 @@ import com.secal.juraid.ViewModel.HomeViewModel
 
 @Composable
 fun CategoriasView(navController: NavController, viewModel: HomeViewModel = HomeViewModel()) {
-    val categories by viewModel.categories.collectAsState()
+    val allCategories by viewModel.categories.collectAsState()
+    // Filtrar las categorías para excluir la de ID 0
+    val categories = allCategories.filter { it.ID_Category != 0 }
     val errorMessage by viewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
@@ -135,7 +137,8 @@ fun CategoriasView(navController: NavController, viewModel: HomeViewModel = Home
                         Button(onClick = { viewModel.clearErrorMessage() }) {
                             Text("Aceptar")
                         }
-                    }
+                    },
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             }
         }
