@@ -87,7 +87,7 @@ fun ServiciosView(navController : NavController) {
 
             }
 
-            if (LocalUserViewModel.current.userRole.value == 0) {
+            if (LocalUserViewModel.current.userRole.value != 1 && LocalUserViewModel.current.userRole.value != 2){
                 HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
             }
 

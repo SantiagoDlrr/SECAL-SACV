@@ -89,7 +89,7 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewMod
                 )
             }
 
-            if (userViewModel.userRole.value == 0) {
+            if (userViewModel.userRole.value != 1 && userViewModel.userRole.value != 2) {
                 AnimatedHelpButton(
                     modifier = Modifier.align(Alignment.BottomEnd),
                     navController = navController,

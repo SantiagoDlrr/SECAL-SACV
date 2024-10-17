@@ -49,7 +49,6 @@ fun CategoriasView(navController: NavController, viewModel: HomeViewModel = Home
     var showDeleteDialog by remember { mutableStateOf(false) }
     var editingCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
     var deletingCategory by remember { mutableStateOf<HomeViewModel.Category?>(null) }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
