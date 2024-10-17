@@ -227,8 +227,10 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
                                         focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                         unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                         cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                     )
-                                )
                             }
                         }
 
@@ -324,8 +326,10 @@ fun EditArticuloView(navController: NavController, viewModel: HomeViewModel, pos
                                         focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                         unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                         cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+
                                     )
-                                )
                             }
                         }
 

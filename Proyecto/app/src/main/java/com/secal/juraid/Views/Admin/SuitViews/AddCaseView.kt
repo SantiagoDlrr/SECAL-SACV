@@ -3,6 +3,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -11,6 +12,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -99,8 +102,9 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -116,8 +120,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -133,8 +139,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -210,8 +218,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -227,8 +237,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -244,8 +256,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -261,8 +275,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                                 )
-                            )
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -278,8 +294,10 @@ fun AddCaseView(navController: NavController, viewModel: CasesViewModel) {
                                     focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                     cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+
                                 )
-                            )
                         }
                     }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -23,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -165,8 +168,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -182,8 +187,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -209,7 +216,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                                 focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                                 cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
+                            ),
+
                         )
 
                         ExposedDropdownMenu(
@@ -253,8 +261,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -270,8 +280,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -287,8 +299,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -304,8 +318,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+
                         )
-                    )
                 }
             }
         }
@@ -347,8 +363,10 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                             focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+
                         )
-                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 

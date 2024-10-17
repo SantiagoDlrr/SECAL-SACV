@@ -121,7 +121,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun assignCaseToStudent(studentId: String, caseNUC: String) {
+    fun assignCaseToStudent(studentId: String, caseNUC: String) {
         viewModelScope.launch {
             try {
                 val case = _cases.value.find { it.NUC == caseNUC }
@@ -146,7 +146,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun unassignCaseFromStudent(studentId: String, caseId: Int) {
+    fun unassignCaseFromStudent(studentId: String, caseId: Int) {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -171,7 +171,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private suspend fun updateAssignedCasesForStudent(studentId: String) {
+    private fun updateAssignedCasesForStudent(studentId: String) {
         val assignedCaseIds = _assignedCases.value
             .filter { it.id_alumno == studentId }
             .map { it.id_Caso }
@@ -299,7 +299,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun addUnitInvestigation(nombre: String, direccion: String) {
+    fun addUnitInvestigation(nombre: String, direccion: String) {
         viewModelScope.launch {
             try {
                 val newUnit = UnitInvestigationInsert(nombre = nombre, direccion = direccion)
