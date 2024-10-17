@@ -1,19 +1,24 @@
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.ViewModel.Case
+import com.secal.juraid.ViewModel.CasesViewModel.FCMToken
 import com.secal.juraid.ViewModel.unitInvestigation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
 
-class CaseDetailViewModel : ViewModel() {
+class CaseDetailViewModel(application: Application) : AndroidViewModel(application) {
     private val _caseDetail = MutableStateFlow<Case?>(null)
     val caseDetail: StateFlow<Case?> = _caseDetail
 
@@ -25,6 +30,9 @@ class CaseDetailViewModel : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val notificationService = NotificationService(application)
+
 
     fun loadCaseDetail(caseId: Int) {
         viewModelScope.launch {
@@ -62,7 +70,7 @@ class CaseDetailViewModel : ViewModel() {
         }
     }
 
-    suspend fun updateCase(
+    fun updateCase(
         caseId: Int,
         nuc: String,
         carpetaJudicial: String,
@@ -71,11 +79,11 @@ class CaseDetailViewModel : ViewModel() {
         pass_fv: String,
         fiscalTitular: String,
         id_unidad_investigacion: Int?,
-        drive: String,
-        status: String
+        drive: String
     ) {
         viewModelScope.launch {
             try {
+                withTimeout(5000L) {  // 5 seconds timeout
                 supabase.from("Cases")
                     .update(
                         {
@@ -87,21 +95,23 @@ class CaseDetailViewModel : ViewModel() {
                             set("fiscal_titular", fiscalTitular)
                             set("id_unidad_investigacion", id_unidad_investigacion)
                             set("drive", drive)
-                            set("status", status)
                         }
                     ) {
                         filter { eq("id", caseId) }
                     }
 
-                // Reload case detail to reflect changes
-                loadCaseDetail(caseId)
+                    notifyAllLawyers("Modificaciones a Caso", "Se ha modificado el caso con NUC: $nuc")
+
+                    // Reload case detail to reflect changes
+                }
+
             } catch (e: Exception) {
                 Log.e(TAG, "Error updating case", e)
             }
         }
     }
 
-    suspend fun addHyperlink(caseId: Int, texto: String, link: String) {
+    fun addHyperlink(caseId: Int, texto: String, link: String) {
         viewModelScope.launch {
             try {
 
@@ -129,6 +139,38 @@ class CaseDetailViewModel : ViewModel() {
                 Log.e(TAG, "Error adding hyperlink", e)
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    private suspend fun notifyAllLawyers(title: String, message: String) {
+        val lawyerTokens = getAllLawyerTokens()
+
+        lawyerTokens.forEach { token ->
+            try {
+                notificationService.sendNotification(token, title, message)
+                Log.d("CasesViewModel", "Notification sent successfully to lawyer")
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error sending notification to lawyer", e)
+            }
+        }
+    }
+
+    private suspend fun getAllLawyerTokens(): List<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("role", 1) // Asumiendo que el rol 1 corresponde a los abogados
+                        }
+                    }
+                    .decodeList<FCMToken>()
+                result.mapNotNull { it.fcm_token }
+            } catch (e: Exception) {
+                Log.e("CasesViewModel", "Error getting lawyer tokens", e)
+                emptyList()
             }
         }
     }
@@ -177,6 +219,10 @@ class CaseDetailViewModel : ViewModel() {
             }
         }
     }
+
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
 
     @Serializable
     data class Hiperlink(

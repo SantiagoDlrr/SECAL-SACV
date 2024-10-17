@@ -69,17 +69,6 @@ class CitasViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val currentDateTime = LocalDateTime.now()
-                //val currentDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                /*val citasPasadas = supabase.from("Citas")
-                    .select() {
-                        filter {
-                            lt("fecha", currentDate)
-                            and {
-                                eq("estado_representacion", 0) // Solo citas pendientes
-                            }
-                        }
-                    }
-                    .decodeList<Cita>()*/
 
                 val citasPasadas = withContext(Dispatchers.IO) {
                     supabase.from("Citas")

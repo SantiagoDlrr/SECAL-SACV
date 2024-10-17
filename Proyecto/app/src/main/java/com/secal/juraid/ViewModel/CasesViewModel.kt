@@ -233,19 +233,6 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    private suspend fun loadCases() {
-        if (_cases.value.isEmpty()) {
-            try {
-                val fetchedCases = getCasesFromDatabase()
-                _cases.value = fetchedCases
-
-                // Filtrar casos activos
-                _activeCases.value = fetchedCases.filter { it.status != 0 }
-            } catch (e: Exception) {
-                Log.e("CasesViewModel", "Error loading cases: ${e.message}", e)
-            }
-        }
-    }
 
     private suspend fun loadUnitInvestigations() {
         viewModelScope.launch {
@@ -415,7 +402,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         val id_Caso: Int
     )
 
-    suspend fun addCase(
+    fun addCase(
         nombreAbogado: String,
         nombreCliente: String,
         nuc: String,
@@ -442,25 +429,34 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
                     drive = drive,
                     status = 1
                 )
-
-                val insertedCase = withContext(Dispatchers.IO) {
                     supabase.from("Cases")
                         .insert(newCase)
-                        .decodeSingle<Case>()
-                }
 
-                notifyAllLawyers(insertedCase)
+                    loadCases()
+                    notifyAllLawyers("Nuevo caso asignado", "Se ha agregado un nuevo caso con NUC: $nuc")
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error adding case", e)
+                _errorMessage.value = "Error al agregar el caso: ${e.localizedMessage}"
             }
         }
     }
 
-    private suspend fun notifyAllLawyers(newCase: Case) {
+    private suspend fun loadCases() {
+        try {
+            val fetchedCases = getCasesFromDatabase()
+            _cases.value = fetchedCases
+            _activeCases.value = fetchedCases.filter { it.status != 0 }
+            // Update NUC list
+            _nucList.value = fetchedCases.map { it.NUC }
+        } catch (e: Exception) {
+            Log.e("CasesViewModel", "Error loading cases: ${e.message}", e)
+            _errorMessage.value = "Error al cargar los casos: ${e.localizedMessage}"
+        }
+    }
+
+    private suspend fun notifyAllLawyers(title: String, message: String) {
         val lawyerTokens = getAllLawyerTokens()
-        val title = "Nuevo caso creado"
-        val message = "Se ha creado un nuevo caso con NUC: ${newCase.NUC}"
 
         lawyerTokens.forEach { token ->
             try {

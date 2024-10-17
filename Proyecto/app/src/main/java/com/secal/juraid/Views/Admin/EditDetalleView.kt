@@ -76,7 +76,6 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
     var id_unidad by remember { mutableStateOf("") }
     var fiscalTitular by remember { mutableStateOf("") }
     var drive by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
 
     var selectedUnidadInvestigacion by remember { mutableStateOf<unitInvestigation?>(null) }
     var expanded by remember { mutableStateOf(false) }
@@ -100,8 +99,8 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
 
     val unitInvestigations by casesViewModel.unitInvestigations.collectAsState()
 
-    var statusExpanded by remember { mutableStateOf(false) }
-    val statusOptions = listOf("Activo", "Inactivo")
+    var isSubmitting by remember { mutableStateOf(false) }
+
 
 
     // Cargar datos iniciales
@@ -123,7 +122,6 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
             acceso_fv = case.acceso_fv
             pass_fv = case.pass_fv
             id_unidad = case.id_unidad_investigacion.toString()
-            status = case.status.toString()
         }
     }
 
@@ -225,50 +223,6 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                                     onClick = {
                                         selectedUnidadInvestigacion = unidad
                                         expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ExposedDropdownMenuBox(
-                        expanded = statusExpanded,
-                        onExpandedChange = { statusExpanded = it }
-                    ) {
-                        OutlinedTextField(
-                            value = if (status == "1") "Activo" else "Inactivo",
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Status") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusExpanded)
-                            },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
-
-                        ExposedDropdownMenu(
-                            expanded = statusExpanded,
-                            onDismissRequest = { statusExpanded = false },
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        ) {
-                            statusOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option) },
-                                    onClick = {
-                                        status = option
-                                        statusExpanded = false
                                     }
                                 )
                             }
@@ -515,26 +469,35 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
             Button(
                 onClick = {
                     scope.launch {
-                        viewModel.updateCase(
-                            caseId,
-                            nuc,
-                            carpetaJudicial,
-                            carpetaInvestigacion,
-                            acceso_fv,
-                            pass_fv,
-                            fiscalTitular,
-                            selectedUnidadInvestigacion?.id,
-                            drive,
-                            if (status == "Activo") "1" else "0"  // Convertir el status a "1" o "0"
-                        )
-                        navController.navigate("${Routes.detalleVw}/$caseId") {
-                            popUpTo("${Routes.editDetalleVw}/$caseId") { inclusive = true }
+                        try {
+                            viewModel.updateCase(
+                                caseId,
+                                nuc,
+                                carpetaJudicial,
+                                carpetaInvestigacion,
+                                acceso_fv,
+                                pass_fv,
+                                fiscalTitular,
+                                selectedUnidadInvestigacion?.id,
+                                drive
+                            )
+                            navController.navigate(Routes.casosVw)
+                        } finally {
+                            isSubmitting = false
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isSubmitting
             ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
                 Text("Guardar cambios")
+            }
             }
         }
     }

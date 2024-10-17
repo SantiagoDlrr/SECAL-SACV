@@ -290,12 +290,7 @@ fun TopBar() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround,
     ) {
-        /*Text(
-            text = "Juraid",
-            maxLines = 1,
-            fontSize = 25.sp,
-            overflow = TextOverflow.Ellipsis
-        )*/
+
         if (isSystemInDarkTheme()) {
             Image(
                 painter = painterResource(id = R.drawable.martillo_blanco),
