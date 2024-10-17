@@ -1,5 +1,6 @@
 package com.secal.juraid.Views.Generals.BaseViews
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -49,6 +50,7 @@ import com.secal.juraid.ViewModel.UserViewModel
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewModel: UserViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
@@ -86,11 +88,15 @@ fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewMod
                     onSearchQueryChange = { searchQuery = it }
                 )
             }
-            AnimatedHelpButton(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                navController = navController,
-                userViewModel = userViewModel
-            )
+
+            if (userViewModel.userRole.value == 0) {
+                AnimatedHelpButton(
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    navController = navController,
+                    userViewModel = userViewModel
+                )
+            }
+
         }
     }
 }

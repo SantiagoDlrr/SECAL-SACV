@@ -259,7 +259,11 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val casesList = supabase
                     .from("Cases")
-                    .select()
+                    .select{
+                        filter {
+                           eq("status", 1)
+                        }
+                    }
                     .decodeList<Case>()
                 casesList
             } catch (e: Exception) {
@@ -395,6 +399,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
         }
 
     }
+
 
     @Serializable
     data class StudentCaseRelation(

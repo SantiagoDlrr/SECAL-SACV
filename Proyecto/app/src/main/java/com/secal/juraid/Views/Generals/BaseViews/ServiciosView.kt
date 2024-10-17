@@ -57,11 +57,12 @@ import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.secal.juraid.ButtonUserCard
+import com.secal.juraid.LocalUserViewModel
 import com.secal.juraid.Routes
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "StateFlowValueCalledInComposition")
 @Composable
 fun ServiciosView(navController : NavController) {
     Scaffold(
@@ -86,7 +87,10 @@ fun ServiciosView(navController : NavController) {
 
             }
 
-            HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
+            if (LocalUserViewModel.current.userRole.value == 0) {
+                HelpButton(modifier = Modifier.align(Alignment.BottomEnd), navController = navController)
+            }
+
         }
     }
 }

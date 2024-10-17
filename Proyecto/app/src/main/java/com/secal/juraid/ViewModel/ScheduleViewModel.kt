@@ -49,6 +49,7 @@ class ScheduleViewModel : ViewModel() {
 
         while (daysAdded < 7) {
             if (isBusinessDay(currentDate)) {
+                // Solo agregamos la fecha si es hoy o un día futuro
                 val dayName = currentDate
                     .dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale("es", "ES"))
                     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
@@ -62,23 +63,41 @@ class ScheduleViewModel : ViewModel() {
         return dates
     }
 
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun isBusinessDay(date: LocalDate): Boolean {
         return date.dayOfWeek != DayOfWeek.SATURDAY && date.dayOfWeek != DayOfWeek.SUNDAY
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun generateTimeSlots(): List<TimeSlot> {
+    private fun generateTimeSlots(selectedDate: LocalDate): List<TimeSlot> {
+        val currentDateTime = LocalDateTime.now()
+        val currentDate = currentDateTime.toLocalDate()
+        val currentTime = currentDateTime.toLocalTime()
+
         return (9..15).map { hour ->
             val startHour = String.format("%02d:00", hour)
             val endHour = String.format("%02d:00", hour + 1)
+            val slotTime = LocalTime.parse(startHour)
+
+            // Determinar si el horario ya pasó
+            val isTimeSlotAvailable = when {
+                // Si es un día futuro, el horario está disponible
+                selectedDate.isAfter(currentDate) -> true
+                // Si es hoy, solo mostrar horarios futuros
+                selectedDate.isEqual(currentDate) -> slotTime.isAfter(currentTime)
+                // Si es un día pasado, el horario no está disponible
+                else -> false
+            }
+
             TimeSlot(
                 displayTime = "$startHour - $endHour",
                 startTime = startHour,
-                isAvailable = true
+                isAvailable = isTimeSlotAvailable
             )
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun updateAvailableTimeSlots(selectedDate: String) {
@@ -87,14 +106,17 @@ class ScheduleViewModel : ViewModel() {
             val formattedDate = date.format(databaseDateFormatter)
             val bookedTimes = fetchBookedTimes(formattedDate)
 
-            val updatedTimeSlots = generateTimeSlots().map { timeSlot ->
+            // Generamos los slots considerando la fecha seleccionada
+            val updatedTimeSlots = generateTimeSlots(date).map { timeSlot ->
                 val startTime = LocalTime.parse(timeSlot.startTime)
-                timeSlot.copy(isAvailable = !bookedTimes.contains(startTime))
+                // Un horario está disponible solo si no está en el pasado Y no está reservado
+                timeSlot.copy(isAvailable = timeSlot.isAvailable && !bookedTimes.contains(startTime))
             }
 
             _availableTimeSlots.value = updatedTimeSlots
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun fetchBookedTimes(date: String): List<LocalTime> {

@@ -1,4 +1,5 @@
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,13 +31,14 @@ fun AddStudentView(
             onValueChange = { email = it },
             label = { Text("Correo electrónico del alumno") },
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
-            )
+            ),
         )
 
         Spacer(modifier = Modifier.height(16.dp))

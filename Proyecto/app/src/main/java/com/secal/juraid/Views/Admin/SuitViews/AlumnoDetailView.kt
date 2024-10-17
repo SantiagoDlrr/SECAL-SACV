@@ -61,7 +61,6 @@ fun AlumnoDetailView(
     ) { innerPadding ->
         student?.let { studentData ->
             AlumnoDetailContent(
-                navController = navController,
                 student = studentData,
                 profilePictureUrl = profilePictureUrl,
                 assignedCases = assignedCases,
@@ -79,7 +78,6 @@ fun AlumnoDetailView(
 
 @Composable
 private fun AlumnoDetailContent(
-    navController: NavController,
     student: Student,
     profilePictureUrl: String?,
     assignedCases: List<Case>,
@@ -284,11 +282,16 @@ fun FullScreenHorario(horarioUrl: String?, onDismiss: () -> Unit) {
             AsyncImage(
                 model = horarioUrl,
                 contentDescription = "Horario del estudiante en pantalla completa",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
+                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)),
+                contentScale = ContentScale.Fit,
             )
         } else {
-            Text("No se pudo cargar el horario", modifier = Modifier.align(Alignment.Center), color = Color.White)
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No se pudo cargar el horario", color = MaterialTheme.colorScheme.onSecondaryContainer)
+            }
         }
 
         IconButton(
@@ -475,7 +478,15 @@ private fun AssignCaseDialog(
                         },
                         modifier = Modifier
                             .menuAnchor()
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            focusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            cursorColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
