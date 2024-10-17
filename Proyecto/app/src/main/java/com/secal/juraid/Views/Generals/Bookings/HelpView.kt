@@ -352,6 +352,7 @@ fun HelpView(
                     text = {
                         Text(
                             "Dado que la Clínica Penal del Instituto Tecnológico y de Estudios Superiores de Monterrey es un organismo interno, los casos atendidos por esta serán de conocimiento exclusivo de los abogados y alumnos involucrados. Esto tiene como objetivo mejorar la calidad de aprendizaje de los estudiantes. En ningún caso la persona representada será defendida por un alumno, sino por el o los abogados en turno. Al aceptar este aviso, usted acepta las condiciones para agendar una cita con nosotros, así como las estipulaciones en caso de que decidamos tomar su caso."
+                        , color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     },
                     containerColor = MaterialTheme.colorScheme.secondaryContainer

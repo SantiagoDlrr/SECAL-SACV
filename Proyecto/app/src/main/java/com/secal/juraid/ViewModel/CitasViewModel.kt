@@ -1,5 +1,9 @@
 package com.secal.juraid.ViewModel
 
+import NotificationService
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -7,6 +11,7 @@ import com.secal.juraid.Model.UserRepository
 import com.secal.juraid.supabase
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +29,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 
-class CitasViewModel : ViewModel() {
+class CitasViewModel(
+    application: Application
+) : AndroidViewModel(application) {
     private val _citasPasadas = MutableStateFlow<List<Cita>>(emptyList())
     val citasPasadas: StateFlow<List<Cita>> = _citasPasadas.asStateFlow()
 
@@ -33,6 +40,8 @@ class CitasViewModel : ViewModel() {
         data class Success(val citas: List<Cita>) : UiState()
         data class Error(val message: String) : UiState()
     }
+
+    private val notificationService = NotificationService(application)
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -49,7 +58,7 @@ class CitasViewModel : ViewModel() {
                 val fetchedCitas = getCitasFromDatabase()
                 val futureCitas = filterFutureCitas(fetchedCitas)
                 _uiState.value = UiState.Success(futureCitas)
-                println("Citas cargadas exitosamente: ${fetchedCitas.size}")
+                println("Citas cargadas exitosamente : ${fetchedCitas.size}")
             } catch (e: Exception) {
                 _uiState.value = UiState.Error("Error al cargar las citas: ${e.message}")
                 e.printStackTrace()
@@ -58,10 +67,18 @@ class CitasViewModel : ViewModel() {
     }
 
     private fun filterFutureCitas(citas: List<Cita>): List<Cita> {
-        val currentDate = LocalDate.now()
+        val currentDateTime = LocalDateTime.now()
         return citas.filter { cita ->
-            val citaDate = LocalDate.parse(cita.fecha, DateTimeFormatter.ISO_LOCAL_DATE)
-            citaDate.isAfter(currentDate) || citaDate.isEqual(currentDate)
+            try {
+                val citaDate = LocalDate.parse(cita.fecha, DateTimeFormatter.ISO_LOCAL_DATE)
+                val citaTime = LocalTime.parse(cita.hora, DateTimeFormatter.ofPattern("HH:mm:ss"))
+                val citaDateTime = LocalDateTime.of(citaDate, citaTime)
+
+                citaDateTime.isAfter(currentDateTime)
+            } catch (e: Exception) {
+                println("Error al parsear fecha/hora para cita ${cita.id}: ${e.message}")
+                false // Si hay error en el formato de fecha/hora, no incluir la cita
+            }
         }
     }
 
@@ -117,13 +134,13 @@ class CitasViewModel : ViewModel() {
                     id_unidad_investigacion = null,
                     drive = "https://drive.google.com",
                     status = 1,
-
                 )
 
                 supabase.from("Cases")
                     .insert(newCase)
-                    .decodeSingle<Case>()
 
+                val token = getUserFCMToken(cita.id_usuario.toString())
+                sendNotificationToUser(token.toString(), "Actualización de tu caso", "Se ha aceptado representar tu caso")
                 updateCitaEstado(cita.id, 1) // 1 para representada
 
             } catch (e: Exception) {
@@ -133,10 +150,12 @@ class CitasViewModel : ViewModel() {
         }
     }
 
-    fun rechazarCita(citaId: Int) {
+    fun rechazarCita(citaId: Int, userId: String) {
         viewModelScope.launch {
             try {
                 updateCitaEstado(citaId, 2) // 2 para rechazada
+                val token = getUserFCMToken(userId)
+                sendNotificationToUser(token.toString(), "Actualización de tu caso", "Se ha rechazado representar tu caso")
             } catch (e: Exception) {
                 println("Error al rechazar cita: ${e.message}")
             }
@@ -157,6 +176,8 @@ class CitasViewModel : ViewModel() {
                     }
                 }
 
+                val token = getUserFCMToken(cita.id_usuario.toString())
+                sendNotificationToUser(token.toString(), "Se ha cancelado tu cita", "Motivo de cancelación: ${motivo}")
                 loadCitas()
             } catch (e: Exception) {
                 println("Error al cancelar cita: ${e.message}")
@@ -192,6 +213,38 @@ class CitasViewModel : ViewModel() {
             .decodeList<Cita>()
     }
 
+    private suspend fun getUserFCMToken(userId: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("id", userId)
+                        }
+                    }
+                    .decodeSingle<FCMToken>()
+                result.fcm_token
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error getting student token", e)
+                null
+            }
+        }
+    }
+
+    private suspend fun sendNotificationToUser(token: String, title: String, message: String){
+        try {
+            notificationService.sendNotification(token, title, message)
+            Log.d("BookingsViewModel", "Notification sent successfully to lawyer")
+        } catch (e: Exception) {
+            Log.e("BookingsViewModel", "Error sending notification to lawyer", e)
+        }
+    }
+
+
+
+
+
     @Serializable
     data class Cita(
         val id: Int,
@@ -226,29 +279,10 @@ class CitasViewModel : ViewModel() {
             fun getNombreSituacion(id: Int?): String = situacionesMap[id] ?: "Desconocido"
         }
     }
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
 }
 
-object ServiceLocator {
-    private var supabaseClient: SupabaseClient? = null
-    private var userRepository: UserRepository? = null
 
-    fun provideSupabaseClient(): SupabaseClient {
-        return supabaseClient ?: throw IllegalStateException("SupabaseClient not initialized")
-    }
 
-    fun provideUserRepository(scope: CoroutineScope): UserRepository {
-        return userRepository ?: UserRepository(provideSupabaseClient(), scope).also {
-            userRepository = it
-        }
-    }
-
-    fun initialize(supabaseClient: SupabaseClient) {
-        this.supabaseClient = supabaseClient
-    }
-}
-
-@Serializable
-data class CitaCancel(
-    val motivo_cancelacion: String? = null,
-    val estado_cita: Boolean? = false
-)

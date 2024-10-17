@@ -1,12 +1,16 @@
 package com.secal.juraid.ViewModel
 
+import NotificationService
+import android.app.Application
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.secal.juraid.Routes
 import com.secal.juraid.supabase
 import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.query.Columns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,13 +23,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() {
+class BookingsViewModel(
+    application: Application,
+    private val userViewModel: UserViewModel
+) : AndroidViewModel(application) {
     private val _bookings = MutableStateFlow<List<Booking>>(emptyList())
     private val _filteredBookings = MutableStateFlow<List<NumberedBooking>>(emptyList())
     val filteredBookings: StateFlow<List<NumberedBooking>> = _filteredBookings.asStateFlow()
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val notificationService = NotificationService(application)
 
     init {
         loadAllData()
@@ -103,7 +112,7 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
 
     }
 
-    suspend fun addBooking(
+    fun addBooking(
         nombre: String,
         apellido: String,
         fecha: String,
@@ -123,17 +132,16 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
                     id_region = idRegion,
                     estado_cita = estado_cita,
                     id_situacion = idSituacion,
-                    id_usuario = id_usuario
+                    id_usuario = id_usuario,
+                    estado_representacion = 0
                 )
-
-                val insertedBooking = withContext(Dispatchers.IO) {
                     supabase.from("Citas")
                         .insert(newBooking)
-                        .decodeSingle<Booking>()
-                }
+                notifyAllLawyers(
+                    title = "Nueva cita agendada",
+                    message = "Se ha agendado una nueva cita para el día $fecha a las $hora"
+                )
 
-                // Update the bookings list with the new booking
-                _bookings.value = _bookings.value + insertedBooking
 
             } catch (e: Exception) {
                 Log.e(TAG, "Error adding booking", e)
@@ -141,31 +149,6 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
         }
     }
 
-    suspend fun updateBookingStatus(bookingId: Int, newStatus: Boolean) {
-        viewModelScope.launch {
-            try {
-                withContext(Dispatchers.IO) {
-                    supabase.from("Citas")
-                        .update(
-                            { set("estado_cita", newStatus) }
-                        ) {
-                            filter { eq("id", bookingId) }
-                        }
-                }
-
-                // Update the local state
-                _bookings.value = _bookings.value.map { booking ->
-                    if (booking.id == bookingId) {
-                        booking.copy(estado_cita = newStatus)
-                    } else {
-                        booking
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error updating booking status", e)
-            }
-        }
-    }
 
     private val _showHelpForm = MutableStateFlow(true)
     val showHelpForm: StateFlow<Boolean> = _showHelpForm.asStateFlow()
@@ -206,6 +189,41 @@ class BookingsViewModel(private val userViewModel: UserViewModel) : ViewModel() 
         return isFuture
     }
 
+    private suspend fun notifyAllLawyers(title: String, message: String) {
+        val lawyerTokens = getAllLawyerTokens()
+
+        lawyerTokens.forEach { token ->
+            try {
+                notificationService.sendNotification(token, title, message)
+                Log.d("BookingsViewModel", "Notification sent successfully to lawyer")
+            } catch (e: Exception) {
+                Log.e("BookingsViewModel", "Error sending notification to lawyer", e)
+            }
+        }
+    }
+
+    private suspend fun getAllLawyerTokens(): List<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val result = supabase
+                    .from("users")
+                    .select(columns = Columns.list("fcm_token")) {
+                        filter {
+                            eq("role", 1) // Assuming role 1 corresponds to lawyers
+                        }
+                    }
+                    .decodeList<FCMToken>()
+                result.mapNotNull { it.fcm_token }
+            } catch (e: Exception) {
+                Log.e("BookingsViewModel", "Error getting lawyer tokens", e)
+                emptyList()
+            }
+        }
+    }
+
+    @Serializable
+    private data class FCMToken(val fcm_token: String?)
+
 
 }
 
@@ -218,7 +236,8 @@ data class BookingInsert(
     val id_region: Int,
     val estado_cita: Boolean,
     val id_situacion: Int,
-    val id_usuario: String
+    val id_usuario: String,
+    val estado_representacion: Int
 )
 
 @Serializable

@@ -43,14 +43,6 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
     var selectedTabIndex by remember { mutableStateOf(0) }
     val tabs = listOf("Casos", "Asesorías")
 
-    val cases by viewModel.activeCases.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadAllData()
-        citasViewModel.loadCitasPasadas()  // Cargar citas pasadas
-    }
-
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -81,14 +73,6 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
 
             when (selectedTabIndex) {
                 0 -> {
-                    if (isLoading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    } else {
                         Button(
                             onClick = { navController.navigate(Routes.invUnitVw) },
                             modifier = Modifier
@@ -97,18 +81,10 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
                         ) {
                             Text("Unidades de investigación")
                         }
-                        if (cases.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("No se encontraron casos")
-                            }
-                        } else {
-                            CasosCardView(navController = navController, cases = cases)
-                        }
 
-                    }
+                        CasosCardView(navController = navController)
+
+
                 }
                 1 -> CitasPasadasView(viewModel = citasViewModel)
             }
@@ -119,18 +95,30 @@ fun CasosView(navController: NavController, viewModel: CasesViewModel, citasView
 
 //es el display de casos
 @Composable
-fun CasosCardView(navController: NavController, cases: List<Case>) {
+fun CasosCardView(navController: NavController) {
     val viewModel: CasesViewModel = viewModel()
     var expandedMenuIndex by remember { mutableStateOf<Int?>(null) }
     var showDeleteCaseDialog by remember { mutableStateOf(false) }
     var deletingCaseId by remember { mutableStateOf<Int?>(null) }
     val scope = rememberCoroutineScope()
-
-    val userRole by UserViewModel(UserRepository(supabase, CoroutineScope(Dispatchers.IO))).userRole.collectAsState()
-
+    val cases by viewModel.activeCases.collectAsState()
+    val userRole by LocalUserViewModel.current.userRole.collectAsState()
     val cases2 by viewModel.activeCases.collectAsState()
-    //viewModel.loadAllData()
 
+    LaunchedEffect(Unit) {
+        viewModel.loadAllData()
+    }
+
+
+
+    if (cases.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No se encontraron casos")
+        }
+    }
 
     LazyColumn {
         items(cases2) { case ->
@@ -241,7 +229,7 @@ fun CasosCardView(navController: NavController, cases: List<Case>) {
                 Button(onClick = {
                     scope.launch {
                         deletingCaseId?.let {
-                            viewModel.deleteCase(it)
+                            viewModel.deleteCase(it, )
                         }
                         showDeleteCaseDialog = false
                         deletingCaseId = null
@@ -304,7 +292,7 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
         AlertDialog(
             onDismissRequest = { showRepresentarDialog = false },
             title = { Text("Representar") },
-            text = { Text("¿Deseas aceptar este caso?") },
+            text = { Text("¿Deseas aceptar este caso?", color = MaterialTheme.colorScheme.onSecondaryContainer) },
             confirmButton = {
                 Button(onClick = {
                     selectedCita?.let { viewModel.representarCita(it, abogado) }
@@ -318,7 +306,8 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
                 Button(onClick = { showRepresentarDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
         )
     }
 
@@ -326,10 +315,10 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
         AlertDialog(
             onDismissRequest = { showRechazarDialog = false },
             title = { Text("Rechazar") },
-            text = { Text("¿Deseas rechazar este caso?") },
+            text = { Text("¿Deseas rechazar este caso?",  color = MaterialTheme.colorScheme.onSecondaryContainer) },
             confirmButton = {
                 Button(onClick = {
-                    selectedCita?.let { viewModel.rechazarCita(it.id) }
+                    selectedCita?.let { viewModel.rechazarCita(it.id, it.id_usuario.toString()) }
                     showRechazarDialog = false
                 }) {
                     Text("Rechazar")
@@ -339,7 +328,8 @@ fun CitasPasadasView(viewModel: CitasViewModel) {
                 Button(onClick = { showRechazarDialog = false }) {
                     Text("Cancelar")
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
         )
     }
 }

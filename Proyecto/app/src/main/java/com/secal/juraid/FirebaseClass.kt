@@ -54,7 +54,7 @@ class FirebaseClass : FirebaseMessagingService() {
         // Check if message contains a notification payload
         remoteMessage.notification?.let {
             Log.d(TAG, "Message Notification Body: ${it.body}")
-            it.body?.let { body -> sendNotification(body) }
+            it.body?.let { body -> sendNotification(body, it.title.toString()) }
         }
     }
 
@@ -64,7 +64,7 @@ class FirebaseClass : FirebaseMessagingService() {
     }
 
     @SuppressLint("ObsoleteSdkInt")
-    private fun sendNotification(messageBody: String) {
+    private fun sendNotification(messageBody: String, title: String) {
         val intent = Intent(this, MainActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendingIntent = PendingIntent.getActivity(this, 0, intent,
@@ -72,7 +72,7 @@ class FirebaseClass : FirebaseMessagingService() {
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.martillo)
-            .setContentTitle("Juraid")
+            .setContentTitle(title)
             .setContentText(messageBody)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

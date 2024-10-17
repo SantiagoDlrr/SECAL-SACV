@@ -54,6 +54,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.android.gms.tasks.OnCompleteListener
@@ -310,15 +312,35 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             SignUpView(navController = navController, userViewModel)
         }
         composable(Routes.helpVw) {
+            val context = LocalContext.current
+            val bookingsViewModel: BookingsViewModel = viewModel(
+                factory = BookingsViewModelFactory(
+                    context.applicationContext as Application,
+                    userViewModel
+                )
+            )
             val scheduleViewModel = remember { ScheduleViewModel() }
-            val bookingsViewModel = remember { BookingsViewModel(userViewModel) }
 
-            HelpView(navController = navController, scheduleViewModel = scheduleViewModel, bookingsViewModel = bookingsViewModel, userViewModel = userViewModel)
+            HelpView(
+                navController = navController,
+                scheduleViewModel = scheduleViewModel,
+                bookingsViewModel = bookingsViewModel,
+                userViewModel = userViewModel
+            )
         }
+
         composable(Routes.bookingsVw) {
-            val bookingsViewModel = remember { BookingsViewModel(userViewModel) }
+            val context = LocalContext.current
+            val bookingsViewModel: BookingsViewModel = viewModel(
+                factory = BookingsViewModelFactory(
+                    context.applicationContext as Application,
+                    userViewModel
+                )
+            )
+
             BookingsView(
-                navController = navController, bookingsViewModel = bookingsViewModel
+                navController = navController,
+                bookingsViewModel = bookingsViewModel
             )
         }
         composable(Routes.suitVw) {
@@ -453,12 +475,6 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             )
         }
         composable(Routes.profileView) {
-            val context = LocalContext.current
-            val application = context.applicationContext as Application
-            val userRepository = UserRepository(supabase, CoroutineScope(Dispatchers.IO))
-            val viewModel: ProfileViewModel = viewModel(
-                factory = ProfileViewModelFactory(application, userRepository)
-            )
             ProfileView(navController = navController)
         }
         composable(Routes.editProfileView) {
@@ -471,5 +487,17 @@ fun UserScreen(startDestination: String = Routes.homeVw) {
             ProfileEditView(navController = navController, viewModel = viewModel)
         }
     }
+    }
+}
+
+class BookingsViewModelFactory(
+    private val application: Application,
+    private val userViewModel: UserViewModel
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(BookingsViewModel::class.java)) {
+            return BookingsViewModel(application, userViewModel) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

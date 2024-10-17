@@ -599,7 +599,7 @@ fun EditCard(navController: NavController, viewModel: CaseDetailViewModel, caseI
                     }
 
                     if (availableStudents.isEmpty()) {
-                        Text("No hay estudiantes disponibles para asignar")
+                        Text("No hay estudiantes disponibles para asignar", color = MaterialTheme.colorScheme.onSecondaryContainer)
                     } else {
                         LazyColumn(
                             modifier = Modifier

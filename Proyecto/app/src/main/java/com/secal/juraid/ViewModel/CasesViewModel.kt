@@ -388,6 +388,7 @@ class CasesViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             _activeCases.value = _activeCases.value.filterNot { it.id == caseId }
+            notifyAllLawyers("Caso eliminado", "Se ha elimiando un caso")
 
         } catch (e: Exception) {
             Log.e(TAG, "Error updating status case (deleting)", e)
