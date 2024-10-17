@@ -2,6 +2,7 @@ package com.secal.juraid.Views.Generals.BaseViews
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,6 +54,16 @@ import kotlinx.serialization.json.Json
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun HomeView(navController: NavController, viewModel: HomeViewModel, userViewModel: UserViewModel) {
+    BackHandler {
+        navController.navigate(Routes.homeVw) {
+            // Limpia el back stack hasta HomeView
+            popUpTo(Routes.homeVw) {
+                inclusive = true
+            }
+            // Evita múltiples copias de HomeView en el stack
+            launchSingleTop = true
+        }
+    }
     val isLoading by viewModel.isLoading.collectAsState()
     val contentItems by viewModel.contentItems.collectAsState()
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }

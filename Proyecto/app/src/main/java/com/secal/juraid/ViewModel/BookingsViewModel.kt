@@ -135,6 +135,7 @@ class BookingsViewModel(
                     id_usuario = id_usuario,
                     estado_representacion = 0
                 )
+
                     supabase.from("Citas")
                         .insert(newBooking)
                 notifyAllLawyers(
