@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.AccessAlarms
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,6 +39,10 @@ fun BookingsView(
 ) {
     val filteredBookings by bookingsViewModel.filteredBookings.collectAsState()
     val isLoading by bookingsViewModel.isLoading.collectAsState()
+
+    LaunchedEffect(Unit) {
+        bookingsViewModel.loadAllData()
+    }
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },

@@ -220,7 +220,7 @@ fun DontHaveAccountView(navController: NavController){
                 onClick = { navController.navigate(Routes.signUpVw) },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Registrate")
+                Text("Regístrate")
             }
         }
     }

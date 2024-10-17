@@ -79,7 +79,7 @@ fun UserView(navController: NavController) {
 
                 )
                 {
-                    Text(text = "Registrate", fontSize = 15.sp)
+                    Text(text = "Regístrate", fontSize = 15.sp)
                 }
             }
 

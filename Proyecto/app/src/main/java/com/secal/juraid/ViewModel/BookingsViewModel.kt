@@ -38,10 +38,9 @@ class BookingsViewModel(
 
     init {
         loadAllData()
-        setupFilteredBookings()
     }
 
-    private fun setupFilteredBookings() {
+    fun setupFilteredBookings() {
         viewModelScope.launch {
             combine(_bookings, userViewModel.userId) { bookings, userId ->
                 bookings.filter { it.id_usuario == userId }
@@ -63,6 +62,7 @@ class BookingsViewModel(
             _isLoading.value = true
             try {
                 loadBookings()
+                setupFilteredBookings()
             } catch (e: Exception) {
                 Log.e("BookingsViewModel", "Error loading data: ${e.message}", e)
             } finally {
