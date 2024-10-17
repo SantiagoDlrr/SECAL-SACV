@@ -219,9 +219,8 @@ class HomeViewModel : ViewModel() {
                     text = text
                 )
 
-                val insertedItem = supabase.from("Content")
+                supabase.from("Content")
                     .insert(newItem)
-                    .decodeSingle<ContentItem>()
 
                 loadContentPreviews()
                 loadAllData()

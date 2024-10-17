@@ -329,58 +329,88 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
         _horarioUrl.value = url
     }
 
+    private val _horarioUploadStatus = MutableStateFlow<HorarioUploadStatus>(HorarioUploadStatus.Idle)
+    val horarioUploadStatus: StateFlow<HorarioUploadStatus> = _horarioUploadStatus.asStateFlow()
 
-    fun insertHorario(studentId: String, imageUri: Uri, context: Context) {
-        val homeviewModel = HomeViewModel()
+    fun uploadHorario(studentId: String, imageUri: Uri, context: Context) {
         viewModelScope.launch {
+            _horarioUploadStatus.value = HorarioUploadStatus.Uploading
             try {
                 val fileName = "horarios/${UUID.randomUUID()}.jpg"
-                var imageUrl: String? = null
-
                 val imageByteArray = imageUri.uriToByteArray(context)
+
                 imageByteArray?.let {
-                    homeviewModel.uploadFile("horarios",fileName, imageByteArray)
-                    // Obtener la URL pública inmediatamente después de cargar
-                    imageUrl = supabase.storage["horarios"].publicUrl(fileName)
-                }
-
-                // Verificar si ya existe un registro para este estudiante
-                val existingHorario = supabase.from("Horarios")
-                    .select() {
-                        filter {
-                            eq("id_alumno", studentId)
-                        }
+                    // Subir el archivo
+                    withContext(Dispatchers.IO) {
+                        supabase.storage["horarios"].upload(fileName, imageByteArray)
                     }
-                    .decodeList<Horario>()
 
+                    // Obtener la URL pública
+                    val imageUrl = supabase.storage["horarios"].publicUrl(fileName)
+
+                    // Actualizar la base de datos
+                    updateHorarioInDatabase(studentId, imageUrl)
+
+                    // Actualizar el estado local
+                    _horarioUrl.value = imageUrl
+                    _horarioUploadStatus.value = HorarioUploadStatus.Success(imageUrl)
+                }
+            } catch (e: Exception) {
+                Log.e("AlumnosViewModel", "Error uploading horario", e)
+                _horarioUploadStatus.value = HorarioUploadStatus.Error("Error al subir el horario: ${e.message}")
+            }
+        }
+    }
+
+    private suspend fun updateHorarioInDatabase(studentId: String, imageUrl: String) {
+        try {
+            // Verificar si ya existe un registro para este estudiante
+            val existingHorario = supabase.from("Horarios")
+                .select() {
+                    filter {
+                        eq("id_alumno", studentId)
+                    }
+                }
+                .decodeList<Horario>()
+
+            withContext(Dispatchers.IO) {
                 if (existingHorario.isNotEmpty()) {
                     // Actualizar el registro existente
                     supabase.from("Horarios")
                         .update(
                             {
-                                set("url", imageUrl ?: "")
+                                set("url", imageUrl)
                             }
                         ) {
                             filter {
                                 eq("id_alumno", studentId)
                             }
                         }
-                    Log.d("DatabaseDebug", "Horario actualizado para el estudiante: $studentId")
                 } else {
                     // Insertar un nuevo registro
                     val newItem = Horario(
                         id_horario = null,
                         id_alumno = studentId,
-                        url = imageUrl ?: ""
+                        url = imageUrl
                     )
                     supabase.from("Horarios")
                         .insert(newItem)
-                        .decodeSingle<Horario>()
-                    Log.d("DatabaseDebug", "Nuevo horario insertado para el estudiante: $studentId")
                 }
+            }
+            Log.d("AlumnosViewModel", "Horario actualizado exitosamente")
+        } catch (e: Exception) {
+            Log.e("AlumnosViewModel", "Error updating horario in database", e)
+            throw e
+        }
+    }
 
-                // Actualizar el estado del ViewModel
-                _horarioUrl.value = imageUrl
+
+    fun insertHorario(studentId: String, imageUri: Uri, context: Context) {
+        val homeviewModel = HomeViewModel()
+        viewModelScope.launch {
+            try {
+
+                uploadHorario(studentId, imageUri, context)
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -388,8 +418,9 @@ class AlumnosViewModel(application: Application) : AndroidViewModel(application)
             }
         }
     }
-
 }
+
+
 
 sealed class AddStudentResult {
     object Loading : AddStudentResult()
@@ -427,5 +458,12 @@ sealed class InsertHorarioResult {
     object Loading : InsertHorarioResult()
     data class Success(val message: String) : InsertHorarioResult()
     data class Error(val message: String) : InsertHorarioResult()
+}
+
+sealed class HorarioUploadStatus {
+    object Idle : HorarioUploadStatus()
+    object Uploading : HorarioUploadStatus()
+    data class Success(val imageUrl: String) : HorarioUploadStatus()
+    data class Error(val message: String) : HorarioUploadStatus()
 }
 

@@ -44,11 +44,10 @@ fun HorarioStudentView(
     alumnosViewModel: AlumnosViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    // Collect user ID from UserViewModel
     val id = userViewModel.userId.collectAsState().value
     val isLoading = alumnosViewModel.isLoading.collectAsState().value
-
     val horarioUrl by alumnosViewModel.horarioUrl.collectAsState()
+    val horarioUploadStatus by alumnosViewModel.horarioUploadStatus.collectAsState()
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var isFullScreen by remember { mutableStateOf(false) }
 
@@ -56,12 +55,14 @@ fun HorarioStudentView(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         selectedImageUri = uri
+        uri?.let {
+            alumnosViewModel.uploadHorario(id, it, context)
+        }
     }
 
     LaunchedEffect(id) {
         alumnosViewModel.getHorarioUrlByStudentId(id)
     }
-
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) },
@@ -87,6 +88,31 @@ fun HorarioStudentView(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
+                    // Mostrar estado de la carga
+                    when (horarioUploadStatus) {
+                        is HorarioUploadStatus.Uploading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.padding(8.dp)
+                            )
+                            Text("Subiendo horario...")
+                        }
+                        is HorarioUploadStatus.Success -> {
+                            Text(
+                                "Horario subido exitosamente",
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        is HorarioUploadStatus.Error -> {
+                            Text(
+                                (horarioUploadStatus as HorarioUploadStatus.Error).message,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                        else -> {}
+                    }
+
                     if (horarioUrl != null || selectedImageUri != null) {
                         AsyncImage(
                             model = selectedImageUri ?: horarioUrl,
@@ -103,19 +129,6 @@ fun HorarioStudentView(
                         ) {
                             Text("Cambiar Horario")
                         }
-
-                        if(selectedImageUri != null){
-                            Button(
-                                onClick = {
-                                    alumnosViewModel.insertHorario(id,selectedImageUri!!,context)
-                                    navController.popBackStack()
-                                          },
-                                modifier = Modifier.padding(top = 16.dp)
-                            ) {
-                                Text("Confirmar")
-                            }
-                        }
-
                     } else {
                         Text(
                             "Aún no has subido tu horario",
@@ -140,4 +153,3 @@ fun HorarioStudentView(
         }
     }
 }
-
